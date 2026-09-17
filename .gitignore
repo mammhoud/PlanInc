@@ -33,3 +33,8 @@ dev-dist
 .claude/settings.local.json
 target
 server/public
+# core dumps - never commit
+core
+app/core
+*.core
+core.*
