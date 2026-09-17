@@ -31,6 +31,36 @@ export const tag = [
     "name": "Multi-Level-Tags",
     "icon": "\uD83C\uDFF7\uFE0F",
     "parent": 1
+  },
+  {
+    "id": 6,
+    "name": "Study",
+    "icon": "🔬",
+    "parent": 0
+  },
+  {
+    "id": 7,
+    "name": "Projects",
+    "icon": "🛠️",
+    "parent": 0
+  },
+  {
+    "id": 8,
+    "name": "People",
+    "icon": "👥",
+    "parent": 0
+  },
+  {
+    "id": 9,
+    "name": "Ideas",
+    "icon": "💡",
+    "parent": 0
+  },
+  {
+    "id": 10,
+    "name": "Reference",
+    "icon": "📖",
+    "parent": 0
   }
 ]
 
@@ -151,6 +181,126 @@ export const notes = [
     "isShare": false,
     "isTop": false,
     "sharePassword": ""
+  },
+  {
+    "id": 7,
+    "type": 0,
+    "content": "#Study/Graph\n\nA knowledge graph is useful when relationships are easier to scan than a folder tree.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 8,
+    "type": 0,
+    "content": "#Study/Graph\n\nNodes represent notes, tags, and objects. Edges represent a meaningful link, not decoration.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 9,
+    "type": 0,
+    "content": "#Projects/CRM\n\nMap a customer problem to an owner, a next action, and a measurable outcome.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 10,
+    "type": 0,
+    "content": "#Projects/CRM\n\nPipeline review: qualify the opportunity, record the decision, and keep the next step visible.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 11,
+    "type": 0,
+    "content": "#People/Research\n\nInterview prompt: what do you reach for first when a project loses momentum?",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 12,
+    "type": 0,
+    "content": "#Ideas/Interface\n\nThe best graph views make context visible without turning every relationship into a form field.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 13,
+    "type": 0,
+    "content": "#Reference/Design\n\nUse one accent, strong type hierarchy, and visible structure when a workspace carries operational data.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 14,
+    "type": 0,
+    "content": "#Study/Review\n\nA useful review loop asks what changed, what matters now, and what should happen next.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 15,
+    "type": 0,
+    "content": "#Projects/Launch\n\nRelease checklist: test the primary path, verify the empty state, inspect logs, and document rollback.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 16,
+    "type": 0,
+    "content": "#Reference/Workflow\n\nAutomations should remain observable, retryable, and safe to run twice.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 17,
+    "type": 0,
+    "content": "#Ideas/Automation\n\nPrefer a small explicit action catalog over hidden magic that cannot be reviewed.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
+  },
+  {
+    "id": 18,
+    "type": 0,
+    "content": "#Study/Method\n\nWhen learning a system, connect the concept, an example, a question, and a practical test.",
+    "isArchived": false,
+    "isRecycle": false,
+    "isShare": false,
+    "isTop": false,
+    "sharePassword": ""
   }
 ]
 
@@ -199,7 +349,19 @@ export const tagsToNote = [
     "id": 9,
     "noteId": 5,
     "tagId": 5
-  }
+  },
+  { "id": 10, "noteId": 7, "tagId": 6 },
+  { "id": 11, "noteId": 8, "tagId": 6 },
+  { "id": 12, "noteId": 9, "tagId": 7 },
+  { "id": 13, "noteId": 10, "tagId": 7 },
+  { "id": 14, "noteId": 11, "tagId": 8 },
+  { "id": 15, "noteId": 12, "tagId": 9 },
+  { "id": 16, "noteId": 13, "tagId": 10 },
+  { "id": 17, "noteId": 14, "tagId": 6 },
+  { "id": 18, "noteId": 15, "tagId": 7 },
+  { "id": 19, "noteId": 16, "tagId": 10 },
+  { "id": 20, "noteId": 17, "tagId": 9 },
+  { "id": 21, "noteId": 18, "tagId": 6 }
 ]
 
 export async function createSeed(accountId: number) {

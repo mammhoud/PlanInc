@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { BlinkoCard } from "@/components/BlinkoCard";
 import { LoadingAndEmpty } from "@/components/Common/LoadingAndEmpty";
+import { PreviewPdfButton } from "@/components/Common/PreviewPdfButton";
 
 const Detail = observer(() => {
   const location = useLocation();
@@ -21,7 +22,8 @@ const Detail = observer(() => {
 
   return (
     <ScrollArea fixMobileTopBar>
-      <div className="max-w-[800px] mx-auto p-4">
+      <div className="blinko-preview-page max-w-[800px] mx-auto p-4">
+        <div className="blinko-preview-toolbar"><span>Note preview</span><PreviewPdfButton /></div>
         <LoadingAndEmpty
           isLoading={blinko.noteDetail.loading.value}
           isEmpty={!blinko.noteDetail.value}

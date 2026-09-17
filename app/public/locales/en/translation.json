@@ -839,5 +839,19 @@
   "custom-title": "Custom Title",
   "custom-title-tip": "Used for browser tab and sign-in title. Leave empty to use the default title.",
   "custom-title-placeholder": "Enter a title (1-50 chars)",
-  "login-with": "Login With {{title}}"
+  "login-with": "Login With {{title}}",
+  "ai-generate-emoji": "Generate emoji",
+  "ai-generating-emoji": "Generating emoji...",
+  "date-range": "Date range",
+  "days-ago": "days ago",
+  "enter-your-api-key": "Enter your API key",
+  "hours-ago": "hours ago",
+  "impoort-from-bko": "Import from .bko",
+  "minutes-ago": "minutes ago",
+  "months-ago": "months ago",
+  "setting": "Setting",
+  "superadmin": "Superadmin",
+  "user": "User",
+  "weeks-ago": "weeks ago",
+  "years-ago": "years ago"
 }

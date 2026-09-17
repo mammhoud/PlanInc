@@ -105,6 +105,16 @@ export class BlinkoStore implements Store {
     endDate: null as Date | null,
     hasTodo: false
   }
+  surrealDbConnected: boolean = false;
+
+  async checkSurrealDbConnection() {
+    try {
+      const res = await api.config.list.query();
+      this.surrealDbConnected = true;
+    } catch (error) {
+      this.surrealDbConnected = false;
+    }
+  }
   noteTypeDefault: NoteType = NoteType.BLINKO
   currentCommonFilter: filterType | null = null
   updateTicker = 0
@@ -540,6 +550,7 @@ export class BlinkoStore implements Store {
     this.config.call()
     this.dailyReviewNoteList.call()
     this.task.call()
+    this.checkSurrealDbConnection()
   }
 
 

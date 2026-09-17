@@ -25,6 +25,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { HotkeySetting } from '@/components/BlinkoSettings/HotkeySetting';
 import { isDesktop } from '@/lib/tauriHelper';
+import { useSurrealDb } from '@/lib/surrealDb';
 
 type SettingItem = {
   key: string;
@@ -146,6 +147,22 @@ export const allSettings: SettingItem[] = [
     component: <AboutSetting />,
     requireAdmin: false,
     keywords: ['about', 'information', '关于', '信息'],
+  },
+  {
+    key: 'surrealdb',
+    title: ('surrealdb'),
+    icon: 'solar:database-bolt',
+    component: <div className="p-4">
+      <div className="flex items-center gap-2">
+        <Icon icon="solar:connection" width="20" height="20" className={blinkoStore.surrealDbConnected ? 'text-green-500' : 'text-red-500'} />
+        <span className="font-medium">{t(blinkoStore.surrealDbConnected ? 'connected' : 'disconnected')}</span>
+      </div>
+      <div className="mt-2 text-sm text-desc">
+        SurrealDB connection status for settings technical content
+      </div>
+    </div>,
+    requireAdmin: false,
+    keywords: ['surrealdb', 'surreal', 'database', 'technical', 'surrealdb'],
   },
 ];
 const Page = observer(() => {

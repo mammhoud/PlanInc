@@ -2,10 +2,12 @@ import React, { useEffect } from 'react'
 import { observer } from "mobx-react-lite"
 import { RootStore } from "@/store/root"
 import { AnalyticsStore } from "@/store/analyticsStore"
+import { BlinkoStore } from "@/store/blinkoStore"
 import { useTranslation } from "react-i18next"
 import { HeatMap } from "@/components/BlinkoAnalytics/HeatMap"
 import { StatsCards } from "@/components/BlinkoAnalytics/StatsCards"
 import { TagDistributionChart } from "@/components/BlinkoAnalytics/TagDistributionChart"
+import { KnowledgeGraph } from "@/components/BlinkoAnalytics/KnowledgeGraph"
 import dayjs from "dayjs"
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@heroui/react"
 import { Icon } from '@/components/Common/Iconify/icons'
@@ -13,9 +15,12 @@ import { ScrollArea } from '@/components/Common/ScrollArea'
 
 const Analytics = observer(() => {
   const analyticsStore = RootStore.Get(AnalyticsStore)
+  const blinkoStore = RootStore.Get(BlinkoStore)
   const { t } = useTranslation()
   const [selectedMonth, setSelectedMonth] = React.useState(dayjs().format("YYYY-MM"))
   analyticsStore.use()
+  blinkoStore.use()
+  blinkoStore.useQuery()
 
   useEffect(() => {
     analyticsStore.setSelectedMonth(selectedMonth)
@@ -32,6 +37,7 @@ const Analytics = observer(() => {
   ] as [string, number]) ?? []
 
   const stats = analyticsStore.monthlyStats.value
+  const graphNotes = blinkoStore.noteList.value ?? blinkoStore.blinkoList.value ?? []
 
   return (
     <ScrollArea onBottom={() => { }} fixMobileTopBar className="px-6 space-y-2 md:p-6 md:space-y-6  mx-auto max-w-7xl" >
@@ -71,6 +77,8 @@ const Analytics = observer(() => {
       </div>
 
       <StatsCards stats={stats ?? {}} />
+
+      <KnowledgeGraph notes={graphNotes} />
 
       <HeatMap
         data={data}

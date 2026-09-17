@@ -338,3 +338,104 @@ body {
 .group[data-focus-visible="true"] .group-data-\[focus-visible\=true\]\:ring-2 {
   --tw-ring-shadow: 0 !important;
 }
+
+/* Loop CRM tactical substrate: a scoped redesign for the workspace shell. */
+.blinko-crm-shell {
+  --crm-bg: #0a0a0a;
+  --crm-panel: #121212;
+  --crm-panel-raised: #1a1a1a;
+  --crm-line: #292929;
+  --crm-ink: #eaeaea;
+  --crm-muted: #929292;
+  --crm-dim: #5d5d5d;
+  --crm-red: #e61919;
+  --crm-red-bright: #ff3b3b;
+  --crm-green: #4af626;
+  background: var(--crm-bg) !important;
+  color: var(--crm-ink);
+}
+.blinko-crm-shell .bg-secondbackground,
+.blinko-crm-shell .bg-background { background-color: var(--crm-bg) !important; }
+.blinko-crm-shell .bg-background\/50 { background-color: color-mix(in srgb, var(--crm-panel) 82%, transparent) !important; }
+.blinko-crm-shell .border-hover,
+.blinko-crm-shell .border-default-200 { border-color: var(--crm-line) !important; }
+.blinko-crm-shell .text-primary { color: var(--crm-red-bright) !important; }
+.blinko-crm-shell .bg-primary { background-color: var(--crm-red) !important; }
+.blinko-crm-shell .text-default-500,
+.blinko-crm-shell .text-default-600,
+.blinko-crm-shell .text-desc { color: var(--crm-muted) !important; }
+.blinko-crm-shell .rounded-2xl,
+.blinko-crm-shell .rounded-xl,
+.blinko-crm-shell .rounded-lg,
+.blinko-crm-shell .rounded-full { border-radius: 0 !important; }
+.blinko-crm-shell #page-wrap { background: var(--crm-bg); }
+.blinko-crm-shell .blinko-mobile-header { background: var(--crm-panel) !important; border-bottom: 1px solid var(--crm-line); box-shadow: 0 10px 30px rgba(0,0,0,.28) !important; }
+.blinko-crm-shell .blinko-mobile-header > div { border-color: var(--crm-line) !important; background: var(--crm-panel) !important; backdrop-filter: none !important; }
+.blinko-crm-shell .blinko-mobile-header button:hover { background: var(--crm-panel-raised) !important; }
+.blinko-crm-shell .card-masonry-grid_column > div { animation: crm-card-in .55s cubic-bezier(.16,1,.3,1) both; }
+.blinko-crm-shell .card-masonry-grid_column > div:nth-child(2) { animation-delay: 70ms; }
+.blinko-crm-shell .card-masonry-grid_column > div:nth-child(3) { animation-delay: 140ms; }
+@keyframes crm-card-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.blinko-crm-shell .blinko-card,
+.blinko-crm-shell [class*="BlinkoCard"] { border-radius: 0 !important; }
+.blinko-crm-shell .blinko-preview-page { padding-top: 1.5rem; }
+.blinko-preview-shell,
+.blinko-preview-page { border: 1px solid var(--crm-line); background: var(--crm-panel); }
+.blinko-preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .7rem .9rem; border-bottom: 1px solid var(--crm-line); color: var(--crm-muted); font: 600 .65rem "JetBrains Mono", monospace; letter-spacing: .1em; text-transform: uppercase; }
+.blinko-preview-pdf-button { border: 1px solid var(--crm-red) !important; border-radius: 0 !important; background: var(--crm-red) !important; color: #080808 !important; font: 700 .62rem "JetBrains Mono", monospace !important; text-transform: uppercase; }
+.blinko-preview-pdf-button:hover { background: var(--crm-red-bright) !important; transform: translateY(-1px); }
+.blinko-preview-pdf-button:active { transform: translateY(1px); }
+
+/* Anytype-inspired node graph, translated into the CRM's sharp tactical language. */
+.blinko-crm-graph { border: 1px solid var(--crm-line); border-radius: 0 !important; background: var(--crm-panel) !important; color: var(--crm-ink); }
+.blinko-crm-graph__head { display: flex; justify-content: space-between; gap: 1.5rem; align-items: flex-start; }
+.blinko-crm-graph__kicker { color: var(--crm-red-bright); font: 600 .62rem "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+.blinko-crm-graph h2 { margin: .45rem 0 0; color: var(--crm-ink); font-size: clamp(1.25rem, 2.3vw, 1.9rem); line-height: 1; letter-spacing: -.04em; text-transform: uppercase; }
+.blinko-crm-graph__head p { max-width: 42rem; margin: .65rem 0 0; color: var(--crm-muted); font-size: .82rem; }
+.blinko-crm-graph__legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; color: var(--crm-muted); font: 600 .62rem "JetBrains Mono", monospace; text-transform: uppercase; }
+.blinko-crm-graph__legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.blinko-crm-graph__legend i { width: .48rem; height: .48rem; display: inline-block; border: 1px solid var(--crm-line); }
+.blinko-crm-graph__legend i[data-kind="note"] { background: var(--crm-red); }
+.blinko-crm-graph__legend i[data-kind="tag"] { background: var(--crm-green); }
+.blinko-crm-graph__legend i[data-kind="object"] { background: var(--crm-ink); }
+.blinko-crm-graph__canvas { position: relative; min-height: 25rem; overflow: hidden; border: 1px solid var(--crm-line); background-color: #0d0d0d; background-image: linear-gradient(rgba(234,234,234,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(234,234,234,.035) 1px, transparent 1px); background-size: 2rem 2rem; cursor: grab; touch-action: none; }
+.blinko-crm-graph__canvas:active { cursor: grabbing; }
+.blinko-crm-graph__canvas svg { display: block; width: 100%; height: 31rem; }
+.blinko-crm-graph__edge { stroke: #454545; stroke-width: 1.2; stroke-dasharray: 4 5; opacity: .7; animation: crm-edge-in .8s cubic-bezier(.16,1,.3,1) both; }
+.blinko-crm-graph__node { outline: none; cursor: pointer; animation: crm-node-in .55s cubic-bezier(.16,1,.3,1) var(--node-delay) both; transform-box: fill-box; transform-origin: center; }.blinko-crm-graph__node circle:first-child,
+  .blinko-crm-graph__node rect:first-child { transition: r .25s cubic-bezier(.16,1,.3,1), transform .25s cubic-bezier(.16,1,.3,1), filter .25s ease; transform-box: fill-box; transform-origin: center; }
+  .blinko-crm-graph__node:hover circle:first-child,
+  .blinko-crm-graph__node:hover rect:first-child,
+  .blinko-crm-graph__node:focus circle:first-child,
+  .blinko-crm-graph__node:focus rect:first-child,
+  .blinko-crm-graph__node.is-selected circle:first-child,
+  .blinko-crm-graph__node.is-selected rect:first-child { filter: drop-shadow(0 0 7px currentColor); transform: scale(1.18); }
+  .blinko-crm-graph__node.is-selected circle:first-child { r: 16; }
+  .blinko-crm-graph__node--object rect:first-child { stroke: currentColor; stroke-width: 1; }
+  .blinko-crm-graph__node--object text { letter-spacing: .02em; }
+.blinko-crm-graph__halo { fill: none; stroke: currentColor; stroke-width: 1; opacity: .2; }
+.blinko-crm-graph__node text { fill: var(--crm-muted); font: 600 11px "JetBrains Mono", monospace; pointer-events: none; }
+.blinko-crm-graph__node--note { color: var(--crm-red); }
+.blinko-crm-graph__node--tag { color: var(--crm-green); }
+.blinko-crm-graph__node--object { color: var(--crm-ink); }
+@keyframes crm-node-in { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: scale(1); } }
+@keyframes crm-edge-in { from { opacity: 0; stroke-dashoffset: 18; } to { opacity: .7; stroke-dashoffset: 0; } }
+.blinko-crm-graph__controls { position: absolute; right: .8rem; bottom: .8rem; display: flex; align-items: center; gap: .35rem; padding: .3rem; border: 1px solid var(--crm-line); background: rgba(18,18,18,.95); color: var(--crm-muted); font: 600 .62rem "JetBrains Mono", monospace; }
+.blinko-crm-graph__controls button { min-width: 1.8rem; border-radius: 0 !important; color: var(--crm-ink); }
+.blinko-crm-graph__controls button:hover { background: var(--crm-red) !important; color: #080808; }
+.blinko-crm-graph__selection { display: grid; gap: .25rem; padding: .8rem .95rem; border-left: 2px solid var(--crm-red); background: #181818; }
+.blinko-crm-graph__selection span { color: var(--crm-red-bright); font: 600 .6rem "JetBrains Mono", monospace; text-transform: uppercase; }
+.blinko-crm-graph__selection strong { color: var(--crm-ink); }
+.blinko-crm-graph__selection p { margin: 0; color: var(--crm-muted); font-size: .78rem; }
+.blinko-crm-graph__footer { display: flex; flex-wrap: wrap; gap: .7rem 1.4rem; color: var(--crm-dim); font: 600 .6rem "JetBrains Mono", monospace; letter-spacing: .06em; text-transform: uppercase; }
+@media (max-width: 700px) { .blinko-crm-graph__head { flex-direction: column; } .blinko-crm-graph__canvas svg { height: 24rem; } .blinko-crm-graph__legend { width: 100%; } .blinko-crm-graph__node text { font-size: 9px; } }
+@media (prefers-reduced-motion: reduce) { .blinko-crm-shell .card-masonry-grid_column > div, .blinko-crm-graph__node, .blinko-crm-graph__edge { animation: none; } .blinko-crm-graph__node circle:first-child, .blinko-crm-graph__node rect:first-child { transition: none; } }
+
+@media print {
+  body { background: #fff !important; color: #111 !important; overflow: visible !important; }
+  body::before, body::after, .blinko-mobile-header, .bm-burger-button, #outer-container > nav, .blinko-preview-pdf-button { display: none !important; }
+  .blinko-crm-shell, #page-wrap, .blinko-preview-shell, .blinko-preview-page { background: #fff !important; color: #111 !important; box-shadow: none !important; border: 0 !important; }
+  .blinko-preview-toolbar { color: #111 !important; border-color: #bbb !important; }
+  .blinko-preview-page, .blinko-preview-shell { max-width: none !important; width: 100% !important; padding: 0 !important; }
+  .blinko-preview-shell > *:not(.blinko-preview-toolbar) { color: #111 !important; }
+}
