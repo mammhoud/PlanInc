@@ -49,7 +49,7 @@ export function lit(v: any): string {
     case 'string':
       return JSON.stringify(v);
     case 'object':
-      if (v instanceof Date) return `time::datetime(${JSON.stringify(v.toISOString())})`;
+      if (v instanceof Date) return `type::datetime(${JSON.stringify(v.toISOString())})`;
       return JSON.stringify(v);
     default:
       return JSON.stringify(String(v));

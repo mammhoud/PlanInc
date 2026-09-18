@@ -28,7 +28,7 @@
  *  - $transaction(fn) executes fn against the same layer (best-effort atomicity;
  *    Surreal multi-statement transactions are used where a direct SQL form
  *    exists).
- *  - Dates are stored as ISO strings via time::datetime() and returned as
+ *  - Dates are stored as ISO strings via type::datetime() and returned as
  *    JS Date objects (dates round-trip as real Dates).
  */
 import { surreal, lit, litPlain, SurrealError } from './surreal';

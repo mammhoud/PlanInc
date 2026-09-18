@@ -128,7 +128,7 @@ export const scheduler = {
           const ts = new Date().toISOString();
           const run = dispatch(row.name, row.data);
           const mark = () =>
-            query(`UPDATE jobSchedule SET lastRun = time::datetime(${JSON.stringify(ts)}) WHERE name = ${JSON.stringify(row.name)};`);
+            query(`UPDATE jobSchedule SET lastRun = type::datetime(${JSON.stringify(ts)}) WHERE name = ${JSON.stringify(row.name)};`);
           if (run) {
             console.log(`[scheduler] firing ${row.name}`);
             run.then(mark).catch(err => console.error(`[scheduler] ${row.name} failed:`, err));

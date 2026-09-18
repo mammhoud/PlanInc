@@ -18,7 +18,7 @@ export const analyticsRouter = router({
       const rows = await surrealSelect<any>(
         `SELECT time::format(createdAt, '%Y-%m-%d') AS day, count() AS c
          FROM notes WHERE accountId = ${parseInt(ctx.id)}
-           AND createdAt >= time::datetime(${JSON.stringify(new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())})
+           AND createdAt >= type::datetime(${JSON.stringify(new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())})
          GROUP BY day;`
       );
       const dailyStats = rows
@@ -64,8 +64,8 @@ export const analyticsRouter = router({
       const noteRows = await surrealSelect<any>(
         `SELECT time::format(createdAt, '%Y-%m-%d') AS day, string::len(content) AS len
          FROM notes WHERE accountId = ${parseInt(ctx.id)}
-           AND createdAt >= time::datetime(${JSON.stringify(startDate.toISOString())})
-           AND createdAt <= time::datetime(${JSON.stringify(endDate.toISOString())});`
+           AND createdAt >= type::datetime(${JSON.stringify(startDate.toISOString())})
+           AND createdAt <= type::datetime(${JSON.stringify(endDate.toISOString())});`
       )
       const perDay = new Map<string, number>()
       for (const row of noteRows) {

@@ -75,7 +75,7 @@ PlanInc serves as an incubation platform for innovative ideas and projects.
 
 ```
 PlanInc/
-├── planing/           # Main planning service
+├── src/               # PlanInc application source (frontend, server, shared)
 ├── runtime/           # Execution runtime (built app + playwright tests)
 │   ├── public/        # Frontend assets
 │   ├── tests/         # Playwright e2e tests
