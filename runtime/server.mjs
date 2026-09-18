@@ -7,17 +7,16 @@ import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { Surreal, RecordId, StringRecordId } from 'surrealdb';
+import { createNodeEngines } from '@surrealdb/node';
 import { renderMarkdown as renderSharedMarkdown } from './public/markdown.mjs';
 import { sampleContent } from './public/sample-content.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = Number(process.env.PLANING_PORT || 1111);
-const surrealUrl = (process.env.SURREALDB_URL || 'http://surrealdb:8000/rpc').replace(/\/rpc\/?$/, '');
-const surrealUser = process.env.SURREALDB_USER || 'root';
-const surrealPass = process.env.SURREALDB_PASS || 'planing';
-const surrealNs = process.env.SURREALDB_NS || 'planing';
-const surrealDb = process.env.SURREALDB_DB || 'planing';
+const surrealFile = process.env.SURREALDB_FILE || path.join(__dirname, 'data', 'planinc.db');
+const surrealNs = process.env.SURREALDB_NS || 'planinc';
+const surrealDb = process.env.SURREALDB_DB || 'planinc';
 const jwtSecret = process.env.NEXTAUTH_SECRET || 'planing-secret-change-me';
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, 'data', 'uploads');
 const maxUploadBytes = Number(process.env.MAX_UPLOAD_BYTES || 26214400);
@@ -224,7 +223,6 @@ const defaultPrompts = [
 ];
 
 let db;
-let reauthInFlight = null;
 
 // The bundled SurrealDB driver can hand back either a flat result or a
 // per-statement array; normalise to the first statement's rows.
@@ -232,61 +230,56 @@ function unwrapResult(result) {
   return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result;
 }
 
-const AUTH_ERROR = /authentication|unauthorized|invalid token|not authenticated/i;
-
-// The HTTP transport signs in once at boot and then reuses that token. If the
-// engine restarts or rotates its signing key the token goes stale and every
-// query fails until the process restarts. Re-sign in (once, shared across
-// concurrent failures) so a long-running deployment heals itself.
-async function reauthenticate() {
-  if (!reauthInFlight) {
-    reauthInFlight = (async () => {
-      // Rebuild the client instead of only signing in again on the existing
-      // socket. SurrealDB can rotate a token or close an HTTP session while
-      // the process remains alive; reusing that client caused every health
-      // probe and worker retry to emit the same authentication error forever.
-      const next = new Surreal();
-      await next.connect(surrealUrl);
-      await next.signin({ username: surrealUser, password: surrealPass });
-      await next.use({ namespace: surrealNs, database: surrealDb });
-      const previous = db;
-      db = next;
-      try { await previous?.close(); } catch { /* stale client is disposable */ }
-    })().finally(() => { reauthInFlight = null; });
-  }
-  await reauthInFlight;
-}
-
 async function q(sql, vars = {}) {
-  try {
-    return unwrapResult(await db.query(sql, vars));
-  } catch (error) {
-    if (!AUTH_ERROR.test(String(error?.message || ''))) throw error;
-    await reauthenticate();
-    return unwrapResult(await db.query(sql, vars));
-  }
+  return unwrapResult(await db.query(sql, vars));
 }
 
 async function connectSurreal() {
-  db = new Surreal();
-  // The engine may still be starting when we boot (compose ordering, test
-  // harnesses), so retry the handshake briefly instead of dying on first try.
-  const maxAttempts = 30;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      await db.connect(surrealUrl);
-      await db.signin({ username: surrealUser, password: surrealPass });
-      break;
-    } catch (error) {
-      if (attempt === maxAttempts) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
+  // Ensure the data directory exists before opening the embedded file.
+  fs.mkdirSync(path.dirname(surrealFile), { recursive: true });
+  db = new Surreal({
+    engines: { ...createNodeEngines() },
+  });
+  await db.connect(`surrealkv://${surrealFile}`);
   await db.use({ namespace: surrealNs, database: surrealDb });
   await q('RETURN 1;');
-  await dedupeCategories();
+  // ── Schema bootstrap pass 1: define all tables first so cross-references
+  // ── in field definitions (record<workspace>, record<account>, etc.) resolve.
   await q(`
-    DEFINE TABLE workspace SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS workspace SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS category SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS account SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS tag SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS notes SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS attachments SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS workspace_member TYPE RELATION IN account OUT workspace SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS workspace_invitation SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS note_comment SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS audit_event SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS note_activity SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS rate_limit_hit SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS security_event SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS query_metric SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS ai_provider SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS ai_run SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS ai_job SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS chat_session SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS chat_message SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS prompt_template SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS study_item SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS study_review SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS note_link TYPE RELATION IN notes OUT notes SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS integration SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS chat_room SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS chat_room_member TYPE RELATION IN account OUT chat_room SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS chat_room_message SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS ticket_field SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS ticket SCHEMAFULL;
+    DEFINE TABLE IF NOT EXISTS ticket_reply SCHEMAFULL;
+  `);
+  // ── Schema bootstrap pass 2: define all fields and indexes now that every
+  // ── table exists, so TYPE record<other_table> references always resolve.
+  await q(`
     DEFINE FIELD name ON workspace TYPE option<string> DEFAULT 'Planing workspace';
     DEFINE FIELD description ON workspace TYPE option<string> DEFAULT 'A shared stream for people and agents.';
     DEFINE FIELD default_category ON workspace TYPE option<string> DEFAULT 'notes';
@@ -303,61 +296,69 @@ async function connectSurreal() {
     DEFINE FIELD shadow_depth ON workspace TYPE option<string> DEFAULT 'default';
     DEFINE FIELD density ON workspace TYPE option<string> DEFAULT 'cozy';
     DEFINE FIELD slug ON workspace TYPE option<string>;
-    // The configured context roots this workspace may read. An empty list means
-    // every configured root; a populated list is the allow-list for chats here.
     DEFINE FIELD context_roots ON workspace TYPE option<array> DEFAULT [];
     DEFINE FIELD created_by ON workspace TYPE option<record<account>>;
     DEFINE FIELD created_at ON workspace TYPE option<datetime> DEFAULT time::now();
     DEFINE FIELD updated_at ON workspace TYPE option<datetime> DEFAULT time::now();
+    DEFINE FIELD retention_days ON workspace TYPE option<number>;
+    DEFINE FIELD purge_after_days ON workspace TYPE option<number>;
+    DEFINE FIELD ai_allowed_providers ON workspace TYPE option<array> DEFAULT [];
+    DEFINE FIELD ai_default_provider ON workspace TYPE option<string>;
+    DEFINE FIELD ai_run_cap ON workspace TYPE option<number>;
+    DEFINE FIELD ai_monthly_budget_micros ON workspace TYPE option<number>;
+    DEFINE FIELD is_archived ON workspace TYPE option<bool> DEFAULT false;
+    DEFINE FIELD metadata ON workspace FLEXIBLE TYPE option<object> DEFAULT {};
 
-    DEFINE TABLE category SCHEMAFULL;
     DEFINE FIELD name ON category TYPE string;
     DEFINE FIELD slug ON category TYPE string;
     DEFINE FIELD color ON category TYPE option<string> DEFAULT '#64748b';
     DEFINE FIELD icon ON category TYPE option<string> DEFAULT 'C';
     DEFINE FIELD is_system ON category TYPE option<bool> DEFAULT false;
     DEFINE FIELD created_at ON category TYPE option<datetime> DEFAULT time::now();
-    // Lane slugs are unique per workspace, not globally: every workspace has its
-    // own "notes" lane, and a slug only has to be stable inside one workspace.
+    DEFINE FIELD workspace ON category TYPE option<record<workspace>> DEFAULT workspace:default;
+    DEFINE FIELD parent ON category TYPE option<record<category>>;
+    DEFINE FIELD description ON category TYPE option<string>;
+    DEFINE FIELD sort_order ON category TYPE option<number> DEFAULT 0;
+    DEFINE FIELD is_archived ON category TYPE option<bool> DEFAULT false;
+    DEFINE FIELD is_default ON category TYPE option<bool> DEFAULT false;
+    DEFINE FIELD flags ON category FLEXIBLE TYPE option<object> DEFAULT {};
+    DEFINE FIELD metadata ON category FLEXIBLE TYPE option<object> DEFAULT {};
+    DEFINE FIELD updated_at ON category TYPE option<datetime> DEFAULT time::now();
     REMOVE INDEX IF EXISTS category_slug ON category;
     DEFINE INDEX category_ws_slug ON category FIELDS workspace, slug UNIQUE;
 
-    DEFINE TABLE account SCHEMAFULL;
     DEFINE FIELD name ON account TYPE string;
     DEFINE FIELD password_hash ON account TYPE string;
     DEFINE FIELD role ON account TYPE string;
     DEFINE FIELD workspace ON account TYPE option<record<workspace>> DEFAULT workspace:default;
-    // The workspace this account is currently looking at. Membership is still
-    // the authority: switching validates the edge before the field is written.
     DEFINE FIELD active_workspace ON account TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD created_at ON account TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX account_name ON account FIELDS name UNIQUE;
 
-    DEFINE TABLE tag SCHEMAFULL;
     DEFINE FIELD name ON tag TYPE string;
     DEFINE FIELD created_at ON tag TYPE option<datetime> DEFAULT time::now();
+    DEFINE FIELD workspace ON tag TYPE option<record<workspace>> DEFAULT workspace:default;
+    DEFINE FIELD is_system ON tag TYPE option<bool> DEFAULT false;
+    DEFINE FIELD updated_at ON tag TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX tag_name ON tag FIELDS name UNIQUE;
 
-    DEFINE TABLE notes SCHEMAFULL;
     DEFINE FIELD content ON notes TYPE string;
     DEFINE FIELD category ON notes TYPE record<category>;
     DEFINE FIELD account ON notes TYPE record<account>;
+    DEFINE FIELD workspace ON notes TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD tags ON notes TYPE option<array> DEFAULT [];
     DEFINE FIELD tags.* ON notes TYPE option<record<tag>>;
     DEFINE FIELD is_archived ON notes TYPE option<bool> DEFAULT false;
     DEFINE FIELD is_recycle ON notes TYPE option<bool> DEFAULT false;
     DEFINE FIELD is_top ON notes TYPE option<bool> DEFAULT false;
     DEFINE FIELD is_share ON notes TYPE option<bool> DEFAULT false;
-    // FLEXIBLE is load-bearing on v1.5.6: a plain object field type strips
-    // every key from the value, so metadata/flags/mapping would read back empty.
     DEFINE FIELD metadata ON notes FLEXIBLE TYPE option<object> DEFAULT {};
+    DEFINE FIELD flags ON notes FLEXIBLE TYPE option<object> DEFAULT {};
+    DEFINE FIELD created_by ON notes TYPE option<record<account>>;
     DEFINE FIELD created_at ON notes TYPE option<datetime> DEFAULT time::now();
     DEFINE FIELD updated_at ON notes TYPE option<datetime> DEFAULT time::now();
-    // ---- planning model (kanban + calendar) ----
-    // A note doubles as a plan item: status is its kanban column, position
-    // is its manual order inside that column, and the three dates drive the
-    // calendar. Keeping these as first-class fields (not flags) lets the kanban
-    // and calendar queries use real indexes instead of scanning the JSON bag.
+    DEFINE FIELD word_count ON notes TYPE option<number> DEFAULT 0;
+    DEFINE FIELD link_count ON notes TYPE option<number> DEFAULT 0;
     DEFINE FIELD status ON notes TYPE option<string> DEFAULT 'todo';
     DEFINE FIELD priority ON notes TYPE option<string> DEFAULT 'medium';
     DEFINE FIELD due_date ON notes TYPE option<datetime>;
@@ -371,7 +372,6 @@ async function connectSurreal() {
     DEFINE INDEX notes_due ON notes FIELDS workspace, due_date;
     DEFINE INDEX notes_start ON notes FIELDS workspace, start_date;
 
-    DEFINE TABLE attachments SCHEMAFULL;
     DEFINE FIELD name ON attachments TYPE string;
     DEFINE FIELD path ON attachments TYPE string;
     DEFINE FIELD size ON attachments TYPE number;
@@ -380,36 +380,27 @@ async function connectSurreal() {
     DEFINE FIELD account ON attachments TYPE option<record<account>>;
     DEFINE FIELD sort_order ON attachments TYPE number DEFAULT 0;
     DEFINE FIELD created_at ON attachments TYPE datetime DEFAULT time::now();
+    DEFINE FIELD text_content ON attachments TYPE option<string>;
+    DEFINE FIELD text_status ON attachments TYPE option<string> DEFAULT 'none';
+    DEFINE FIELD created_by ON attachments TYPE option<record<account>>;
+    DEFINE FIELD metadata ON attachments FLEXIBLE TYPE option<object> DEFAULT {};
+    DEFINE FIELD updated_at ON attachments TYPE option<datetime> DEFAULT time::now();
 
-    // Phase 2 tenancy: notes and categories carry a workspace link so every
-    // read/mutation can be bounded by membership; the edge table is the single
-    // source of the account→workspace role. Enforced per-query in SurrealQL.
-    DEFINE FIELD workspace ON notes TYPE option<record<workspace>> DEFAULT workspace:default;
-    DEFINE FIELD workspace ON category TYPE option<record<workspace>> DEFAULT workspace:default;
-
-    DEFINE TABLE workspace_member TYPE RELATION IN account OUT workspace SCHEMAFULL;
     DEFINE FIELD role ON workspace_member TYPE string;
     DEFINE FIELD created_by ON workspace_member TYPE option<record<account>>;
     DEFINE FIELD created_at ON workspace_member TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX member_unique ON workspace_member FIELDS in, out UNIQUE;
 
-    DEFINE TABLE workspace_invitation SCHEMAFULL;
     DEFINE FIELD code ON workspace_invitation TYPE string;
     DEFINE FIELD role ON workspace_invitation TYPE string;
     DEFINE FIELD workspace ON workspace_invitation TYPE record<workspace>;
     DEFINE FIELD created_by ON workspace_invitation TYPE record<account>;
     DEFINE FIELD accepted_at ON workspace_invitation TYPE option<datetime>;
     DEFINE FIELD revoked_at ON workspace_invitation TYPE option<datetime>;
-    // Per-workspace codes are time-boxed: an unclaimed code stops working after
-    // inviteTtlDays instead of standing open forever.
     DEFINE FIELD expires_at ON workspace_invitation TYPE option<datetime>;
     DEFINE FIELD created_at ON workspace_invitation TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX invitation_code ON workspace_invitation FIELDS code UNIQUE;
 
-    // Phase 2 comments: a thread hangs off one note and repeats that note's
-    // workspace, so a comment is unreadable from any other workspace even by id.
-    // Deletion is a soft flag so a thread keeps its shape and its audit trail.
-    DEFINE TABLE note_comment SCHEMAFULL;
     DEFINE FIELD note ON note_comment TYPE record<notes>;
     DEFINE FIELD workspace ON note_comment TYPE record<workspace>;
     DEFINE FIELD author ON note_comment TYPE option<record<account>>;
@@ -421,7 +412,6 @@ async function connectSurreal() {
     DEFINE FIELD updated_at ON note_comment TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX comment_thread ON note_comment FIELDS note, created_at;
 
-    DEFINE TABLE audit_event SCHEMAFULL;
     DEFINE FIELD action ON audit_event TYPE string;
     DEFINE FIELD actor ON audit_event TYPE option<record<account>>;
     DEFINE FIELD workspace ON audit_event TYPE option<record<workspace>>;
@@ -430,10 +420,6 @@ async function connectSurreal() {
     DEFINE FIELD created_at ON audit_event TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX audit_created ON audit_event FIELDS created_at;
 
-    // Phase 3: per-note activity history. Every meaningful note mutation lands
-    // here (note.created/updated/...), so a note card can show its own timeline
-    // without the workspace audit stream having to be filtered by target.
-    DEFINE TABLE note_activity SCHEMAFULL;
     DEFINE FIELD note ON note_activity TYPE record<notes>;
     DEFINE FIELD workspace ON note_activity TYPE record<workspace>;
     DEFINE FIELD action ON note_activity TYPE string;
@@ -443,15 +429,10 @@ async function connectSurreal() {
     DEFINE INDEX note_activity_note ON note_activity FIELDS note, created_at;
     DEFINE INDEX note_activity_created ON note_activity FIELDS created_at;
 
-    // Phase 3: rate limiting + security events. Buckets are keyed by
-    // "scope:identity" (e.g. "login:ip:10.0.0.1"); a hit is recorded, then
-    // the count inside the window decides whether the request passes.
-    DEFINE TABLE rate_limit_hit SCHEMAFULL;
     DEFINE FIELD bucket ON rate_limit_hit TYPE string;
     DEFINE FIELD created_at ON rate_limit_hit TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX rate_bucket_time ON rate_limit_hit FIELDS bucket, created_at;
 
-    DEFINE TABLE security_event SCHEMAFULL;
     DEFINE FIELD kind ON security_event TYPE string;
     DEFINE FIELD workspace ON security_event TYPE option<record<workspace>>;
     DEFINE FIELD name ON security_event TYPE option<string>;
@@ -461,11 +442,6 @@ async function connectSurreal() {
     DEFINE FIELD created_at ON security_event TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX security_created ON security_event FIELDS created_at;
 
-    // Phase 4 query-budget telemetry: one row per tracked query shape with
-    // latency, scanned/returned counts, and failure details. Statement text is
-    // never stored — only the caller-declared shape name — and error detail is
-    // bounded so exceptions (which can embed bound values) cannot leak secrets.
-    DEFINE TABLE query_metric SCHEMAFULL;
     DEFINE FIELD shape ON query_metric TYPE string;
     DEFINE FIELD workspace ON query_metric TYPE option<record<workspace>>;
     DEFINE FIELD ok ON query_metric TYPE bool DEFAULT true;
@@ -477,16 +453,6 @@ async function connectSurreal() {
     DEFINE INDEX query_metric_shape ON query_metric FIELDS shape, created_at;
     DEFINE INDEX query_metric_created ON query_metric FIELDS created_at;
 
-    // Phase 2 closeout: retention. 'retention_days' (NONE = keep forever)
-    // bounds recycle-bin age; 'purge_after_days' bounds soft-deleted row age.
-    // The purge sweep is part of the boot sequence and runs hourly after that.
-    DEFINE FIELD retention_days ON workspace TYPE option<number>;
-    DEFINE FIELD purge_after_days ON workspace TYPE option<number>;
-
-    // Phase 3 foundations: AI provider/model operations, chat sessions, and
-    // reusable prompt templates. Provider secrets are write-only through the
-    // API (masked on read) and stored in SurrealDB alongside the workspace.
-    DEFINE TABLE ai_provider SCHEMAFULL;
     DEFINE FIELD name ON ai_provider TYPE string;
     DEFINE FIELD kind ON ai_provider TYPE string;
     DEFINE FIELD base_url ON ai_provider TYPE string;
@@ -497,19 +463,6 @@ async function connectSurreal() {
     DEFINE FIELD created_at ON ai_provider TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX provider_name ON ai_provider FIELDS name UNIQUE;
 
-    // Per-workspace AI policy (schema v11): which providers/models a workspace
-    // may use, which one chats default to, and an optional cap on AI runs. An
-    // empty allow-list means every active provider is allowed.
-    DEFINE FIELD ai_allowed_providers ON workspace TYPE option<array> DEFAULT [];
-    DEFINE FIELD ai_default_provider ON workspace TYPE option<string>;
-    DEFINE FIELD ai_run_cap ON workspace TYPE option<number>;
-    // Monthly spend ceiling in currency micros (1e6 = one unit, same unit the
-    // ledger prices runs in). NONE means unlimited.
-    DEFINE FIELD ai_monthly_budget_micros ON workspace TYPE option<number>;
-
-    // Per-workspace AI run ledger (schema v11): one row per provider call, so
-    // usage, latency, and failures are visible per workspace and per feature.
-    DEFINE TABLE ai_run SCHEMAFULL;
     DEFINE FIELD workspace ON ai_run TYPE record<workspace>;
     DEFINE FIELD provider ON ai_run TYPE option<record<ai_provider>>;
     DEFINE FIELD model ON ai_run TYPE option<string>;
@@ -522,33 +475,19 @@ async function connectSurreal() {
     DEFINE FIELD account ON ai_run TYPE option<record<account>>;
     DEFINE FIELD session ON ai_run TYPE option<record<chat_session>>;
     DEFINE FIELD note ON ai_run TYPE option<record<notes>>;
-    DEFINE FIELD created_at ON ai_run TYPE option<datetime> DEFAULT time::now();
-    // Token/cost accounting (schema v12): usage comes from the provider
-    // response when it reports it; cost is estimated from per-model pricing in
-    // micros of the currency (1e6 = 1 unit) so rows are comparable.
     DEFINE FIELD prompt_tokens ON ai_run TYPE option<number> DEFAULT 0;
     DEFINE FIELD completion_tokens ON ai_run TYPE option<number> DEFAULT 0;
     DEFINE FIELD total_tokens ON ai_run TYPE option<number> DEFAULT 0;
     DEFINE FIELD cost_micros ON ai_run TYPE option<number> DEFAULT 0;
     DEFINE FIELD cost_currency ON ai_run TYPE option<string>;
-
-    DEFINE INDEX ai_run_created ON ai_run FIELDS created_at;
-    DEFINE INDEX ai_run_ws_feature ON ai_run FIELDS workspace, feature, created_at;
-
-    // Idempotency (schema v13): a run row is created BEFORE the provider call
-    // (the spend reservation), then updated with the outcome — so a crash
-    // mid-call still counts the spend exactly once. Jobs link the run they
-    // consumed, and a caller-supplied idempotency key makes a retried enqueue
-    // return the original job instead of spending twice.
     DEFINE FIELD job ON ai_run TYPE option<record<ai_job>>;
     DEFINE FIELD attempt ON ai_run TYPE option<number> DEFAULT 0;
     DEFINE FIELD ledger_status ON ai_run TYPE option<string> DEFAULT 'pending';
+    DEFINE FIELD created_at ON ai_run TYPE option<datetime> DEFAULT time::now();
+    DEFINE INDEX ai_run_created ON ai_run FIELDS created_at;
+    DEFINE INDEX ai_run_ws_feature ON ai_run FIELDS workspace, feature, created_at;
     DEFINE INDEX ai_run_ws_hour ON ai_run FIELDS workspace, created_at;
 
-    // Queued AI runs (schema v12): a job is a deferred provider call whose
-    // whole lifecycle (queued → running → succeeded/failed/cancelled) lives in
-    // SurrealDB. Retries back off exponentially up to max_attempts.
-    DEFINE TABLE ai_job SCHEMAFULL;
     DEFINE FIELD workspace ON ai_job TYPE record<workspace>;
     DEFINE FIELD kind ON ai_job TYPE string;
     DEFINE FIELD status ON ai_job TYPE string DEFAULT 'queued';
@@ -559,32 +498,25 @@ async function connectSurreal() {
     DEFINE FIELD next_attempt_at ON ai_job TYPE option<datetime> DEFAULT time::now();
     DEFINE FIELD last_error ON ai_job TYPE option<string>;
     DEFINE FIELD requested_by ON ai_job TYPE option<record<account>>;
-    DEFINE FIELD created_at ON ai_job TYPE option<datetime> DEFAULT time::now();
-    DEFINE FIELD updated_at ON ai_job TYPE option<datetime> DEFAULT time::now();
-    DEFINE FIELD started_at ON ai_job TYPE option<datetime>;
-    DEFINE FIELD finished_at ON ai_job TYPE option<datetime>;
-    // Caller-supplied idempotency key. Unique per workspace, so a retried
-    // enqueue resolves to the original job instead of creating a second one.
     DEFINE FIELD idempotency_key ON ai_job TYPE option<string>;
     DEFINE FIELD identity ON ai_job TYPE option<string>;
+    DEFINE FIELD started_at ON ai_job TYPE option<datetime>;
+    DEFINE FIELD finished_at ON ai_job TYPE option<datetime>;
+    DEFINE FIELD created_at ON ai_job TYPE option<datetime> DEFAULT time::now();
+    DEFINE FIELD updated_at ON ai_job TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX ai_job_due ON ai_job FIELDS status, next_attempt_at;
     DEFINE INDEX ai_job_ws_created ON ai_job FIELDS workspace, created_at;
     DEFINE INDEX ai_job_ws_key ON ai_job FIELDS workspace, idempotency_key UNIQUE;
 
-    DEFINE TABLE chat_session SCHEMAFULL;
     DEFINE FIELD title ON chat_session TYPE string;
     DEFINE FIELD provider ON chat_session TYPE option<record<ai_provider>>;
     DEFINE FIELD prompt_id ON chat_session TYPE option<string>;
-    // Files from the configured context roots that this chat may read. Stored
-    // as root:relative/path refs so the AI sees project/document files without
-    // the browser ever holding a filesystem handle.
     DEFINE FIELD context_files ON chat_session TYPE option<array> DEFAULT [];
     DEFINE FIELD created_by ON chat_session TYPE record<account>;
     DEFINE FIELD workspace ON chat_session TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD created_at ON chat_session TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX session_created ON chat_session FIELDS created_at;
 
-    DEFINE TABLE chat_message SCHEMAFULL;
     DEFINE FIELD session ON chat_message TYPE record<chat_session>;
     DEFINE FIELD role ON chat_message TYPE string;
     DEFINE FIELD content ON chat_message TYPE string;
@@ -594,18 +526,13 @@ async function connectSurreal() {
     DEFINE FIELD created_at ON chat_message TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX message_session ON chat_message FIELDS session, created_at;
 
-    DEFINE TABLE prompt_template SCHEMAFULL;
     DEFINE FIELD title ON prompt_template TYPE string;
     DEFINE FIELD body ON prompt_template TYPE string;
     DEFINE FIELD is_system ON prompt_template TYPE bool DEFAULT false;
     DEFINE FIELD workspace ON prompt_template TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD created_at ON prompt_template TYPE option<datetime> DEFAULT time::now();
-    DEFINE INDEX prompt_id ON prompt_template FIELDS id UNIQUE;
+    DEFINE INDEX prompt_title ON prompt_template FIELDS workspace, title UNIQUE;
 
-    // Phase 5: spaced-recall study items derived from notes. The box number is
-    // the Leitner box; due_at is the single scheduling source of truth so the
-    // review queue is one indexed range query.
-    DEFINE TABLE study_item SCHEMAFULL;
     DEFINE FIELD note ON study_item TYPE option<record<notes>>;
     DEFINE FIELD workspace ON study_item TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD question ON study_item TYPE string;
@@ -616,16 +543,14 @@ async function connectSurreal() {
     DEFINE FIELD review_count ON study_item TYPE option<number> DEFAULT 0;
     DEFINE FIELD lapses ON study_item TYPE option<number> DEFAULT 0;
     DEFINE FIELD source ON study_item TYPE option<string> DEFAULT 'manual';
+    DEFINE FIELD interval_days ON study_item TYPE option<number> DEFAULT 0;
+    DEFINE FIELD metadata ON study_item FLEXIBLE TYPE option<object> DEFAULT {};
     DEFINE FIELD created_by ON study_item TYPE option<record<account>>;
     DEFINE FIELD created_at ON study_item TYPE option<datetime> DEFAULT time::now();
     DEFINE FIELD updated_at ON study_item TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX study_due ON study_item FIELDS due_at;
     DEFINE INDEX study_note ON study_item FIELDS note;
 
-    // One row per grading. Retention, activity, and lapse hotspots are derived
-    // from this log instead of only from the counters on the card, so history
-    // stays queryable after a card is rescheduled many times.
-    DEFINE TABLE study_review SCHEMAFULL;
     DEFINE FIELD item ON study_review TYPE record<study_item>;
     DEFINE FIELD workspace ON study_review TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD note ON study_review TYPE option<record<notes>>;
@@ -638,79 +563,10 @@ async function connectSurreal() {
     DEFINE INDEX review_item ON study_review FIELDS item, created_at;
     DEFINE INDEX review_created ON study_review FIELDS created_at;
 
-    // Extracted text for uploaded files, so markdown/PDF material can be
-    // turned into notes without retyping it. text_status is 'none' when no
-    // extractor applied, 'ready' when text_content holds usable text.
-    DEFINE FIELD text_content ON attachments TYPE option<string>;
-    DEFINE FIELD text_status ON attachments TYPE option<string> DEFAULT 'none';
-
-    // ---- schema v5: mapping, flags, ownership, relations, integrations ----
-    // Every domain record carries the same shape so imports, syncs, and
-    // integrations can round-trip without a bespoke mapping per table:
-    //   flags     — boolean bag for soft workflow state
-    //   metadata  — free-form bag for tool-specific extras
-    //   external_id / external_source — the mapping key back to the origin
-    //   created_by / created_at / updated_at — ownership + audit
-    DEFINE FIELD parent ON category TYPE option<record<category>>;
-    DEFINE FIELD description ON category TYPE option<string>;
-    DEFINE FIELD sort_order ON category TYPE option<number> DEFAULT 0;
-    DEFINE FIELD is_archived ON category TYPE option<bool> DEFAULT false;
-    DEFINE FIELD is_default ON category TYPE option<bool> DEFAULT false;
-    DEFINE FIELD flags ON category FLEXIBLE TYPE option<object> DEFAULT {};
-    DEFINE FIELD metadata ON category FLEXIBLE TYPE option<object> DEFAULT {};
-    DEFINE FIELD external_id ON category TYPE option<string>;
-    DEFINE FIELD external_source ON category TYPE option<string>;
-    DEFINE FIELD created_by ON category TYPE option<record<account>>;
-    DEFINE FIELD updated_at ON category TYPE option<datetime> DEFAULT time::now();
-
-    DEFINE FIELD created_by ON notes TYPE option<record<account>>;
-    DEFINE FIELD updated_by ON notes TYPE option<record<account>>;
-    DEFINE FIELD flags ON notes FLEXIBLE TYPE option<object> DEFAULT {};
-    DEFINE FIELD external_id ON notes TYPE option<string>;
-    DEFINE FIELD external_source ON notes TYPE option<string>;
-    DEFINE FIELD word_count ON notes TYPE option<number> DEFAULT 0;
-    DEFINE FIELD link_count ON notes TYPE option<number> DEFAULT 0;
-
-    DEFINE FIELD color ON tag TYPE option<string>;
-    DEFINE FIELD description ON tag TYPE option<string>;
-    DEFINE FIELD is_system ON tag TYPE option<bool> DEFAULT false;
-    DEFINE FIELD workspace ON tag TYPE option<record<workspace>> DEFAULT workspace:default;
-    DEFINE FIELD created_by ON tag TYPE option<record<account>>;
-    DEFINE FIELD updated_at ON tag TYPE option<datetime> DEFAULT time::now();
-
-    DEFINE FIELD created_by ON attachments TYPE option<record<account>>;
-    DEFINE FIELD room ON attachments TYPE option<record<chat_room>>;
-    DEFINE FIELD metadata ON attachments FLEXIBLE TYPE option<object> DEFAULT {};
-    DEFINE FIELD updated_at ON attachments TYPE option<datetime> DEFAULT time::now();
-
-    DEFINE FIELD slug ON workspace TYPE option<string>;
-    DEFINE FIELD owner ON workspace TYPE option<record<account>>;
-    DEFINE FIELD is_archived ON workspace TYPE option<bool> DEFAULT false;
-    DEFINE FIELD metadata ON workspace FLEXIBLE TYPE option<object> DEFAULT {};
-    DEFINE FIELD created_by ON workspace TYPE option<record<account>>;
-
-    DEFINE FIELD last_grade ON study_item TYPE option<string>;
-    DEFINE FIELD interval_days ON study_item TYPE option<number> DEFAULT 0;
-    DEFINE FIELD metadata ON study_item FLEXIBLE TYPE option<object> DEFAULT {};
-
-    // Explicit wiki-link edges, written when a note is saved. The graph view
-    // reads these (falling back to parsing when a note predates the table) and
-    // the UNIQUE index keeps saves idempotent.
-    DEFINE TABLE note_link TYPE RELATION IN notes OUT notes SCHEMAFULL;
-    DEFINE FIELD label ON note_link TYPE string;
-    DEFINE FIELD resolved ON note_link TYPE option<bool> DEFAULT false;
-    DEFINE FIELD workspace ON note_link TYPE option<record<workspace>> DEFAULT workspace:default;
-    DEFINE FIELD created_by ON note_link TYPE option<record<account>>;
-    DEFINE FIELD created_at ON note_link TYPE option<datetime> DEFAULT time::now();
-    DEFINE INDEX note_link_unique ON note_link FIELDS in, out, label UNIQUE;
-
-    // Outbound/inbound integration definitions. Secrets are write-only through
-    // the API (masked on read) exactly like provider keys.
-    DEFINE TABLE integration SCHEMAFULL;
     DEFINE FIELD name ON integration TYPE string;
     DEFINE FIELD kind ON integration TYPE string;
-    DEFINE FIELD direction ON integration TYPE option<string> DEFAULT 'outbound';
-    DEFINE FIELD endpoint ON integration TYPE option<string>;
+    DEFINE FIELD url ON integration TYPE option<string>;
+    DEFINE FIELD token ON integration TYPE option<string>;
     DEFINE FIELD secret ON integration TYPE option<string>;
     DEFINE FIELD mapping ON integration FLEXIBLE TYPE option<object> DEFAULT {};
     DEFINE FIELD flags ON integration FLEXIBLE TYPE option<object> DEFAULT {};
@@ -723,9 +579,6 @@ async function connectSurreal() {
     DEFINE FIELD updated_at ON integration TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX integration_name ON integration FIELDS name UNIQUE;
 
-    // Team chat: temporary rooms that workspace members can be invited into,
-    // with room-scoped messages and file attachments.
-    DEFINE TABLE chat_room SCHEMAFULL;
     DEFINE FIELD name ON chat_room TYPE string;
     DEFINE FIELD topic ON chat_room TYPE option<string>;
     DEFINE FIELD is_temporary ON chat_room TYPE option<bool> DEFAULT true;
@@ -736,13 +589,11 @@ async function connectSurreal() {
     DEFINE FIELD updated_at ON chat_room TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX room_created ON chat_room FIELDS created_at;
 
-    DEFINE TABLE chat_room_member TYPE RELATION IN account OUT chat_room SCHEMAFULL;
     DEFINE FIELD role ON chat_room_member TYPE option<string> DEFAULT 'member';
     DEFINE FIELD created_by ON chat_room_member TYPE option<record<account>>;
     DEFINE FIELD created_at ON chat_room_member TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX room_member_unique ON chat_room_member FIELDS in, out UNIQUE;
 
-    DEFINE TABLE chat_room_message SCHEMAFULL;
     DEFINE FIELD room ON chat_room_message TYPE record<chat_room>;
     DEFINE FIELD author ON chat_room_message TYPE option<record<account>>;
     DEFINE FIELD content ON chat_room_message TYPE string;
@@ -752,10 +603,6 @@ async function connectSurreal() {
     DEFINE FIELD created_at ON chat_room_message TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX room_message ON chat_room_message FIELDS room, created_at;
 
-    // Support tickets. Custom field definitions are workspace-scoped rows; the
-    // values live on the ticket as an object keyed by field id so deleting a
-    // definition never orphans or rewrites stored data.
-    DEFINE TABLE ticket_field SCHEMAFULL;
     DEFINE FIELD label ON ticket_field TYPE string;
     DEFINE FIELD type ON ticket_field TYPE string;
     DEFINE FIELD options ON ticket_field TYPE option<array> DEFAULT [];
@@ -765,15 +612,12 @@ async function connectSurreal() {
     DEFINE FIELD created_at ON ticket_field TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX ticket_field_ws ON ticket_field FIELDS workspace;
 
-    DEFINE TABLE ticket SCHEMAFULL;
     DEFINE FIELD subject ON ticket TYPE string;
     DEFINE FIELD description ON ticket TYPE option<string> DEFAULT '';
     DEFINE FIELD status ON ticket TYPE option<string> DEFAULT 'new';
     DEFINE FIELD priority ON ticket TYPE option<string> DEFAULT 'medium';
     DEFINE FIELD requester ON ticket TYPE option<record<account>>;
     DEFINE FIELD assignee ON ticket TYPE option<record<account>>;
-    // FLEXIBLE like notes.metadata: SCHEMAFULL otherwise strips inner keys of
-    // an option<object> because their names/types are undeclared.
     DEFINE FIELD custom_fields ON ticket FLEXIBLE TYPE option<object> DEFAULT {};
     DEFINE FIELD reply_count ON ticket TYPE option<number> DEFAULT 0;
     DEFINE FIELD workspace ON ticket TYPE option<record<workspace>> DEFAULT workspace:default;
@@ -781,7 +625,6 @@ async function connectSurreal() {
     DEFINE FIELD updated_at ON ticket TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX ticket_ws_status ON ticket FIELDS workspace, status;
 
-    DEFINE TABLE ticket_reply SCHEMAFULL;
     DEFINE FIELD ticket ON ticket_reply TYPE record<ticket>;
     DEFINE FIELD author ON ticket_reply TYPE option<record<account>>;
     DEFINE FIELD body ON ticket_reply TYPE string;
@@ -846,7 +689,7 @@ async function connectSurreal() {
     // cannot simply NULL its key — every terminal row would collide on the
     // same [workspace, NONE] entry. Terminal rows instead take a per-row
     // 'released:' marker, which frees the real key and keeps the index clean.
-    UPDATE ai_job SET idempotency_key = string::concat('released:', <string>id) WHERE status IN ['succeeded', 'failed', 'cancelled'] AND idempotency_key IS NOT NONE AND string::startsWith(idempotency_key, 'released:') == false;
+    UPDATE ai_job SET idempotency_key = string::concat('released:', <string>id) WHERE status IN ['succeeded', 'failed', 'cancelled'] AND idempotency_key IS NOT NONE AND string::starts_with(idempotency_key, 'released:') == false;
     // A server restart must never orphan in-flight jobs: anything still
     // 'running' when the process died goes back to the queue.
     UPDATE ai_job SET status = 'queued', updated_at = time::now() WHERE status = 'running';
@@ -865,6 +708,7 @@ async function connectSurreal() {
   }
   // Bootstrap the workspace edge for existing accounts so the membership
   // source of truth is populated for every pre-Phase-2 user.
+  await dedupeCategories();
   for (const account of await q('SELECT id, role FROM account;')) {
     const accountId = recordId(account.id);
     const edge = await q('SELECT id FROM workspace_member WHERE in = type::thing("account", $id) AND out = workspace:default LIMIT 1;', { id: accountId });
