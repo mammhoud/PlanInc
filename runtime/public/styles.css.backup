@@ -203,7 +203,7 @@ html[data-theme="dark"] .editor-preview { background: #1c1d21; border-color: #33
 .markdown-body li.task-item:has(input:checked) span { color: var(--muted); text-decoration: line-through; }
 .markdown-body blockquote blockquote { margin-inline-start: .4em; }
 
-/* Language label chip (matches Blinko's code-header affordance) */
+/* Language label chip (matches PlanInc's code-header affordance) */
 .markdown-body pre[data-lang] { padding-top: 26px; }
 
 /* Dark theme parity for markdown surfaces */

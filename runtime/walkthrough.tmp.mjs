@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const BASE = 'http://127.0.0.1:1111';
-const SHOTS = '/tmp/blinko-walkthrough';
+const SHOTS = '/tmp/planinc-walkthrough';
 fs.mkdirSync(SHOTS, { recursive: true });
 
 const consoleErrors = [];

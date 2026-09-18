@@ -1,0 +1,28 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "planinc-types/dist/types",
+        "noEmit": false,
+        "rootDir": ".",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "./app/src/*"
+            ],
+            "@server/*": [
+                "./server/*"
+            ],
+            "@shared/*": [
+                "./shared/*"
+            ]
+        },
+    },
+    "include": [
+        "./app/src/store/plugin/index.ts",
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

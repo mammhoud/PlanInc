@@ -29,11 +29,9 @@
   "services": [
     "planing",
     "runtime",
-    "blinko-data",
-    "planing-data"
+    "planinc-data"
   ],
   "tools": [
-    "blinko",
     "anytype",
     "surrealdb"
   ]

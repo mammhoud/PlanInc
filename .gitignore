@@ -1,0 +1,23 @@
+# PlanInc root .gitignore
+
+# Runtime data (databases, uploads — local only)
+planinc-data/
+runtime/data/
+
+# Env files
+.env
+.env.local
+
+# Logs
+*.log
+appmap.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo cache
+.turbo/
+
+# Node (root level only; src/ has its own .gitignore)
+node_modules/

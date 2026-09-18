@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Mock OpenAI API for testing Docker internal network connectivity
+  mock-openai:
+    image: node:20-alpine
+    container_name: mock-openai
+    working_dir: /app
+    command: node server.js
+    volumes:
+      - ./mock-openai:/app
+    networks:
+      - planinc-test-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/models"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PlanInc application — embedded SurrealDB file, no database service needed
+  planinc:
+    image: planinc-local:latest
+    container_name: planinc-test
+    depends_on:
+      mock-openai:
+        condition: service_healthy
+    environment:
+      - NEXTAUTH_SECRET=test-secret-key-for-testing
+      - NEXTAUTH_URL=http://localhost:1111
+      - PLANINC_DB_FILE=/app/data/planinc-test.db
+      - PLANINC_DB_NS=planinc
+      - PLANINC_DB_NAME=planinc_test
+    volumes:
+      - planinc_test_data:/app/data
+    ports:
+      - "1111:1111"
+    networks:
+      - planinc-test-network
+
+networks:
+  planinc-test-network:
+    driver: bridge
+
+volumes:
+  planinc_test_data:

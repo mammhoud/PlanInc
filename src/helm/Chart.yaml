@@ -1,0 +1,15 @@
+apiVersion: v2
+name: planinc
+description: A Helm chart for PlanInc - a note-taking application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+home: https://github.com/mammhoud/planinc
+sources:
+  - https://github.com/mammhoud/planinc
+keywords:
+  - notes
+  - productivity
+  - tauri
+  - react
+ 

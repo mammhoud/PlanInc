@@ -1,0 +1,44 @@
+# docker-compose.yml — local/dev stack
+#
+# Datastore: embedded SurrealDB (SurrealKV) inside the app process — a single
+# database file on the `planinc-data` volume. There is no PostgreSQL service,
+# no SQL database and no separate database server to run.
+version: '3'
+
+networks:
+  planinc-network:
+    driver: bridge
+
+volumes:
+  planinc-data:
+
+services:
+  planinc-website:
+    container_name: planinc-website
+    build:
+      context: .
+      args:
+        USE_MIRROR: "true"
+      dockerfile: ./dockerfile
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_URL: http://localhost:1111
+      NEXT_PUBLIC_BASE_URL: http://localhost:1111
+      NEXTAUTH_SECRET: my_ultra_secure_nextauth_secret
+      # Embedded SurrealKV database file (like a SQLite file) — mounted below.
+      PLANINC_DB_FILE: /app/data/planinc.db
+      PLANINC_DB_NS: planinc
+      PLANINC_DB_NAME: planinc
+    volumes:
+      - planinc-data:/app/data
+    restart: always
+    ports:
+      - 1111:1111
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://127.0.0.1:1111/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - planinc-network

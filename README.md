@@ -2,7 +2,7 @@
 
 **Enterprise Planning & Incubation Platform**
 
-PlanInc is a comprehensive planning and project incubation platform designed for modern teams and organizations. It provides robust tools for project management, collaboration, and strategic planning.
+PlanInc is a self-hosted planning and project incubation platform for modern teams and organisations. It provides tools for project management, structured note-taking, team collaboration, and strategic planning — all running locally with no SaaS dependency.
 
 ## 🚀 Features
 
@@ -11,27 +11,28 @@ PlanInc is a comprehensive planning and project incubation platform designed for
 - **Resource Management**: Efficient resource allocation and tracking
 - **Analytics Dashboard**: Comprehensive analytics and reporting
 - **Integration Ready**: Seamless integration with existing workflows
+- **Self-hosted & AGPL**: Full data ownership; no vendor lock-in
 
 ## 📦 Components
 
 ### Core Services
 
-- **Planing**: Main planning and project management service
+- **Planing**: Main planning and project management service (port 1111)
 - **Runtime**: Execution runtime for workflows and automation
-- **Blinko Data**: Data persistence and synchronization layer
+- **PlanInc Data**: Data persistence layer (embedded SurrealDB)
 
 ### Infrastructure
 
 - **Docker Compose**: Container orchestration for all services
-- **SurrealDB**: Embedded database for real-time data management
+- **SurrealDB**: Embedded database for real-time data management (SurrealKV file mode — no separate DB container)
 - **Makefile**: Build and deployment automation
 
-## 🎯 Ideations
+## 🎯 Use Cases
 
-PlanInc serves as an incubation platform for innovative ideas and projects. Here are some key ideation areas:
+PlanInc serves as an incubation platform for innovative ideas and projects.
 
 ### Strategic Planning
-- Long-term roadmap visualization and tracking
+- Long-term roadmap visualisation and tracking
 - Milestone-based project progression
 - Resource forecasting and capacity planning
 - Risk assessment and mitigation strategies
@@ -60,29 +61,26 @@ PlanInc serves as an incubation platform for innovative ideas and projects. Here
 - A/B testing frameworks
 - Innovation metrics and scoring
 
-## 🛠️ Resources & Tools
-
-PlanInc integrates with and is inspired by several powerful open-source tools:
-
-### Knowledge Management
-- **[Blinko](https://github.com/blinkospace/blinko)**: A self-hosted personal note-taking and knowledge management application with markdown support, tags, and powerful search capabilities. PlanInc uses Blinko for documentation and knowledge base management.
+## 🛠️ Tools & Integrations
 
 ### Collaboration & Productivity
-- **[Anytype](https://github.com/anyproto/anytype-ts)**: A local-first, privacy-focused collaboration platform that combines notes, tasks, and projects in a unified workspace. Anytype inspires PlanInc's approach to decentralized collaboration.
+- **[Anytype](https://github.com/anyproto/anytype-ts)**: A local-first, privacy-focused collaboration platform combining notes, tasks, and projects in a unified workspace. Anytype inspires PlanInc's approach to decentralised collaboration.
 
-### Additional Tools
-- **SurrealDB**: Embedded real-time database for data synchronization
-- **Docker**: Containerization for consistent deployment
+### Infrastructure
+- **SurrealDB**: Embedded real-time database for data synchronisation
+- **Docker**: Containerisation for consistent deployment
 - **Make**: Build automation for development workflows
 
 ## 🏗️ Architecture
 
 ```
 PlanInc/
-├── planing/          # Main planning service
-├── runtime/          # Execution runtime
-├── blinko-data/      # Knowledge base storage
-├── planing-data/     # Planning data persistence
+├── planing/           # Main planning service
+├── runtime/           # Execution runtime (built app + playwright tests)
+│   ├── public/        # Frontend assets
+│   ├── tests/         # Playwright e2e tests
+│   └── data/          # Runtime data (uploads, DB)
+├── planinc-data/      # Persistent data volumes
 └── docker-compose.yml # Service orchestration
 ```
 
@@ -94,34 +92,40 @@ PlanInc/
    cd PlanInc
    ```
 
-2. **Start services**
+2. **Copy and configure environment**
+   ```bash
+   make setup       # copies .env.example → .env
+   # edit .env with your values
+   ```
+
+3. **Start services**
    ```bash
    make up
    ```
 
-3. **Access the application**
-   - Main Interface: http://localhost:3000
-   - API Endpoint: http://localhost:8000
+4. **Access the application**
+   - Main Interface: `http://localhost:1111`
 
 ## 📋 Prerequisites
 
 - Docker Engine 20.10+
 - Docker Compose 2.0+
-- Make (optional, for build automation)
+- `make` (optional, for build automation)
 
 ## 🔧 Configuration
 
-Environment variables can be configured in the `.env` file:
+Copy `.env.example` to `.env` and adjust:
 
 ```env
-# Database
-DATABASE_URL=surrealdb://localhost:8000
+# Server
+PLANING_PORT=1111
+PLANING_PUBLIC_URL=http://localhost:1111
+PLANING_NEXTAUTH_SECRET=change-me-in-production
 
-# Authentication
-AUTH_SECRET=your-secret-key
-
-# External Services
-BLINKO_URL=http://blinko:3001
+# SurrealDB (embedded — no extra container needed)
+SURREALDB_FILE=./runtime/data/planinc.db
+SURREALDB_NS=planinc
+SURREALDB_DB=planinc
 ```
 
 ## 🧪 Development
@@ -135,11 +139,14 @@ make test
 
 # Build for production
 make build
+
+# Verify SurrealDB runtime contract
+make verify-surrealdb
 ```
 
 ## 📖 Documentation
 
-Comprehensive documentation is available in the `docs/` directory:
+Comprehensive documentation lives in `docs/`:
 
 - [Architecture Guide](./docs/architecture.md)
 - [API Reference](./docs/api.md)
@@ -148,25 +155,18 @@ Comprehensive documentation is available in the `docs/` directory:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](./docs/contributing.md) for details.
+We welcome contributions. Please see [Contributing Guidelines](./docs/contributing.md) for details.
 
 ## 📄 License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [LICENSE](./LICENSE) file for details.
 
 ### Why AGPL?
 
-We chose AGPL-3.0 to ensure that:
 - All modifications and improvements remain open source
 - Users of network services have access to the source code
 - The community benefits from all enhancements
 - Commercial use requires contributing back to the project
-
-## 🌟 Acknowledgments
-
-- Thanks to the [Blinko](https://github.com/blinkospace/blinko) team for the excellent knowledge management tool
-- Inspired by [Anytype](https://github.com/anyproto/anytype-ts) for local-first collaboration
-- Built with modern containerization and orchestration technologies
 
 ## 📞 Support
 
