@@ -1,0 +1,40 @@
+{
+  "name": "PlanInc",
+  "version": "1.0.0",
+  "description": "Enterprise Planning & Incubation Platform",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mammhoud/PlanInc.git"
+  },
+  "author": "PlanInc Team",
+  "keywords": [
+    "planning",
+    "project-management",
+    "collaboration",
+    "incubation",
+    "enterprise"
+  ],
+  "engines": {
+    "docker": ">=20.10",
+    "docker-compose": ">=2.0"
+  },
+  "scripts": {
+    "start": "make up",
+    "stop": "make down",
+    "build": "make build",
+    "test": "make test",
+    "dev": "make dev"
+  },
+  "services": [
+    "planing",
+    "runtime",
+    "blinko-data",
+    "planing-data"
+  ],
+  "tools": [
+    "blinko",
+    "anytype",
+    "surrealdb"
+  ]
+}
