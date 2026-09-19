@@ -53,6 +53,8 @@ archive and lane-relationship contracts.
   filters using the same relationship records.
 - Production web build passed and focused upload coverage remains green
   (11 tests).
+- Added focused relationship authorization coverage; the combined upload and
+  relationship suite passes all 16 tests.
 - During preview, the legacy `notes.list` mutation-style endpoint was
   mistakenly queried from the new ticket target loader; it caused HTTP 405
   errors and was removed from that UI path. The server router remains

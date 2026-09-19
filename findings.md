@@ -83,6 +83,11 @@
 - The last production web build passes. The dedicated TypeScript build still
   exhausts the available Node heap before emitting diagnostics, so it is not a
   useful gate without a memory/toolchain change.
-- Notes are available through `api.notes.list` with an explicit paging/filter
-  input; the relationship UI can use the first page of account-scoped notes
-  alongside tickets and studies.
+- The legacy `notes.list` procedure is mutation-style despite its name. Calling
+  it through the plain tRPC query client produces an unsupported GET request,
+  so the current ticket relationship UI exposes Study targets only until a
+  mutation-safe note target loader is introduced. The relationship contract
+  itself remains note-capable.
+- Focused relationship tests cover same-account creation, cross-account
+  source/target rejection, duplicate-link reuse, and ownership-protected
+  deletion.
