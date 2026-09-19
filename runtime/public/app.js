@@ -344,6 +344,8 @@ function renderCategories() {
   $('default-category').innerHTML = state.categories.map((category) => `<option value="${escapeHtml(category.slug)}">${escapeHtml(category.name)}</option>`).join('');
   renderMarkdownExportLanes();
   updateSelectedCategory();
+  // Keep the htmx filter's lane select in step with the lane rail.
+  if (typeof syncFragmentLaneOptions === 'function') syncFragmentLaneOptions();
 }
 
 function updateSelectedCategory() {
@@ -3701,11 +3703,54 @@ window.planingAiPolicy = aiPolicyAdmin;
 window.planingAiRuns = aiRunsAdmin;
 window.planingAiJobs = aiJobsAdmin;
 
+/* ---------- htmx list fragments ---------- */
+// The fragment routes render the same lists server-side, so after every swap the
+// controls they contain have to be re-bound exactly like JS-rendered cards.
+function syncFragmentLaneOptions() {
+  const select = document.getElementById('notes-fragment-lane');
+  if (!select || !state.categories.length) return;
+  const selected = select.value;
+  select.innerHTML = `<option value="">${escapeHtml(t('allLanes'))}</option>`
+    + state.categories.map((category) => `<option value="${escapeHtml(category.slug)}">${escapeHtml(category.name)}</option>`).join('');
+  select.value = state.categories.some((category) => category.slug === selected) ? selected : '';
+}
+
+function bindFragmentContent() {
+  bindNoteActions();
+  bindWikilinks();
+  document.querySelectorAll('#tickets-list [data-ticket-open]').forEach((card) => {
+    if (card.dataset.fragmentBound === 'true') return;
+    card.dataset.fragmentBound = 'true';
+    card.addEventListener('click', () => openTicketEditor(card.dataset.ticketOpen));
+  });
+  applyLocale();
+  syncFragmentLaneOptions();
+}
+
+// htmx is optional: the JSON-driven path above keeps working when it is absent,
+// so everything here is guarded rather than assumed.
+if (typeof document !== 'undefined') {
+  document.body.addEventListener('htmx:afterSwap', bindFragmentContent);
+  document.body.addEventListener('htmx:afterSettle', syncFragmentLaneOptions);
+  document.body.addEventListener('htmx:responseError', (event) => {
+    const target = event.detail?.target;
+    if (target && target.id === 'notes-list') {
+      target.innerHTML = `<p class="panel-copy">${escapeHtml(t('loadError'))}</p>`;
+    }
+  });
+}
+
+function announceHtmxReady() {
+  // Elements declaring `hx-trigger="htmxAidedLoad from:body"` wait for this, so
+  // htmx-driven panels fetch only once the workspace is actually loaded.
+  document.body.dispatchEvent(new CustomEvent('htmxAidedLoad', { bubbles: true }));
+}
+
 /* ---------- Boot ---------- */
 (async () => {
   state.isFirstAdmin = await isFirstAdminPending();
   renderAuth();
 })();
 refreshStorageStatus();
-if (state.token) enterApp().catch(() => { localStorage.removeItem('planing-token'); state.token = null; });
+if (state.token) enterApp().then(() => { syncFragmentLaneOptions(); announceHtmxReady(); }).catch(() => { localStorage.removeItem('planing-token'); state.token = null; });
 applyLocale();

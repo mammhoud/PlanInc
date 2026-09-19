@@ -23,3 +23,15 @@ Thumbs.db
 
 # Node (root level only; src/ has its own .gitignore)
 node_modules/
+
+# Legacy vendored fork (its own git repo, node_modules and turbo cache).
+# The canonical application lives in src/ and the deployed server in runtime/,
+# so this tree is intentionally kept out of the repository to avoid committing a
+# 2.4 GB vendored dependency tree and a nested git directory.
+planing/
+
+# Build and test artefacts produced inside the tracked trees.
+dist/
+.turbo/
+test-results/
+playwright-report/

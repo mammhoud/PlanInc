@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 const findFirst = mock((args: any) => Promise.resolve(undefined as any));
 const findMany = mock(() => Promise.resolve([] as any[]));
 const create = mock((args: any) => Promise.resolve(args.data));
+const update = mock((args: any) => Promise.resolve(args.data));
 const deleteLink = mock(() => Promise.resolve({}));
 
 mock.module('../../../db', () => ({
@@ -10,7 +11,9 @@ mock.module('../../../db', () => ({
     notes: { findFirst },
     tickets: { findFirst },
     studyItems: { findFirst },
-    planningLinks: { findFirst, findMany, create, delete: deleteLink },
+    attachments: { findFirst },
+    conversation: { findFirst },
+    planningLinks: { findFirst, findMany, create, update, delete: deleteLink },
   },
 }));
 
@@ -43,6 +46,7 @@ describe('planning links', () => {
     findFirst.mockReset();
     findMany.mockReset();
     create.mockReset();
+    update.mockReset();
     deleteLink.mockReset();
   });
 
@@ -68,6 +72,7 @@ describe('planning links', () => {
       targetType: 'study',
       targetId: 20,
       label: 'evidence',
+      showInGraph: true,
       metadata: {},
     });
 
@@ -79,10 +84,53 @@ describe('planning links', () => {
         targetType: 'study',
         targetId: 20,
         label: 'evidence',
+        showInGraph: true,
         metadata: {},
       },
     });
     expect(result.accountId).toBe(1);
+  });
+
+  test('links a ticket to an agent conversation', async () => {
+    findFirst
+      .mockResolvedValueOnce({ id: 10, accountId: 1 })
+      .mockResolvedValueOnce({ id: 33, accountId: 1 })
+      .mockResolvedValueOnce(undefined);
+    create.mockResolvedValueOnce({
+      id: 5,
+      accountId: 1,
+      sourceType: 'ticket',
+      sourceId: 10,
+      targetType: 'agent',
+      targetId: 33,
+      label: '',
+      showInGraph: true,
+      metadata: {},
+    });
+
+    const result = await createResolver({
+      sourceType: 'ticket',
+      sourceId: 10,
+      targetType: 'agent',
+      targetId: 33,
+      label: '',
+      showInGraph: true,
+      metadata: {},
+    });
+
+    expect(result.targetType).toBe('agent');
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        accountId: 1,
+        sourceType: 'ticket',
+        sourceId: 10,
+        targetType: 'agent',
+        targetId: 33,
+        label: '',
+        showInGraph: true,
+        metadata: {},
+      },
+    });
   });
 
   test('rejects a source entity from another account', async () => {
@@ -113,7 +161,7 @@ describe('planning links', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  test('returns an existing link instead of creating a duplicate', async () => {
+  test('reuses an existing link and syncs its graph visibility flag', async () => {
     const existing = {
       id: 7,
       accountId: 1,
@@ -129,15 +177,16 @@ describe('planning links', () => {
       .mockResolvedValueOnce({ id: 20, accountId: 1 })
       .mockResolvedValueOnce(existing);
 
-    const result = await createResolver({
+    await createResolver({
       sourceType: 'ticket',
       sourceId: 10,
       targetType: 'study',
       targetId: 20,
+      showInGraph: false,
     });
 
-    expect(result).toEqual(existing);
     expect(create).not.toHaveBeenCalled();
+    expect(update).toHaveBeenCalledWith({ where: { id: 7 }, data: { showInGraph: false, label: '' } });
   });
 
   test('deletes only links owned by the requesting account', async () => {

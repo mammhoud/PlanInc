@@ -18,6 +18,7 @@ import { ShowTwoFactorModal } from '@/components/Common/TwoFactorModal';
 import { ToastPlugin } from './module/Toast/Toast';
 import { StorageState } from './standard/StorageState';
 import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
+import { DEFAULT_THEME_PALETTE } from '@/lib/themePalettes';
 import { isInTauri, setTauriTheme } from '@/lib/tauriHelper';
 import { FontManager } from '@/lib/fontManager';
 
@@ -291,17 +292,20 @@ export class UserStore implements Store {
         lightElement.style.setProperty('--primary-foreground', config.themeForegroundColor)
       }
     } else {
+      // Nothing configured yet: the product's default preplixity palette is the
+      // baseline, so a fresh account already matches the reference design.
+      const palette = DEFAULT_THEME_PALETTE
       if (darkElement) {
         //@ts-ignore
-        darkElement.style.setProperty('--primary', '#f9f9f9')
+        darkElement.style.setProperty('--primary', palette.background)
         //@ts-ignore
-        darkElement.style.setProperty('--primary-foreground', '#000000')
+        darkElement.style.setProperty('--primary-foreground', palette.foreground)
       }
       if (lightElement) {
         //@ts-ignore
-        lightElement.style.setProperty('--primary', '#000000')
+        lightElement.style.setProperty('--primary', palette.background)
         //@ts-ignore
-        lightElement.style.setProperty('--primary-foreground', 'hsl(210 40% 98%)')
+        lightElement.style.setProperty('--primary-foreground', palette.foreground)
       }
     }
 

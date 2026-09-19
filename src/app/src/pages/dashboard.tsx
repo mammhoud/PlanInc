@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CardBody, Chip } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { api } from '@/lib/trpc';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { ScrollArea } from '@/components/Common/ScrollArea';
 import { PlanningStats } from '@/components/PlanincAnalytics/PlanningStats';
+import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
 
 type Ticket = { id: number; title: string; status: 'open' | 'in_progress' | 'blocked' | 'done'; priority: 'low' | 'medium' | 'high' | 'critical'; updatedAt: string };
 type StudyItem = { id: number; title: string; status: 'planned' | 'active' | 'complete'; updatedAt: string };
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [study, setStudy] = useState<StudyItem[]>([]);
   const [noteStats, setNoteStats] = useState<{ noteCount?: number; totalWords?: number; activeDays?: number }>({});
@@ -52,7 +54,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <ScrollArea fixMobileTopBar className="mx-auto w-full max-w-7xl space-y-5 px-3 pb-20 md:px-6">
+    <ScrollArea fixMobileTopBar className="mx-auto w-full max-w-7xl space-y-5 px-3 pb-24 md:px-6">
       <section className="dashboard-hero rounded-[1.5rem] border border-divider/60 p-5 md:p-8">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -109,6 +111,7 @@ export default function DashboardPage() {
           </Card>
         </>
       )}
+      <PlanningFab label={t('new-ticket')} onPress={() => navigate('/tickets')} />
     </ScrollArea>
   );
 }

@@ -16,7 +16,25 @@ export class BaseStore implements Store {
       title: 'dashboard',
       href: '/dashboard',
       icon: 'material-symbols:desktop-windows',
-      lane: 'work',
+      lane: 'planning',
+    },
+    {
+      title: 'tickets',
+      href: '/tickets',
+      icon: 'tabler:list-check',
+      lane: 'planning',
+    },
+    {
+      title: 'study',
+      href: '/study',
+      icon: 'hugeicons:book-edit',
+      lane: 'planning',
+    },
+    {
+      title: 'graph',
+      href: '/graph',
+      icon: 'hugeicons:share-05',
+      lane: 'planning',
     },
     {
       title: 'notes',
@@ -26,50 +44,13 @@ export class BaseStore implements Store {
       lane: 'work',
     },
     {
-      title: 'todo',
+      // Renamed in the UI from "Todo" to "Plans"; the route stays `?path=todo`
+      // so existing deep links and saved filters keep working.
+      title: 'plans',
       shallow: true,
       href: '/?path=todo',
       icon: 'solar:bill-check-linear',
-      lane: 'work',
-    },
-    {
-      title: 'analytics',
-      href: '/analytics',
-      hiddenMobile: true,
-      icon: 'hugeicons:analytics-01',
-      lane: 'insights',
-    },
-    {
-      title: 'resources',
-      href: '/resources',
-      icon: 'solar:database-linear',
-      hiddenMobile: true,
-      lane: 'knowledge',
-    },
-    {
-      title: 'tickets',
-      href: '/tickets',
-      icon: 'tabler:list-check',
-      lane: 'work',
-    },
-    {
-      title: 'agents',
-      href: '/ai',
-      icon: 'hugeicons:chat',
-      hiddenMobile: true,
-      lane: 'knowledge',
-    },
-    {
-      title: 'graph',
-      href: '/graph',
-      icon: 'hugeicons:share-05',
-      lane: 'knowledge',
-    },
-    {
-      title: 'study',
-      href: '/study',
-      icon: 'hugeicons:book-edit',
-      lane: 'learn',
+      lane: 'planning',
     },
     {
       title: 'archived',
@@ -87,6 +68,27 @@ export class BaseStore implements Store {
       lane: 'work',
     },
     {
+      title: 'resources',
+      href: '/resources',
+      icon: 'solar:database-linear',
+      hiddenMobile: true,
+      lane: 'knowledge',
+    },
+    {
+      title: 'agents',
+      href: '/ai',
+      icon: 'hugeicons:chat',
+      hiddenMobile: true,
+      lane: 'knowledge',
+    },
+    {
+      title: 'analytics',
+      href: '/analytics',
+      hiddenMobile: true,
+      icon: 'hugeicons:analytics-01',
+      lane: 'insights',
+    },
+    {
       title: 'plugin',
       href: '/plugin',
       hiddenMobile: true,
@@ -101,7 +103,7 @@ export class BaseStore implements Store {
       lane: 'system',
     },
   ];
-  laneOrder = ['work', 'insights', 'knowledge', 'learn', 'system'] as const;
+  laneOrder = ['planning', 'work', 'knowledge', 'insights', 'system'] as const;
   currentRouter = this.routerList[0];
   currentQuery = {};
   currentTitle = '';
@@ -189,7 +191,7 @@ export class BaseStore implements Store {
       } else if (searchParams.get('path') == 'notes') {
         this.currentTitle = 'notes';
       } else if (searchParams.get('path') == 'todo') {
-        this.currentTitle = 'todo';
+        this.currentTitle = 'plans';
       } else if (searchParams.get('path') == 'archived') {
         this.currentTitle = 'archived';
       } else if (location.pathname == '/resources') {

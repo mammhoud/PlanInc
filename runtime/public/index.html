@@ -151,6 +151,16 @@
               <nav id="tag-chips" class="tag-chips" aria-label="Tag filters"></nav>
               <form id="tag-filter-form" class="tag-inline-form"><label class="sr-only" for="tag-search" data-i18n="filterByTag">Filter by tag</label><input id="tag-search" placeholder="#tag" maxlength="40" data-i18n-placeholder="tagPlaceholder"><button class="text-action" type="submit" data-i18n="filter">Filter</button><button class="text-action muted-action hidden" id="tag-clear" type="button" data-i18n="clear">Clear</button></form>
             </div>
+            <form id="notes-fragment-filters" class="fragment-filter-form" hx-get="/fragments/notes" hx-target="#notes-list" hx-swap="innerHTML" hx-indicator="#notes-pagination" hx-trigger="input changed delay:300ms from:#notes-fragment-search, change from:#notes-fragment-lane, change from:#notes-fragment-tag, change from:#notes-fragment-sort, submit">
+              <span class="fragment-filter-title" data-i18n="liveFilters">Live list (htmx)</span>
+              <label class="fragment-field"><span class="sr-only" data-i18n="searchNotes">Search notes</span><input id="notes-fragment-search" name="q" type="search" placeholder="Search…" data-i18n-placeholder="searchPlaceholder"></label>
+              <label class="fragment-field"><span class="sr-only" data-i18n="lane">Lane</span><select id="notes-fragment-lane" name="category"><option value="" data-i18n="allLanes">All lanes</option></select></label>
+              <label class="fragment-field"><span class="sr-only" data-i18n="filterByTag">Filter by tag</span><input id="notes-fragment-tag" name="tag" placeholder="#tag" maxlength="40"></label>
+              <label class="fragment-field"><span class="sr-only" data-i18n="sort">Sort</span><select id="notes-fragment-sort" name="sort"><option value="updated" data-i18n="sortUpdated">Recently updated</option><option value="created" data-i18n="sortCreated">Newest first</option><option value="title" data-i18n="sortTitle">Title A–Z</option></select></label>
+              <label class="fragment-field"><span class="sr-only" data-i18n="view">View</span><select id="notes-fragment-view" name="view"><option value="" data-i18n="viewActive">Active</option><option value="archive" data-i18n="viewArchive">Archive</option><option value="recycle" data-i18n="viewRecycle">Bin</option></select></label>
+              <button class="button button-small" type="submit" data-i18n="applyFilters">Apply</button>
+            </form>
+            <div id="notes-filter-chips" class="fragment-chips" aria-live="polite"></div>
             <div id="outbox-banner" class="outbox-banner hidden" role="status">
               <span class="outbox-dot" aria-hidden="true"></span>
               <span><b data-outbox-count>0</b> <span data-i18n="outboxPending">changes waiting to sync</span></span>
@@ -158,6 +168,7 @@
             </div>
             <div id="notes-list" class="notes-list" aria-live="polite"></div>
             <div id="notes-empty" class="empty-state"><span class="empty-icon">+</span><strong data-i18n="noNotes">No notes here yet.</strong><p data-i18n="noNotesDescription">Start with a small thought. Your future team will thank you.</p></div>
+            <nav id="notes-pagination" class="fragment-pagination is-single" aria-label="Notes pagination"></nav>
           </section>
 
           <section id="chat-view" class="view hidden" aria-labelledby="chat-title" x-data="planingChatApp()" x-init="window.chatApp = $data">
@@ -361,7 +372,17 @@
                 <input id="ticket-search" type="search" data-i18n-placeholder="ticketSearchPlaceholder" placeholder="Search tickets…" aria-label="Search tickets">
                 <button class="button button-small" id="ticket-new" type="button" data-i18n="ticketNew">New ticket</button>
               </div>
+              <form id="tickets-fragment-filters" class="fragment-filter-form" hx-get="/fragments/tickets" hx-target="#tickets-list" hx-swap="innerHTML" hx-indicator="#tickets-pagination" hx-trigger="input changed delay:300ms from:#tickets-fragment-search, change from:#tickets-fragment-status, change from:#tickets-fragment-priority, change from:#tickets-fragment-sort, submit">
+                <span class="fragment-filter-title" data-i18n="liveFilters">Live list (htmx)</span>
+                <label class="fragment-field"><span class="sr-only" data-i18n="ticketSearchPlaceholder">Search tickets</span><input id="tickets-fragment-search" name="q" type="search" placeholder="Search tickets…" data-i18n-placeholder="ticketSearchPlaceholder"></label>
+                <label class="fragment-field"><span class="sr-only" data-i18n="status">Status</span><select id="tickets-fragment-status" name="status"><option value="" data-i18n="allStatuses">All statuses</option><option value="new" data-i18n="ticketStatusNew">New</option><option value="open" data-i18n="ticketStatusOpen">Open</option><option value="pending" data-i18n="ticketStatusPending">Pending</option><option value="resolved" data-i18n="ticketStatusResolved">Resolved</option><option value="closed" data-i18n="ticketStatusClosed">Closed</option></select></label>
+                <label class="fragment-field"><span class="sr-only" data-i18n="priority">Priority</span><select id="tickets-fragment-priority" name="priority"><option value="" data-i18n="allPriorities">All priorities</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
+                <label class="fragment-field"><span class="sr-only" data-i18n="sort">Sort</span><select id="tickets-fragment-sort" name="sort"><option value="updated" data-i18n="sortUpdated">Recently updated</option><option value="created" data-i18n="sortCreated">Newest first</option><option value="title" data-i18n="sortTitle">Title A–Z</option></select></label>
+                <button class="button button-small" type="submit" data-i18n="applyFilters">Apply</button>
+              </form>
+              <div id="tickets-filter-chips" class="fragment-chips" aria-live="polite"></div>
               <div id="tickets-list" class="tickets-list"></div>
+              <nav id="tickets-pagination" class="fragment-pagination is-single" aria-label="Ticket pagination"></nav>
             </div>
             <div id="ticket-editor" class="kanban-editor-mount hidden"></div>
             <p id="tickets-message" class="message" role="alert" aria-live="polite"></p>

@@ -16,6 +16,7 @@ import { GradientBackground } from "../Common/GradientBackground";
 import { UserStore } from "@/store/user";
 import { BaseStore } from "@/store/baseStore";
 import FontSwitcher from "../Common/FontSwitcher";
+import { THEME_PALETTES } from "@/lib/themePalettes";
 
 export const PerferSetting = observer(() => {
   const { t } = useTranslation()
@@ -82,6 +83,31 @@ export const PerferSetting = observer(() => {
           }
         }}
       />} />
+    <Item
+      leftContent={<>{t('theme-palette')}</>}
+      rightContent={<div className="flex flex-wrap gap-2">
+        {THEME_PALETTES.map(palette => (
+          <button
+            key={palette.key}
+            type="button"
+            title={t(palette.label)}
+            aria-label={t(palette.label)}
+            aria-pressed={planinc.config.value?.themeColor?.toLowerCase() === palette.background.toLowerCase()}
+            className={`h-8 w-8 rounded-lg border-2 ${planinc.config.value?.themeColor?.toLowerCase() === palette.background.toLowerCase() ? 'border-foreground' : 'border-transparent'}`}
+            style={{ background: `linear-gradient(135deg, ${palette.background} 0 55%, ${palette.accent} 55% 100%)` }}
+            onClick={async () => {
+              await PromiseCall(api.config.update.mutate({ key: 'themeColor', value: palette.background }), { autoAlert: false })
+              await PromiseCall(api.config.update.mutate({ key: 'themeForegroundColor', value: palette.foreground }))
+              const darkElement = document.querySelector('.dark')
+              darkElement?.style.setProperty('--primary', palette.background)
+              darkElement?.style.setProperty('--primary-foreground', palette.foreground)
+              const lightElement = document.querySelector('.light')
+              lightElement?.style.setProperty('--primary', palette.background)
+              lightElement?.style.setProperty('--primary-foreground', palette.foreground)
+            }}
+          />
+        ))}
+      </div>} />
     <Item
       leftContent={<>{t('language')}</>}
       rightContent={<LanguageSwitcher value={planinc.config.value?.language} onChange={value => {

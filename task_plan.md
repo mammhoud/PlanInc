@@ -160,6 +160,32 @@ field validation, error reporting, and no stale state after reopening.
 - Icon fallback cleanup is complete; the third-party context-menu deprecation
   remains documented as a non-blocking upstream warning.
 
+### Phase 8 — Pagination, custom forms, graph tooltips, and navigation polish
+
+**Status:** complete
+
+- Add a shared view switcher (`PlanningViewSwitch`), pagination footer
+  (`PlanningPagination`), and a floating add button (`PlanningFab`) that mirrors
+  the notes add-button visual language.
+- Apply the shared controls to Tickets, Study, Resources, and Graph so every
+  module exposes consistent view modes, paging, and a create entry point.
+- Add account-scoped custom form-field definitions (table + `planningFields`
+  router) that render inside the shared Ticket/Study CRUD modal, with
+  required-field validation and select/toggle/number/date/url field types.
+- Add a Settings → Forms group that creates, edits, enables, orders, and
+  deletes those field definitions, including a `showInGraph` flag.
+- Extend graph nodes to cover notes, tickets, study items, resources, and
+  agents, add native tooltips plus a hover info strip, and render relation
+  edges only from links flagged `showInGraph`.
+- Add a graph Graph/List switch with paginated node cards, and show relation
+  previews (with labels and hidden-from-graph state) in the node preview modal.
+- Reorganise sidebar lanes into Planning, Work, Knowledge, Insights, and
+  System so planning surfaces lead the navigation.
+
+**Exit criteria:** every planning module exposes paging and view switching,
+custom fields round-trip through the CRUD modal, graph edges honour the
+`showInGraph` flag, and navigation lanes are stable and translated.
+
 ## Decisions to confirm before implementation
 
 1. Resource directory downloads: generate a ZIP for selected files/folders.
@@ -202,10 +228,46 @@ field validation, error reporting, and no stale state after reopening.
 - Server logs contained no application errors or failed API requests. Existing
   icon fallback and third-party deprecation warnings remain non-blocking.
 
+### Phase 9 — Plans, categories, branding, approvals, and htmx lists
+
+**Status:** complete (build/test verification pending a Bun toolchain)
+
+- Renamed the user-facing **Todo** surface to **Plans** (route `?path=todo` kept
+  for deep links) and gave it its own persisted view switch: **Board (kanban)**, **Calendar**, **Cards**, and **Timeline**.
+- Added account-unique **predefined categories** (`planningCategories`, unique
+  per `accountId`+`slug`) with a preset colour/icon palette, ordering, enable/
+  disable, default selection, and delete-with-reassignment. Plans carry an
+  optional `categoryId`; the board columns, the category filter, and the CRUD
+  form all read the same definitions.
+- Added the **workspace logo** section: paste a URL, pick an existing image
+  resource (searchable), or generate a mark with the configured image model
+  (`branding` router; generated images are stored as inline data URLs).
+- Added the default **preplixity palette** (`src/app/src/lib/themePalettes.ts`)
+  as the baseline for a fresh account, with one-click palette presets in
+  Appearance.
+- Layered **share approvals** (`shareApprovals`): internal recipients approve
+  in-app, email invites carry an approve token, and an admin policy can gate
+  every share before it becomes live. Pending requests never create a
+  `noteInternalShare` row, so a pending share grants nothing.
+- Added account-scoped **agent directories** (working dirs + ordered skills
+  dirs, add/remove/reorder/default) to the AI settings surface.
+- Moved list **pagination, search and filters** onto **htmx fragments** in the
+  `runtime/` server (`/fragments/notes`, `/fragments/tickets`) with server-
+  rendered cards, filter chips, page links and per-page control, plus a
+  JS-only fallback when htmx is unavailable.
+
+**Exit criteria:** the plans board/calendar/cards/timeline all page and filter
+consistently, categories are unique and editable in settings, the logo can be
+searched or generated, and the htmx list controls work without any JS list
+re-render.
+
 ## Next Step
 
-All PlanInc phases are complete. Keep the unrelated POS worktree change
-untouched and use the pushed `generic` checkpoints as the release baseline.
+Phase 8 is complete in code. Re-run the canonical web build and the focused
+server test suite in an environment with the Bun toolchain installed, then
+commit and push the `generic` checkpoint. Keep the unrelated POS worktree
+change untouched and use the pushed `generic` checkpoints as the release
+baseline.
 
 ## Errors Encountered
 

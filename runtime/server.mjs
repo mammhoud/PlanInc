@@ -3941,6 +3941,241 @@ app.get('/fragments/members', auth, requirePermissionHtml('members:write'), asyn
   res.send(rows.map((row) => `<article class="member-row"><span class="avatar">${escapeFragment(String(row.name).slice(0, 1).toUpperCase())}</span><span class="member-identity"><strong>${escapeFragment(row.name)}</strong><small>${escapeFragment(row.role)}</small></span></article>`).join(''));
 });
 
+/* ---------- htmx list fragments: search, filters and pagination ---------- */
+// These routes render the same lists the JSON API serves, as HTML the browser
+// can swap in place. Every control (search, filters, sort, page size, page
+// links) is a plain hx-get against the fragment, so the list keeps working with
+// JavaScript alone if htmx never loads.
+
+const FRAGMENT_PAGE_SIZES = [10, 20, 50];
+const FRAGMENT_SORTS = ['updated', 'created', 'title'];
+
+function fragmentUrl(path, params) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params || {})) {
+    if (value === null || value === undefined || value === '') continue;
+    search.set(key, String(value));
+  }
+  const query = search.toString();
+  return query ? `${path}?${query}` : path;
+}
+
+function parseFragmentQuery(req, { defaultPer = 10, defaultSort = 'updated' } = {}) {
+  const requestedPage = Number.parseInt(String(req.query.page ?? '1'), 10);
+  const requestedPer = Number.parseInt(String(req.query.per ?? defaultPer), 10);
+  const requestedSort = String(req.query.sort ?? defaultSort);
+  return {
+    page: Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1,
+    per: FRAGMENT_PAGE_SIZES.includes(requestedPer) ? requestedPer : defaultPer,
+    sort: FRAGMENT_SORTS.includes(requestedSort) ? requestedSort : defaultSort,
+  };
+}
+
+const fragmentPageLabel = (value) => Number.parseInt(String(value), 10) <= 0 ? '1' : String(value);
+
+/**
+ * Pagination + page-size control for one fragment list.
+ *
+ * `target` is the element htmx swaps (the list), while the control itself is
+ * re-rendered out-of-band so its page numbers stay in sync with the response.
+ */
+function paginationHtml({ id, path, params, page, per, total, target }) {
+  const pages = Math.max(1, Math.ceil(total / per));
+  const current = Math.min(Math.max(1, page), pages);
+  const build = (nextPage, extra = {}) => fragmentUrl(path, { ...params, ...extra, page: nextPage });
+  const button = (nextPage, label, title, disabled = false) => `<button class="pagination-button${disabled ? ' is-disabled' : ''}" type="button"${disabled ? ' disabled' : ''} title="${escapeFragment(title)}" hx-get="${escapeFragment(build(nextPage))}" hx-target="${target}" hx-swap="innerHTML" hx-indicator="#${id}">${escapeFragment(label)}</button>`;
+
+  const windowStart = Math.max(1, current - 2);
+  const windowEnd = Math.min(pages, windowStart + 4);
+  const pageButtons = [];
+  for (let number = windowStart; number <= windowEnd; number += 1) {
+    pageButtons.push(`<button class="pagination-button${number === current ? ' is-current' : ''}" type="button" aria-current="${number === current ? 'page' : 'false'}" hx-get="${escapeFragment(build(number))}" hx-target="${target}" hx-swap="innerHTML" hx-indicator="#${id}">${number}</button>`);
+  }
+
+  const sizeOptions = FRAGMENT_PAGE_SIZES
+    .map((size) => `<option value="${size}"${size === per ? ' selected' : ''}>${size} / page</option>`)
+    .join('');
+
+  // Returns the inner markup: the caller owns the element that carries the id,
+  // so the same id can be swapped out-of-band without nesting duplicates.
+  return `<div class="pagination-pages">
+      ${button(1, '«', 'First page', current === 1)}
+      ${button(current - 1, '‹', 'Previous page', current === 1)}
+      ${pageButtons.join('')}
+      ${button(current + 1, '›', 'Next page', current >= pages)}
+      ${button(pages, '»', 'Last page', current >= pages)}
+    </div>
+    <div class="pagination-meta">
+      <span class="pagination-status">Page ${fragmentPageLabel(current)} of ${pages} · ${total} item${total === 1 ? '' : 's'}</span>
+      <label class="pagination-size-label">Per page<select class="pagination-size" name="per" hx-get="${escapeFragment(fragmentUrl(path, params))}" hx-vals='{"page":1}' hx-include="this" hx-target="${target}" hx-swap="innerHTML" hx-indicator="#${id}">${sizeOptions}</select></label>
+    </div>`;
+}
+
+// Filter chips double as the "what is filtered right now" summary, and each
+// chip clears its own filter through a fresh fragment request.
+function activeFilterChips(path, params, target, labels, indicator) {
+  const chips = Object.entries(labels).filter(([key]) => params[key]);
+  if (!chips.length) return '';
+  return `<div class="active-filters">${chips.map(([key, label]) => `<button class="filter-chip" type="button" title="Clear this filter" hx-get="${escapeFragment(fragmentUrl(path, { ...params, [key]: null, page: 1 }))}" hx-target="${target}" hx-swap="innerHTML" hx-indicator="#${indicator}">${escapeFragment(label)} <span aria-hidden="true">✕</span></button>`).join('')}</div>`;
+}
+
+const fragmentSortValue = (row, sort) => {
+  if (sort === 'created') return new Date(row.createdAt || 0).getTime();
+  if (sort === 'title') return String(row.content || '').toLowerCase();
+  return new Date(row.updatedAt || row.createdAt || 0).getTime();
+};
+
+function sortFragmentRows(rows, sort) {
+  return [...rows].sort((a, b) => {
+    if (sort === 'title') return String(fragmentSortValue(a, sort)).localeCompare(String(fragmentSortValue(b, sort)));
+    return Number(fragmentSortValue(b, sort)) - Number(fragmentSortValue(a, sort));
+  });
+}
+
+const fragmentWikiLinks = (content) => String(content || '')
+  .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, target, label) => `<span class="wikilink" data-wikilink="${escapeFragment(String(target).trim())}" role="link" tabindex="0">${escapeFragment(String(label || target).trim())}</span>`);
+
+function fragmentNoteBody(content) {
+  const lines = String(content || '').split(/\n/);
+  const html = lines.map((line) => `<p>${fragmentWikiLinks(escapeFragment(line))}</p>`).join('');
+  return `<div class="note-content markdown-body">${html}</div>`;
+}
+
+function fragmentNoteCard(note, canWrite) {
+  const pinned = note.isTop ? `<span class="pin-badge">▲ Pinned</span>` : '';
+  const shared = note.isShare ? `<span class="shared-badge">◎ Shared</span>` : '';
+  const tags = note.tags?.length
+    ? `<div class="note-tags">${note.tags.map((tag) => `<button class="tag-chip" data-tag-jump="${escapeFragment(tag.name)}" type="button">#${escapeFragment(tag.name)}</button>`).join('')}</div>`
+    : '';
+  const meta = `<div class="note-meta"><span>${escapeFragment(note.category?.name || '—')}</span><span class="note-date">${escapeFragment(note.updatedAt ? new Date(note.updatedAt).toISOString().slice(0, 10) : '')}</span></div>`;
+  const actions = canWrite
+    ? `<div class="note-actions">
+        <button class="link-button" data-note-action="${note.isTop ? 'unpin' : 'pin'}" data-id="${escapeFragment(note.id)}" type="button">${note.isTop ? 'Unpin' : 'Pin'}</button>
+        <button class="link-button" data-note-action="links" data-id="${escapeFragment(note.id)}" type="button">Links</button>
+        <button class="link-button" data-note-action="comments" data-id="${escapeFragment(note.id)}" type="button">Comments</button>
+        <button class="link-button" data-note-action="history" data-id="${escapeFragment(note.id)}" type="button">History</button>
+        <button class="link-button" data-note-action="copy-md" data-id="${escapeFragment(note.id)}" type="button">Copy markdown</button>
+        <button class="link-button" data-note-action="archive" data-id="${escapeFragment(note.id)}" type="button">Archive</button>
+      </div>`
+    : '';
+
+  return `<article class="note ${note.isTop ? 'is-pinned' : ''}">
+    ${pinned}
+    ${fragmentNoteBody(note.content)}
+    ${tags}
+    ${meta}
+    ${actions}${shared}
+    <div class="note-links hidden" data-links-for="${escapeFragment(note.id)}"></div>
+    <div class="note-comments hidden" data-comments-for="${escapeFragment(note.id)}"></div>
+    <div class="note-history hidden" data-history-for="${escapeFragment(note.id)}"></div>
+  </article>`;
+}
+
+app.get('/fragments/notes', auth, async (req, res) => {
+  try {
+    const { page, per, sort } = parseFragmentQuery(req, { defaultPer: 10, defaultSort: 'updated' });
+    const params = {
+      q: req.query.q ? String(req.query.q).slice(0, 100) : null,
+      category: req.query.category ? String(req.query.category) : null,
+      tag: req.query.tag ? String(req.query.tag).slice(0, 40) : null,
+      view: ['archive', 'recycle'].includes(String(req.query.view)) ? String(req.query.view) : null,
+      sort,
+    };
+
+    const all = await loadNoteList({
+      account: req.account.sub,
+      category: params.category,
+      view: params.view,
+      tag: params.tag,
+      search: params.q,
+      workspaceId: req.workspaceId,
+    });
+    const sorted = sortFragmentRows(all, sort);
+    const total = sorted.length;
+    const pageRows = sorted.slice((page - 1) * per, page * per);
+    const canWrite = Boolean(rolePermissions[req.workspaceRole]?.includes('notes:write'));
+
+    const listHtml = pageRows.length
+      ? pageRows.map((note) => fragmentNoteCard(note, canWrite)).join('')
+      : '<p class="panel-copy">No notes match these filters.</p>';
+
+    const pagination = paginationHtml({ id: 'notes-pagination', path: '/fragments/notes', params, page, per, total, target: '#notes-list' });
+    const paginationWrapper = `<nav class="fragment-pagination${total > per ? '' : ' is-single'}" id="notes-pagination" hx-swap-oob="innerHTML" aria-label="Notes pagination">${pagination}</nav>`;
+    const chips = activeFilterChips('/fragments/notes', params, '#notes-list', {
+      q: `Search: ${params.q}`,
+      category: `Lane: ${params.category}`,
+      tag: `Tag: #${params.tag}`,
+      view: `View: ${params.view}`,
+    }, 'notes-pagination');
+
+    // The pagination and chip row are swapped out-of-band so the list swap alone
+    // is enough to keep every control in sync with the visible page.
+    res.send(`${listHtml}
+${paginationWrapper}
+<div id="notes-filter-chips" hx-swap-oob="innerHTML">${chips}</div>`);
+  } catch (error) {
+    res.status(error.statusCode || 500).send(`<p class="panel-copy">${escapeFragment(error.message || 'Could not load notes')}</p>`);
+  }
+});
+
+function fragmentTicketCard(ticket) {
+  const status = String(ticket.status || 'new');
+  const priority = String(ticket.priority || 'medium');
+  const when = ticket.updatedAt || ticket.createdAt ? new Date(ticket.updatedAt || ticket.createdAt).toISOString().slice(0, 10) : '';
+  return `<button class="ticket-card ticket-status-${escapeFragment(status)}" data-ticket-open="${escapeFragment(ticket.id)}" type="button">
+    <div class="ticket-card-main"><span class="ticket-subject">${escapeFragment(ticket.subject)}</span></div>
+    <div class="ticket-card-meta">
+      <span class="ticket-status-chip status-${escapeFragment(status)}">${escapeFragment(status)}</span>
+      <span class="ticket-priority-chip priority-${escapeFragment(priority)}">${escapeFragment(priority)}</span>
+      <span class="ticket-date">${escapeFragment(when)}</span>
+    </div>
+  </button>`;
+}
+
+app.get('/fragments/tickets', auth, async (req, res) => {
+  try {
+    const { page, per, sort } = parseFragmentQuery(req, { defaultPer: 10, defaultSort: 'updated' });
+    const params = {
+      q: req.query.q ? String(req.query.q).slice(0, 100) : null,
+      status: ticketStatuses.includes(String(req.query.status)) ? String(req.query.status) : null,
+      priority: ticketPriorities.includes(String(req.query.priority)) ? String(req.query.priority) : null,
+      sort,
+    };
+
+    const filters = [`workspace = ${wsLiteral(req)}`];
+    if (params.status) filters.push(`status = ${JSON.stringify(params.status)}`);
+    if (params.priority) filters.push(`priority = ${JSON.stringify(params.priority)}`);
+    if (params.q) filters.push(`(subject ~ ${JSON.stringify(params.q)} OR description ~ ${JSON.stringify(params.q)})`);
+
+    const rows = await q(`SELECT * FROM ticket WHERE ${filters.join(' AND ')} ORDER BY created_at DESC LIMIT 500;`);
+    const names = await ticketNames(rows);
+    const fieldRows = await q(`SELECT id FROM ticket_field WHERE workspace = ${wsLiteral(req)};`);
+    const fields = fieldRows.map(publicTicketField);
+    const tickets = rows.map((row) => publicTicket(row, { names, fields }));
+    const sorted = sortFragmentRows(tickets, sort);
+    const total = sorted.length;
+    const pageRows = sorted.slice((page - 1) * per, page * per);
+
+    const listHtml = pageRows.length
+      ? pageRows.map(fragmentTicketCard).join('')
+      : '<p class="muted">No tickets match these filters.</p>';
+
+    const pagination = paginationHtml({ id: 'tickets-pagination', path: '/fragments/tickets', params, page, per, total, target: '#tickets-list' });
+    const paginationWrapper = `<nav class="fragment-pagination${total > per ? '' : ' is-single'}" id="tickets-pagination" hx-swap-oob="innerHTML" aria-label="Ticket pagination">${pagination}</nav>`;
+    const chips = activeFilterChips('/fragments/tickets', params, '#tickets-list', {
+      q: `Search: ${params.q}`,
+      status: `Status: ${params.status}`,
+      priority: `Priority: ${params.priority}`,
+    }, 'tickets-pagination');
+
+    res.send(`${listHtml}
+${paginationWrapper}
+<div id="tickets-filter-chips" hx-swap-oob="innerHTML">${chips}</div>`);
+  } catch (error) {
+    res.status(error.statusCode || 500).send(`<p class="muted">${escapeFragment(error.message || 'Could not load tickets')}</p>`);
+  }
+});
+
 /* ---------- AI providers, chat, and prompt templates ---------- */
 
 app.get('/api/providers', auth, requirePermission('settings:write'), async (_req, res) => {

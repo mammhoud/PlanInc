@@ -83,6 +83,9 @@ export const notesSchema = z.object({
   shareViewCount: z.number().nullable().optional(),
   metadata: z.any(),
   sortOrder: z.number().nullable().optional(),
+  // Optional predefined category (see `planningCategories`). Notes without one
+  // fall into the implicit "Uncategorised" column of the plans board.
+  categoryId: z.number().int().nullable().optional(),
   accountId: z.union([z.number().int(), z.null()]),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

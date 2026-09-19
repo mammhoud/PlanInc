@@ -86,6 +86,13 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
     teamMembers: [] as PublicUser[],
     selectedUserIds: defaultSettings.internalShareUserIds || [] as number[],
     isLoadingUsers: false,
+    // Layered approvals: internal recipients and email invitees now request
+    // access instead of gaining it immediately.
+    inviteEmail: '',
+    inviteMessage: '',
+    statusMessage: '',
+    inviteUrl: '',
+    pendingApprovals: [] as { id: number; scope: string; status: string; inviteeEmail: string | null }[],
 
     get selectedExpiryValue() {
       if (this.expiryType === "never") return t("permanent-valid");
@@ -113,6 +120,67 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
 
     setSelectedTab(tab: string) {
       this.selectedTab = tab;
+    },
+
+    setInviteEmail(value: string) {
+      this.inviteEmail = value;
+    },
+
+    setInviteMessage(value: string) {
+      this.inviteMessage = value;
+    },
+
+    setStatusMessage(value: string) {
+      this.statusMessage = value;
+    },
+
+    setInviteUrl(value: string) {
+      this.inviteUrl = value;
+    },
+
+    setPendingApprovals(rows: { id: number; scope: string; status: string; inviteeEmail: string | null }[]) {
+      this.pendingApprovals = rows;
+    },
+
+    async loadApprovals() {
+      const noteId = RootStore.Get(PlanIncStore).curSelectedNote?.id;
+      if (!noteId) return;
+      try {
+        const rows = await api.shareApprovals.forNote.query({ noteId });
+        this.setPendingApprovals(rows.map((row: any) => ({
+          id: row.id,
+          scope: row.scope,
+          status: row.status,
+          inviteeEmail: row.inviteeEmail,
+        })));
+      } catch (error) {
+        this.setPendingApprovals([]);
+      }
+    },
+
+    async sendEmailInvite() {
+      const noteId = RootStore.Get(PlanIncStore).curSelectedNote?.id;
+      if (!noteId || !this.inviteEmail.trim()) return;
+      try {
+        const origin = getPlanIncEndpoint() ?? window.location.origin;
+        const res = await api.shareApprovals.inviteByEmail.mutate({
+          noteId,
+          email: this.inviteEmail.trim(),
+          canEdit: true,
+          message: this.inviteMessage,
+          origin,
+        });
+        this.setInviteUrl(res?.url ?? '');
+        this.setStatusMessage(
+          res?.delivered
+            ? t('invite-sent')
+            : t('invite-created-copy-link'),
+        );
+        this.setIsShare(true);
+        await this.loadApprovals();
+      } catch (error) {
+        this.setStatusMessage((error as Error)?.message ?? t('operation-failed'));
+      }
     },
 
     setShareUrl(url: string) {
@@ -165,41 +233,69 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
     },
 
     async handleCreateShare() {
-      // Handle public sharing
-      if (this.selectedTab === "public") {
-        const res = await RootStore.Get(PlanIncStore).shareNote.call({
-          id: RootStore.Get(PlanIncStore).curSelectedNote!.id!,
-          isCancel: false,
-          password: this.isPublic ? "" : this.settings.password,
-          expireAt: this.settings.expiryDate
-        });
-        const planincEndpoint = getPlanIncEndpoint() ?? window.location.origin;
-        this.setShareUrl(planincEndpoint + 'share/' + (res?.shareEncryptedUrl ?? '') + (this.isPublic ? '' : '?password=' + (this.settings.password ?? '')));
-        this.setIsShare(true);
-      }   
-      // Handle internal sharing
-      else if (this.selectedTab === "internal") {
-        await RootStore.Get(PlanIncStore).internalShareNote.call({
-          id: RootStore.Get(PlanIncStore).curSelectedNote!.id!,
-          accountIds: this.selectedUserIds,
-          isCancel: false
-        });
-        this.setIsShare(true);
+      const noteId = RootStore.Get(PlanIncStore).curSelectedNote!.id!;
+      this.setStatusMessage('');
+
+      try {
+        // Public link: published immediately unless the workspace requires
+        // an administrator decision first.
+        if (this.selectedTab === "public") {
+          const res = await api.shareApprovals.requestPublic.mutate({
+            noteId,
+            password: this.isPublic ? "" : this.settings.password,
+            expireAt: this.settings.expiryDate ?? null,
+            message: this.inviteMessage,
+          });
+
+          if (res?.published) {
+            const planincEndpoint = getPlanIncEndpoint() ?? window.location.origin;
+            this.setShareUrl(planincEndpoint + 'share/' + (res?.shareUrl ?? '') + (this.isPublic ? '' : '?password=' + (this.settings.password ?? '')));
+          } else {
+            this.setStatusMessage(t('share-pending-admin-approval'));
+          }
+          this.setIsShare(true);
+        }
+        // Internal recipients approve in-app before the share exists.
+        else if (this.selectedTab === "internal") {
+          await api.shareApprovals.requestInternal.mutate({
+            noteId,
+            accountIds: this.selectedUserIds,
+            canEdit: true,
+            message: this.inviteMessage,
+          });
+          this.setStatusMessage(t('share-request-sent'));
+          this.setIsShare(true);
+        }
+
+        await this.loadApprovals();
+      } catch (error) {
+        this.setStatusMessage((error as Error)?.message ?? t('operation-failed'));
       }
     },
 
     async handleCancelShare() {
+      const noteId = RootStore.Get(PlanIncStore).curSelectedNote!.id!;
+
+      // Revoke every still-pending request (internal + email invites) so nothing
+      // that has not been approved can be approved later.
+      for (const row of this.pendingApprovals) {
+        if (row.status === 'pending') {
+          try {
+            await api.shareApprovals.revoke.mutate({ id: row.id });
+          } catch (error) {
+            console.error('Failed to revoke share request', error);
+          }
+        }
+      }
+
       // Cancel public sharing
       if (this.selectedTab === "public") {
-        await RootStore.Get(PlanIncStore).shareNote.call({
-          id: RootStore.Get(PlanIncStore).curSelectedNote!.id!,
-          isCancel: true,
-        });
+        await RootStore.Get(PlanIncStore).shareNote.call({ id: noteId, isCancel: true });
       }
       // Cancel internal sharing for selected users
       else if (this.selectedTab === "internal") {
         await RootStore.Get(PlanIncStore).internalShareNote.call({
-          id: RootStore.Get(PlanIncStore).curSelectedNote!.id!,
+          id: noteId,
           accountIds: this.selectedUserIds,
           isCancel: true
         });
@@ -234,6 +330,10 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
       store.loadTeamMembers();
     }
   }, [store.selectedTab]);
+
+  useEffect(() => {
+    void store.loadApprovals();
+  }, []);
 
   return (
     <Card shadow="none" className="flex flex-col gap-2 p-2">
@@ -434,6 +534,25 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
             )}
           </div>
 
+          <div className="flex flex-col gap-2">
+            <span className="text-default-700 font-medium">{t("invite-by-email")}</span>
+            <span className="text-default-400 text-sm">{t("invite-by-email-description")}</span>
+            <Input
+              label={t("email")}
+              type="email"
+              value={store.inviteEmail}
+              onValueChange={(value) => store.setInviteEmail(value)}
+            />
+            <Button
+              variant="flat"
+              isDisabled={!store.inviteEmail.includes('@')}
+              startContent={<Icon icon="mdi:email-lock-outline" width="18" height="18" />}
+              onPress={store.sendEmailInvite}
+            >
+              {t("send-invite")}
+            </Button>
+          </div>
+
           {store.selectedUserIds.length > 0 && (
             <div className="flex flex-col gap-2">
               <span className="text-default-700 font-medium">{t("selected-users")}</span>
@@ -451,6 +570,42 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
               </AvatarGroup>
             </div>
           )}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2 mt-4">
+        <Input
+          label={t("share-message")}
+          description={t("share-message-description")}
+          value={store.inviteMessage}
+          onValueChange={(value) => store.setInviteMessage(value)}
+        />
+      </div>
+
+      {store.statusMessage && (
+        <p className="mt-4 rounded-xl bg-default-100/60 p-3 text-sm text-default-600">{store.statusMessage}</p>
+      )}
+
+      {store.inviteUrl && (
+        <div className="flex gap-2 items-center mt-3">
+          <Input label={t("invite-link")} value={store.inviteUrl} readOnly />
+          <Copy content={store.inviteUrl} size={24} />
+        </div>
+      )}
+
+      {store.pendingApprovals.length > 0 && (
+        <div className="flex flex-col gap-2 mt-4">
+          <span className="text-default-700 font-medium">{t("share-requests")}</span>
+          {store.pendingApprovals.map((row) => (
+            <div key={row.id} className="flex items-center justify-between gap-2 rounded-lg bg-default-100/60 px-3 py-2 text-sm">
+              <span className="truncate">
+                {t(`share-scope-${row.scope}`)}{row.inviteeEmail ? ` · ${row.inviteeEmail}` : ''}
+              </span>
+              <Chip size="sm" variant="flat" color={row.status === 'approved' ? 'success' : row.status === 'pending' ? 'warning' : 'default'}>
+                {t(`share-status-${row.status}`)}
+              </Chip>
+            </div>
+          ))}
         </div>
       )}
 

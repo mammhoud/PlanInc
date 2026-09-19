@@ -26,6 +26,11 @@ import { fontRouter } from './font';
 import { ticketRouter } from './ticket';
 import { studyRouter } from './study';
 import { planningLinkRouter } from './planningLink';
+import { planningFieldRouter } from './planningField';
+import { agentDirectoryRouter } from './agentDirectory';
+import { planningCategoryRouter } from './planningCategory';
+import { brandingRouter } from './branding';
+import { shareApprovalRouter } from './shareApproval';
 export const appRouter = router({
   ai: aiRouter,
   notes: noteRouter,
@@ -48,6 +53,11 @@ export const appRouter = router({
   tickets: ticketRouter,
   study: studyRouter,
   planningLinks: planningLinkRouter,
+  planningFields: planningFieldRouter,
+  agentDirectories: agentDirectoryRouter,
+  planningCategories: planningCategoryRouter,
+  branding: brandingRouter,
+  shareApprovals: shareApprovalRouter,
 });
 
 export const createCaller = t.createCallerFactory(appRouter);

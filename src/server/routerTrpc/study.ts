@@ -12,6 +12,7 @@ const studySchema = z.object({
   noteId: z.number().int().nullable(),
   category: z.string(),
   tags: z.array(z.string()),
+  customFields: z.record(z.string(), z.unknown()),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
@@ -24,6 +25,7 @@ const studyInput = z.object({
   noteId: z.number().int().nullable().optional(),
   category: z.string().trim().max(80).default(''),
   tags: z.array(z.string().trim().min(1).max(40)).max(12).default([]),
+  customFields: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const studyRouter = router({

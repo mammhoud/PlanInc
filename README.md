@@ -166,10 +166,18 @@ bun run start:server:production
 docker compose config -q
 ```
 
-The authenticated sidebar is organized into two responsive lanes: **Work**
-(notes, todos, tickets, agents, analytics, resources, and graph) and **Learn**
-(study). Tickets and study items are stored in the embedded SurrealDB as
-account-scoped records; they do not revive the historical `planing/` tree.
+The authenticated sidebar is organized into five responsive lanes: **Planning**
+(dashboard, tickets, study, and graph), **Work** (notes, todos, and archived),
+**Knowledge** (resources and agents), **Insights** (analytics), and **System**
+(plugins and settings). Tickets and study items are stored in the embedded
+SurrealDB as account-scoped records; they do not revive the historical
+`planing/` tree.
+
+Planning modules share consistent controls: a list/cards/grid view switcher, a
+pagination footer, and a floating create button matching the notes add button.
+Tickets and study items support account-scoped custom form fields
+(**Settings → Forms**), and relations marked **Show in graph** are drawn on the
+graph, which previews every node type with tooltips and related-item details.
 
 ### Authentication notes
 

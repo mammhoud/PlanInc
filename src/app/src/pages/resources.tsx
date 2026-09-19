@@ -15,11 +15,12 @@ import { LoadingAndEmpty } from "@/components/Common/LoadingAndEmpty";
 import { PhotoProvider } from "react-photo-view";
 import { useNavigate } from "react-router-dom";
 import { UploadFileWrapper } from "@/components/Common/UploadFile";
+import { PlanningViewSwitch, usePlanningView } from "@/components/PlanincPlanning/PlanningViewSwitch";
 const Page = observer(() => {
   const navigate = useNavigate();
   const resourceStore = RootStore.Get(ResourceStore);
   const { t } = useTranslation();
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = usePlanningView('planinc:resources:view', 'list');
   const [searchText, setSearchText] = useState('');
   const [sortMode, setSortMode] = useState<'name' | 'updated'>('updated');
   const resources = useMemo(() => {
@@ -131,24 +132,12 @@ const Page = observer(() => {
               >
                 {sortMode === 'updated' ? t('recent') : t('name')}
               </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'list' ? 'solid' : 'bordered'}
-                isIconOnly
-                aria-label={t('list-view')}
-                onPress={() => setViewMode('list')}
-              >
-                <Icon icon="tabler:list-check" className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'grid' ? 'solid' : 'bordered'}
-                isIconOnly
-                aria-label={t('grid-view')}
-                onPress={() => setViewMode('grid')}
-              >
-                <Icon icon="tabler:layout-columns" className="w-4 h-4" />
-              </Button>
+              <PlanningViewSwitch
+                value={viewMode === 'grid' ? 'grid' : 'list'}
+                onChange={setViewMode}
+                modes={['list', 'grid']}
+                ariaLabel={t('resource-view')}
+              />
             </div>
 
             <div className="flex items-center gap-2 mt-2 ">

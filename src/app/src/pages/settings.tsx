@@ -24,7 +24,13 @@ import { ImportAIDialog } from '@/components/PlanIncSettings/ImportAIDialog';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { HotkeySetting } from '@/components/PlanIncSettings/HotkeySetting';
+import { FormFieldSetting } from '@/components/PlanIncSettings/FormFieldSetting';
+import { ShareApprovalSetting } from '@/components/PlanIncSettings/ShareApprovalSetting';
+import { CategorySetting } from '@/components/PlanIncSettings/CategorySetting';
+import { BrandSetting } from '@/components/PlanIncSettings/BrandSetting';
 import { isDesktop } from '@/lib/tauriHelper';
+
+type SettingGroup = 'general' | 'workspace' | 'forms' | 'ai' | 'automation' | 'storage' | 'security' | 'about';
 
 type SettingItem = {
   key: string;
@@ -32,7 +38,7 @@ type SettingItem = {
   icon: string;
   component: JSX.Element;
   requireAdmin: boolean;
-  group: 'general' | 'workspace' | 'ai' | 'automation' | 'storage' | 'security' | 'about';
+  group: SettingGroup;
   keywords?: string[];
 };
 export const allSettings: SettingItem[] = [
@@ -62,6 +68,42 @@ export const allSettings: SettingItem[] = [
     requireAdmin: false,
     group: 'workspace',
     keywords: ['hotkey', 'shortcut', 'keyboard', 'desktop', '快捷键', '热键', '桌面'],
+  },
+  {
+    key: 'plan-categories',
+    title: ('plan-categories'),
+    icon: 'tabler:category',
+    component: <CategorySetting />,
+    requireAdmin: false,
+    group: 'forms',
+    keywords: ['category', 'categories', 'lane', 'board', 'kanban', '分类', '看板'],
+  },
+  {
+    key: 'form-fields',
+    title: ('custom-form-fields'),
+    icon: 'tabler:forms',
+    component: <FormFieldSetting />,
+    requireAdmin: false,
+    group: 'forms',
+    keywords: ['form', 'forms', 'field', 'fields', 'custom', '表单', '自定义字段'],
+  },
+  {
+    key: 'brand',
+    title: ('workspace-logo'),
+    icon: 'tabler:photo',
+    component: <BrandSetting />,
+    requireAdmin: false,
+    group: 'workspace',
+    keywords: ['logo', 'brand', 'icon', 'image', '标志', '品牌'],
+  },
+  {
+    key: 'share-approval',
+    title: ('share-approvals'),
+    icon: 'mdi:shield-account-outline',
+    component: <ShareApprovalSetting />,
+    requireAdmin: false,
+    group: 'security',
+    keywords: ['share', 'sharing', 'approval', 'approve', 'credential', 'email', '分享', '审批'],
   },
   {
     key: 'user',
@@ -169,9 +211,10 @@ const Page = observer(() => {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<string>('basic');
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const groupLabels: Record<SettingItem['group'], string> = {
+  const groupLabels: Record<SettingGroup, string> = {
     general: 'General',
     workspace: 'Workspace',
+    forms: 'Forms',
     ai: 'AI & Integrations',
     automation: 'Automation',
     storage: 'Storage & Data',

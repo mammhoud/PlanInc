@@ -17,6 +17,7 @@ import { AiToolsSection } from './AiToolsSection';
 import { EmbeddingSettingsSection } from './EmbeddingSettingsSection';
 import ModelDialogContent from './ModelDialogContent';
 import { McpServersSection } from './McpServersSection';
+import { AgentDirectorySetting } from '../AgentDirectorySetting';
 import { AiSettingStore } from '@/store/aiSettingStore';
 import { Copy } from '../../Common/Copy';
 import { MarkdownRender } from '../../Common/MarkdownRender';
@@ -93,6 +94,8 @@ export default observer(function AiSetting() {
       <AiToolsSection />
 
       <McpServersSection />
+
+      <AgentDirectorySetting />
 
       <CollapsibleCard icon="hugeicons:api" title="MCP Integration">
         <div className="space-y-4">

@@ -64,6 +64,14 @@ const DATE_FIELDS: Record<string, string[]> = {
   tickets: ['createdAt', 'updatedAt'],
   studyItems: ['createdAt', 'updatedAt'],
   planningLinks: ['createdAt', 'updatedAt'],
+  planningFormFields: ['createdAt', 'updatedAt'],
+  // Layered share approvals: one row per requested share (internal recipient,
+  // email invite, or public link) that must be approved before access exists.
+  shareApprovals: ['createdAt', 'updatedAt', 'decidedAt', 'expiresAt'],
+  // Account-scoped agent directories: working dirs and ordered skills dirs.
+  agentDirectories: ['createdAt', 'updatedAt'],
+  // Predefined, account-unique categories (lanes) that plans can be filed under.
+  planningCategories: ['createdAt', 'updatedAt'],
 };
 
 const TABLES = Object.keys(DATE_FIELDS);
@@ -130,6 +138,7 @@ function normalizeRecord(table: string, row: any): any {
     out.studyItemId ??= null;
     out.category ??= '';
     out.tags ??= [];
+    out.customFields ??= {};
   } else if (table === 'studyItems') {
     out.description ??= '';
     out.status ??= 'planned';
@@ -137,9 +146,20 @@ function normalizeRecord(table: string, row: any): any {
     out.noteId ??= null;
     out.category ??= '';
     out.tags ??= [];
+    out.customFields ??= {};
   } else if (table === 'planningLinks') {
     out.label ??= '';
     out.metadata ??= {};
+    out.showInGraph ??= true;
+  } else if (table === 'planningFormFields') {
+    out.key ??= '';
+    out.kind ??= 'ticket';
+    out.fieldType ??= 'text';
+    out.options ??= [];
+    out.required ??= false;
+    out.showInGraph ??= false;
+    out.enabled ??= true;
+    out.sortOrder ??= 0;
   }
 
   return out;
@@ -918,6 +938,18 @@ export async function ensureSurrealSchema(): Promise<void> {
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_source ON TABLE planningLinks COLUMNS sourceType, sourceId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_target ON TABLE planningLinks COLUMNS targetType, targetId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_planning_link ON TABLE planningLinks COLUMNS accountId, sourceType, sourceId, targetType, targetId UNIQUE;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_form_fields_account ON TABLE planningFormFields COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_form_fields_kind ON TABLE planningFormFields COLUMNS kind;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS uniq_form_field_key ON TABLE planningFormFields COLUMNS accountId, kind, key UNIQUE;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_share_approvals_account ON TABLE shareApprovals COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_share_approvals_note ON TABLE shareApprovals COLUMNS noteId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_share_approvals_invitee ON TABLE shareApprovals COLUMNS inviteeAccountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_share_approvals_status ON TABLE shareApprovals COLUMNS status;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS uniq_share_approval_token ON TABLE shareApprovals COLUMNS token UNIQUE;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_agent_dirs_account ON TABLE agentDirectories COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS uniq_agent_dir_path ON TABLE agentDirectories COLUMNS accountId, kind, path UNIQUE;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_categories_account ON TABLE planningCategories COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS uniq_planning_category_slug ON TABLE planningCategories COLUMNS accountId, slug UNIQUE;`);
   await query(statements.join('\n'));
 }
 

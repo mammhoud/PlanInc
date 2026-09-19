@@ -103,6 +103,34 @@
   declarative group manifest and responsive grouped navigation rather than
   inventing new server fields with no persistence contract.
 
+## 2026-09-19 pagination, custom fields, and graph continuation
+
+- View switching, pagination, and floating create buttons now live in
+  `src/app/src/components/PlanincPlanning/` so every planning surface shares one
+  implementation instead of ad-hoc controls.
+- Custom form fields are stored per account in `planningFormFields`, keyed by
+  `key` and scoped by `kind`; values live on the entity as `customFields`, which
+  keeps the graph preview and the CRUD modal reading the same data.
+- `planningLinks.showInGraph` is the single flag that decides whether a relation
+  is drawn on the graph; the ticket relation modal can toggle it per link.
+- The graph now derives node ids from `kind:entityId`, so edges can be drawn
+  between any two visible nodes rather than only from the root hub.
+- Resources reuse the shared view switcher; the graph reuses the same switcher
+  with a `graph` label override for its canvas mode.
+
+## 2026-09-19 ticket relation targets expansion
+
+- Ticket relations now target notes and agents in addition to study and
+  resources. Notes are loaded through `api.notes.list.mutate` because the legacy
+  `notes.list` procedure is mutation-style; agents map to AI chat
+  `conversation` records surfaced on `/ai`.
+- `planningLinks` entity types now cover `note`, `ticket`, `study`, `resource`,
+  and `agent`, with `agent` backed by the `conversation` table and the same
+  account-ownership check used by the other targets.
+- The graph shows a node per conversation so agent relations resolve into
+  edges; a single agents hub node is kept only when the account has no
+  conversations yet.
+
 ## 2026-09-19 icon warning follow-up
 
 - The initial icon cleanup left stale `hugeicons:task-01` and
@@ -111,3 +139,29 @@
   `hugeicons:book-edit`, both present in the generated local registry.
 - The remaining `rctx-contextmenu` `defaultProps` warning is third-party and
   is not caused by the PlanInc `ContextMenu` wrapper.
+
+## Plans, categories, branding, approvals and htmx fragments
+
+- **htmx already existed, but only in `runtime/`.** `runtime/server.mjs` serves
+  Express + SurrealDB with a `/fragments/*` convention and ships
+  `runtime/public/vendor/htmx.min.js`; the canonical app under `src/` is React +
+  tRPC and the plan forbids mixing htmx into it. All htmx work therefore targets
+  the runtime server, and the JSON endpoints stay as the JS fallback.
+- **Pending shares must not create access.** Access is derived from
+  `internalShares: { some: { accountId } }`, so an unapproved share cannot be
+  represented as a `noteInternalShare` row. Pending requests live in
+  `shareApprovals` and only materialise the share row on approval.
+- **No mail transport exists** in the server dependencies (no nodemailer/SMTP
+  client). Email invites are therefore rendered server-side and either POSTed to
+  `SHARE_INVITE_WEBHOOK` when configured, or returned with the approve URL so
+  the sender can share the link; acceptance always records the approval.
+- **No image-generation endpoint existed.** `branding.generateLogo` calls the
+  configured image model's OpenAI-compatible `/images/generations` directly and
+  stores the result as an inline data URL (capped at 512 KB) instead of adding
+  an SDK dependency or a file-storage path.
+- **Notes have no status or date field**, only `createdAt`/`updatedAt`, so the
+  plans board columns come from the new predefined categories and the calendar
+  places plans on their creation date.
+- **`planing/` is a 2.4 GB vendored Blinko fork with its own `.git`.** It is
+  excluded via `.gitignore`; `git add` would otherwise register a nested
+  repository gitlink and commit a huge dependency tree.
