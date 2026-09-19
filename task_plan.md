@@ -157,6 +157,8 @@ field validation, error reporting, and no stale state after reopening.
   smoke checks, focused server tests, and the production build are validated.
 - Archive path hardening is covered by implementation checks; the remaining
   browser-tool installation limitation is documented below.
+- Icon fallback cleanup is complete; the third-party context-menu deprecation
+  remains documented as a non-blocking upstream warning.
 
 ## Decisions to confirm before implementation
 

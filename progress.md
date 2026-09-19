@@ -103,3 +103,15 @@ archive and lane-relationship contracts.
   Resources, Tickets, Graph, and Settings.
 - All PlanInc phases are now complete and the final checkpoint was pushed to
   both `PlanInc:generic` and `workspace:generic`.
+
+## 2026-09-19 — Icon fallback cleanup
+
+- Replaced stale local icon names in navigation, dashboard recent activity,
+  Tickets, Study, and Resources with entries present in the generated registry.
+- `git diff --check` passed.
+- Production `build:web` passed; only pre-existing case-sensitive AI tool import
+  warnings remain.
+- Focused planning smoke and relationship tests pass: 8 tests, 0 failures.
+- The integrated Playwright MCP could not start because the environment is out
+  of disk space while installing `@playwright/mcp`; prior authenticated browser
+  validation remains the available UI evidence.

@@ -121,13 +121,13 @@ const Page = observer(() => {
                 value={searchText}
                 onValueChange={setSearchText}
                 placeholder={t('search')}
-                startContent={<Icon icon="tabler:search" className="w-4 h-4" />}
+                startContent={<Icon icon="hugeicons:search-list-01" className="w-4 h-4" />}
               />
               <Button
                 size="sm"
                 variant="bordered"
                 onPress={() => setSortMode(sortMode === 'updated' ? 'name' : 'updated')}
-                startContent={<Icon icon="tabler:sort-ascending" className="w-4 h-4" />}
+                startContent={<Icon icon="solar:sort-by-time-broken" className="w-4 h-4" />}
               >
                 {sortMode === 'updated' ? t('recent') : t('name')}
               </Button>
@@ -138,7 +138,7 @@ const Page = observer(() => {
                 aria-label={t('list-view')}
                 onPress={() => setViewMode('list')}
               >
-                <Icon icon="tabler:list" className="w-4 h-4" />
+                <Icon icon="tabler:list-check" className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
@@ -147,7 +147,7 @@ const Page = observer(() => {
                 aria-label={t('grid-view')}
                 onPress={() => setViewMode('grid')}
               >
-                <Icon icon="tabler:layout-grid" className="w-4 h-4" />
+                <Icon icon="tabler:layout-columns" className="w-4 h-4" />
               </Button>
             </div>
 
@@ -213,7 +213,7 @@ const Page = observer(() => {
                     <Icon
                       icon={
                         selectedItems.size === visibleResources.length
-                          ? "material-symbols:deselect"
+                          ? "material-symbols:close"
                           : "material-symbols:select-all"
                       }
                       className="w-5 h-5"

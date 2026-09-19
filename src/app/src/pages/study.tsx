@@ -53,7 +53,7 @@ export default function StudyPage() {
 
   return (
     <ScrollArea fixMobileTopBar className="mx-auto w-full max-w-5xl space-y-4 px-3 pb-20 md:px-6">
-      <div className="flex items-center gap-2 pt-2"><Icon icon="hugeicons:book-open-01" width="24" height="24" /><h1 className="text-xl font-bold">{t('study')}</h1></div>
+      <div className="flex items-center gap-2 pt-2"><Icon icon="hugeicons:book-edit" width="24" height="24" /><h1 className="text-xl font-bold">{t('study')}</h1></div>
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label={t('filter-by-tag')}><Button size="sm" variant={selectedTag ? 'flat' : 'solid'} onPress={() => setSelectedTag('')}>{t('all')}</Button>{availableTags.map((tag) => <Button key={tag} size="sm" variant={selectedTag === tag ? 'solid' : 'flat'} onPress={() => setSelectedTag(tag)}>#{tag}</Button>)}</div>
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label={t('filter-by-category')}><Button size="sm" variant={selectedCategory ? 'flat' : 'solid'} onPress={() => setSelectedCategory('')}>{t('all-categories')}</Button>{availableCategories.map((categoryName) => <Button key={categoryName} size="sm" variant={selectedCategory === categoryName ? 'solid' : 'flat'} onPress={() => setSelectedCategory(categoryName)}>{categoryName}</Button>)}</div>
       <div className="flex justify-end"><Button color="primary" onPress={() => { setEditingItem(null); setIsCrudOpen(true); }}>{t('add-study-item')}</Button></div>

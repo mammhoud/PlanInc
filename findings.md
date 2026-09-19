@@ -102,3 +102,12 @@
   enforce admin/platform visibility. The safe completion path was to add a
   declarative group manifest and responsive grouped navigation rather than
   inventing new server fields with no persistence contract.
+
+## 2026-09-19 icon warning follow-up
+
+- The initial icon cleanup left stale `hugeicons:task-01` and
+  `hugeicons:book-open-01` references in dashboard recent activity.
+- Those references were replaced with `tabler:list-check` and
+  `hugeicons:book-edit`, both present in the generated local registry.
+- The remaining `rctx-contextmenu` `defaultProps` warning is third-party and
+  is not caused by the PlanInc `ContextMenu` wrapper.

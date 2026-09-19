@@ -15,7 +15,7 @@ export class BaseStore implements Store {
     {
       title: 'dashboard',
       href: '/dashboard',
-      icon: 'hugeicons:dashboard-square-01',
+      icon: 'material-symbols:desktop-windows',
       lane: 'work',
     },
     {
@@ -49,26 +49,26 @@ export class BaseStore implements Store {
     {
       title: 'tickets',
       href: '/tickets',
-      icon: 'hugeicons:task-01',
+      icon: 'tabler:list-check',
       lane: 'work',
     },
     {
       title: 'agents',
       href: '/ai',
-      icon: 'hugeicons:ai-chat-02',
+      icon: 'hugeicons:chat',
       hiddenMobile: true,
       lane: 'knowledge',
     },
     {
       title: 'graph',
       href: '/graph',
-      icon: 'hugeicons:share-08',
+      icon: 'hugeicons:share-05',
       lane: 'knowledge',
     },
     {
       title: 'study',
       href: '/study',
-      icon: 'hugeicons:book-open-01',
+      icon: 'hugeicons:book-edit',
       lane: 'learn',
     },
     {

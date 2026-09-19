@@ -116,7 +116,7 @@ export default function TicketsPage() {
 
   return (
     <ScrollArea fixMobileTopBar className="mx-auto w-full max-w-5xl space-y-4 px-3 pb-20 md:px-6">
-      <div className="flex items-center gap-2 pt-2"><Icon icon="hugeicons:task-01" width="24" height="24" /><h1 className="text-xl font-bold">{t('tickets')}</h1></div>
+      <div className="flex items-center gap-2 pt-2"><Icon icon="tabler:list-check" width="24" height="24" /><h1 className="text-xl font-bold">{t('tickets')}</h1></div>
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label={t('filter-by-tag')}>
         <Button size="sm" variant={selectedTag ? 'flat' : 'solid'} onPress={() => setSelectedTag('')}>{t('all')}</Button>
         {availableTags.map((tag) => <Button key={tag} size="sm" variant={selectedTag === tag ? 'solid' : 'flat'} onPress={() => setSelectedTag(tag)}>#{tag}</Button>)}
@@ -132,7 +132,7 @@ export default function TicketsPage() {
             size="sm"
             variant={viewMode === mode ? 'solid' : 'flat'}
             onPress={() => changeViewMode(mode)}
-            startContent={<Icon icon={mode === 'list' ? 'tabler:list' : mode === 'grid' ? 'tabler:layout-grid' : 'tabler:layout-cards'} width="16" height="16" />}
+            startContent={<Icon icon={mode === 'list' ? 'tabler:list-check' : mode === 'grid' ? 'tabler:layout-columns' : 'tabler:cards'} width="16" height="16" />}
           >
             {t(`view-${mode}`)}
           </Button>
