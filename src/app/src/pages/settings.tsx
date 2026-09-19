@@ -32,6 +32,7 @@ type SettingItem = {
   icon: string;
   component: JSX.Element;
   requireAdmin: boolean;
+  group: 'general' | 'workspace' | 'ai' | 'automation' | 'storage' | 'security' | 'about';
   keywords?: string[];
 };
 export const allSettings: SettingItem[] = [
@@ -41,6 +42,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:tool',
     component: <BasicSetting />,
     requireAdmin: false,
+    group: 'general',
     keywords: ['basic', 'information', '基本信息', '基础设置'],
   },
   {
@@ -49,6 +51,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:settings-2',
     component: <PerferSetting />,
     requireAdmin: false,
+    group: 'general',
     keywords: ['preference', 'theme', 'language', '偏好设置', '主题', '语言'],
   },
   {
@@ -57,6 +60,7 @@ export const allSettings: SettingItem[] = [
     icon: 'material-symbols:keyboard',
     component: <HotkeySetting />,
     requireAdmin: false,
+    group: 'workspace',
     keywords: ['hotkey', 'shortcut', 'keyboard', 'desktop', '快捷键', '热键', '桌面'],
   },
   {
@@ -65,6 +69,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:users',
     component: <UserSetting />,
     requireAdmin: true,
+    group: 'security',
     keywords: ['user', 'users', '用户', '用户列表'],
   },
   {
@@ -73,6 +78,7 @@ export const allSettings: SettingItem[] = [
     icon: 'hugeicons:ai-beautify',
     component: <AiSetting />,
     requireAdmin: true,
+    group: 'ai',
     keywords: ['ai', 'artificial intelligence', '人工智能'],
   },
   {
@@ -81,6 +87,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:cloud-network',
     component: <HttpProxySetting />,
     requireAdmin: true,
+    group: 'ai',
     keywords: ['proxy', 'http', 'connection', '代理', 'HTTP代理'],
   },
   {
@@ -89,6 +96,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:list-check',
     component: <TaskSetting />,
     requireAdmin: true,
+    group: 'automation',
     keywords: ['task', 'schedule', '任务', '定时任务'],
   },
   {
@@ -97,6 +105,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:database',
     component: <StorageSetting />,
     requireAdmin: true,
+    group: 'storage',
     keywords: ['storage', 'database', '存储', '数据库'],
   },
   {
@@ -105,6 +114,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:music',
     component: <MusicSetting />,
     requireAdmin: true,
+    group: 'workspace',
     keywords: ['music', '音乐设置'],
   },
   {
@@ -113,6 +123,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:file-import',
     component: <ImportSetting />,
     requireAdmin: true,
+    group: 'storage',
     keywords: ['import', 'data', '导入', '数据导入'],
   },
   {
@@ -121,6 +132,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:key',
     component: <SSOSetting />,
     requireAdmin: true,
+    group: 'security',
     keywords: ['sso', 'single sign on', '单点登录'],
   },
   {
@@ -129,6 +141,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:file-export',
     component: <ExportSetting />,
     requireAdmin: false,
+    group: 'storage',
     keywords: ['export', 'data', '导出', '数据导出'],
   },
   {
@@ -137,6 +150,7 @@ export const allSettings: SettingItem[] = [
     icon: 'hugeicons:plug-socket',
     component: <PluginSetting />,
     requireAdmin: true,
+    group: 'workspace',
     keywords: ['plugin', 'plugins', '插件', '插件设置'],
   },
   {
@@ -145,6 +159,7 @@ export const allSettings: SettingItem[] = [
     icon: 'tabler:info-circle',
     component: <AboutSetting />,
     requireAdmin: false,
+    group: 'about',
     keywords: ['about', 'information', '关于', '信息'],
   },
 ];
@@ -154,6 +169,15 @@ const Page = observer(() => {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<string>('basic');
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const groupLabels: Record<SettingItem['group'], string> = {
+    general: 'General',
+    workspace: 'Workspace',
+    ai: 'AI & Integrations',
+    automation: 'Automation',
+    storage: 'Storage & Data',
+    security: 'Security',
+    about: 'About',
+  };
 
   const getVisibleSettings = () => {
     let settings = allSettings.filter((setting) => !setting.requireAdmin || user.isSuperAdmin);
@@ -181,12 +205,20 @@ const Page = observer(() => {
     return settings;
   };
 
+  const visibleSettings = getVisibleSettings();
+
+  useEffect(() => {
+    if (!visibleSettings.some((setting) => setting.key === selected)) {
+      setSelected(visibleSettings[0]?.key ?? 'basic');
+    }
+  }, [selected, visibleSettings]);
+
   const getCurrentComponent = () => {
     const setting = allSettings.find((s) => s.key === selected);
     return setting ? <div key={setting.key}>{setting.component}</div> : null;
   };
 
-  const tabItems: TabItem[] = getVisibleSettings().map((setting) => ({
+  const tabItems: TabItem[] = visibleSettings.map((setting) => ({
     key: setting.key,
     title: setting.title,
     icon: setting.icon,
@@ -221,23 +253,34 @@ const Page = observer(() => {
             <div className="rounded-xl bg-background p-1 mb-4">
               <ScrollArea onBottom={() => { }} className="h-auto max-h-[calc(100vh-140px)]">
                 <div className="p-1 flex flex-col flex-nowrap gap-1">
-                  {tabItems.map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => setSelected(item.key)}
-                      className={`cursor-pointer flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${selected === item.key
-                        ? 'bg-primary text-primary-foreground font-medium'
-                        : 'hover:bg-muted/50 text-foreground/80 hover:text-foreground'
-                        }`}
-                    >
-                      {item.icon && (
-                        <span className="flex-shrink-0 mr-2">
-                          <Icon icon={item.icon} width="18" />
-                        </span>
-                      )}
-                      <span className="font-bold">{typeof item.title === 'string' ? t(item.title) : item.title}</span>
-                    </button>
-                  ))}
+                  {Object.entries(groupLabels).map(([group, label]) => {
+                    const groupItems = visibleSettings.filter((setting) => setting.group === group);
+                    if (!groupItems.length) return null;
+                    return (
+                      <div key={group} className="flex flex-col gap-1">
+                        <p className="px-3 pt-2 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
+                          {label}
+                        </p>
+                        {groupItems.map((item) => (
+                          <button
+                            key={item.key}
+                            onClick={() => setSelected(item.key)}
+                            className={`cursor-pointer flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${selected === item.key
+                              ? 'bg-primary text-primary-foreground font-medium'
+                              : 'hover:bg-muted/50 text-foreground/80 hover:text-foreground'
+                              }`}
+                          >
+                            {item.icon && (
+                              <span className="flex-shrink-0 mr-2">
+                                <Icon icon={item.icon} width="18" />
+                              </span>
+                            )}
+                            <span className="font-bold">{t(item.title)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </div>

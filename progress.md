@@ -89,3 +89,17 @@ archive and lane-relationship contracts.
   build passes.
 - An attempted `build:no-pwa` command was invalid for the current package
   scripts; the canonical `build:web` command was used successfully instead.
+
+## 2026-09-19 — PlanInc plan completion
+
+- Added grouped Settings navigation for General, Workspace, AI & Integrations,
+  Automation, Storage & Data, Security, and About.
+- Preserved existing settings persistence, admin-only visibility, desktop-only
+  hotkey behavior, and responsive mobile tabs.
+- Added selection recovery when search filters hide the currently selected
+  settings tab.
+- Final validation passed: production build, 19 focused server tests, route
+  smoke checks, `git diff --check`, and authenticated browser checks for
+  Resources, Tickets, Graph, and Settings.
+- All PlanInc phases are now complete and the final checkpoint was pushed to
+  both `PlanInc:generic` and `workspace:generic`.

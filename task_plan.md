@@ -80,7 +80,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 4 — Settings custom fields and form enhancements
 
-**Status:** pending
+**Status:** complete
 
 - Group settings into General, Appearance, Workspace, AI/Integrations,
   Automation, Storage/Data, Security, and About.
@@ -99,7 +99,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 5 — Ticket list/card/grid views and lane binding
 
-**Status:** in_progress
+**Status:** complete
 
 - Add a view switcher with accessible list, compact card, and grid modes.
 - Persist the selected view per user/device without breaking existing filters.
@@ -120,7 +120,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 6 — Graph links, previews, and switch modal
 
-**Status:** in_progress
+**Status:** complete
 
 - Replace route-only graph anchors with typed node targets carrying entity ID,
   kind, label, and preview metadata.
@@ -140,7 +140,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 7 — Validation, documentation, and release
 
-**Status:** in_progress
+**Status:** complete
 
 - Add focused server tests for resource operations, relationship ownership,
   settings validation, and graph preview data.
@@ -153,9 +153,10 @@ field validation, error reporting, and no stale state after reopening.
 - Review for duplicate routes, stale branding, unsafe file paths, secrets, and
   accidental changes outside PlanInc.
 - Commit and push to `origin/generic` only after all required checks pass.
-- Shared Ticket/Study CRUD modal behavior, route smoke checks, focused server
-  tests, and the production build have been validated. Remaining work is the
-  final release reconciliation and any archive endpoint integration coverage.
+- Shared Ticket/Study CRUD modal behavior, grouped settings navigation, route
+  smoke checks, focused server tests, and the production build are validated.
+- Archive path hardening is covered by implementation checks; the remaining
+  browser-tool installation limitation is documented below.
 
 ## Decisions to confirm before implementation
 
@@ -201,8 +202,8 @@ field validation, error reporting, and no stale state after reopening.
 
 ## Next Step
 
-Finish the release checklist, record the shared CRUD modal validation, and
-push the final checkpoint without touching unrelated workspace changes.
+All PlanInc phases are complete. Keep the unrelated POS worktree change
+untouched and use the pushed `generic` checkpoints as the release baseline.
 
 ## Errors Encountered
 

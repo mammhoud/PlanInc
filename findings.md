@@ -98,3 +98,7 @@
 - Ticket and Study previously duplicated inline form state and metadata modal
   behavior. The shared `PlanningCrudModal` now owns reset-on-open, normalized
   tags, loading guards, and inline mutation errors for both surfaces.
+- Existing settings components already persist their supported values and
+  enforce admin/platform visibility. The safe completion path was to add a
+  declarative group manifest and responsive grouped navigation rather than
+  inventing new server fields with no persistence contract.
