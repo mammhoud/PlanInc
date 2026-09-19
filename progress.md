@@ -32,3 +32,10 @@
   kinds and a stable root node.
 - Final verification passed: planning smoke tests (2/2), backend build,
   frontend build with the configured 4 GB heap, and `git diff --check`.
+- Authenticated browser verification passed with a provisioned superuser:
+  sign-in redirected to `/`, then `/tickets`, `/study`, and `/graph` rendered
+  with their authenticated navigation.
+- Removed plaintext password persistence from the sign-in page and added the
+  documented `create:superuser` provisioning command.
+- The legacy Playwright suite remains blocked when Docker is unavailable; the
+  integrated browser runner also lacks its configured Chrome binary.

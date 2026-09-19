@@ -150,6 +150,13 @@ bun run dev
 # Run tests
 make test
 
+# Create or update a local superuser (never commit these credentials)
+PLANINC_SUPERUSER_NAME=admin \
+  PLANINC_SUPERUSER_PASSWORD='use-a-unique-password-at-least-12-chars' \
+  bun run create:superuser
+# Or omit the password variable to enter it interactively:
+# PLANINC_SUPERUSER_NAME=admin bun run create:superuser
+
 # Build the canonical web/backend application
 cd src
 bun run build:web
@@ -163,6 +170,16 @@ The authenticated sidebar is organized into two responsive lanes: **Work**
 (notes, todos, tickets, agents, analytics, resources, and graph) and **Learn**
 (study). Tickets and study items are stored in the embedded SurrealDB as
 account-scoped records; they do not revive the historical `planing/` tree.
+
+### Authentication notes
+
+- Sign-in credentials are submitted to `/api/auth/login`; successful sessions
+  navigate to the authenticated workspace.
+- The sign-in page no longer persists plaintext passwords in browser storage.
+  “Remember me” only controls the existing username preference.
+- Superuser passwords are hashed with the server password helper and are never
+  printed by the provisioning command. Restart a running development server
+  after provisioning so its account lookup cache is refreshed.
 
 ## 📖 Documentation
 

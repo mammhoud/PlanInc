@@ -77,6 +77,7 @@ router.get('/discord', logOAuthRequest('Discord'), async (req, res, next) => {
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', async (err, user, info) => {
     if (err) {
+      console.error('Local authentication error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
 

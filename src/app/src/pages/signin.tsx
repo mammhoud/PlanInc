@@ -68,8 +68,8 @@ export default function Component() {
           reinitializeTrpcApi();
         }
         const res = await signIn('credentials', {
-          username: user ?? userStorage.value,
-          password: password ?? passwordStorage.value,
+          username: user || userStorage.value,
+          password,
           callbackUrl: '/',
           redirect: false,
         });
@@ -95,7 +95,6 @@ export default function Component() {
   });
 
   const userStorage = new StorageState({ key: 'username' });
-  const passwordStorage = new StorageState({ key: 'password' });
   const endpointStorage = new StorageState({ key: 'planincEndpoint' });
 
   useEffect(() => {
@@ -105,9 +104,6 @@ export default function Component() {
       });
       if (userStorage.value) {
         setUser(userStorage.value);
-      }
-      if (passwordStorage.value) {
-        setPassword(passwordStorage.value);
       }
       if (getSavedEndpoint()) {
         setEndpoint(getSavedEndpoint());
@@ -121,7 +117,6 @@ export default function Component() {
     try {
       await SignIn.call();
       userStorage.setValue(user);
-      passwordStorage.setValue(password);
 
       if (isTauriEnv && endpoint) {
         savePlanIncEndpoint(endpoint);
@@ -136,7 +131,7 @@ export default function Component() {
     <GradientBackground>
       <div className="flex h-full w-screen items-center justify-center p-2 sm:p-4 lg:p-8">
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large glass-effect px-8 pb-10 pt-6 shadow-large">
-          <div className="pb-2 text-xl font-medium flex gap-2 items-center justiy-center">
+          <div className="flex items-center justify-center gap-2 pb-2 text-xl font-medium">
             Login With <Image src={theme === 'light' ? '/logo-light-title.png' : '/logo-dark-title.png'} width={100} radius="none"></Image>
           </div>
 
@@ -169,7 +164,7 @@ export default function Component() {
             </>
           )}
 
-          <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); void login(); }}>
             {isTauriEnv && (
               <Input
                 label={t('planinc-endpoint')}

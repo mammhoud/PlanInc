@@ -17,4 +17,14 @@ describe('planning feature smoke tests', () => {
       expect(response.status).toBe(401);
     }
   });
+
+  test('rejects invalid credentials without disclosing account details', async () => {
+    const response = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ username: 'unknown-user', password: 'invalid-password' }),
+    });
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: 'User not found' });
+  });
 });
