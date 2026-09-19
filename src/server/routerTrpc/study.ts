@@ -10,6 +10,8 @@ const studySchema = z.object({
   sourceUrl: z.string(),
   accountId: z.number().int(),
   noteId: z.number().int().nullable(),
+  category: z.string(),
+  tags: z.array(z.string()),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
@@ -20,6 +22,8 @@ const studyInput = z.object({
   status: z.enum(['planned', 'active', 'complete']).default('planned'),
   sourceUrl: z.string().url().or(z.literal('')).default(''),
   noteId: z.number().int().nullable().optional(),
+  category: z.string().trim().max(80).default(''),
+  tags: z.array(z.string().trim().min(1).max(40)).max(12).default([]),
 });
 
 export const studyRouter = router({
@@ -27,7 +31,7 @@ export const studyRouter = router({
     return db.studyItems.findMany({ where: { accountId: Number(ctx.id) }, orderBy: { createdAt: 'desc' } });
   }),
   create: authProcedure.input(studyInput).output(studySchema).mutation(async ({ ctx, input }) => {
-    return db.studyItems.create({ data: { ...input, accountId: Number(ctx.id), noteId: input.noteId ?? null } });
+    return db.studyItems.create({ data: { ...input, accountId: Number(ctx.id), noteId: input.noteId ?? null, tags: [...new Set(input.tags)] } });
   }),
   update: authProcedure.input(studyInput.partial().extend({ id: z.number().int() })).output(studySchema).mutation(async ({ ctx, input }) => {
     const current = await db.studyItems.findFirst({ where: { id: input.id, accountId: Number(ctx.id) } });

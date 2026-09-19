@@ -127,11 +127,15 @@ function normalizeRecord(table: string, row: any): any {
     out.priority ??= 'medium';
     out.noteId ??= null;
     out.studyItemId ??= null;
+    out.category ??= '';
+    out.tags ??= [];
   } else if (table === 'studyItems') {
     out.description ??= '';
     out.status ??= 'planned';
     out.sourceUrl ??= '';
     out.noteId ??= null;
+    out.category ??= '';
+    out.tags ??= [];
   }
 
   return out;

@@ -5,7 +5,7 @@ setDefaultTimeout(30_000);
 
 describe('planning feature smoke tests', () => {
   test('serves the planning pages from the canonical app', async () => {
-    for (const route of ['/tickets', '/study', '/graph']) {
+    for (const route of ['/dashboard', '/tickets', '/study', '/graph', '/analytics']) {
       const response = await fetch(`${BASE_URL}${route}`);
       expect(response.status).toBe(200);
       expect(await response.text()).toContain('<title>PlanInc');

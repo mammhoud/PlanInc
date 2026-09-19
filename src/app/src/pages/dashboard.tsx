@@ -71,10 +71,10 @@ export default function DashboardPage() {
       {isLoading ? <p className="py-8 text-center text-foreground-500">{t('in-progress')}</p> : (
         <>
           <PlanningStats items={[
-            { label: t('notes-this-month'), value: noteStats.noteCount ?? 0, icon: 'hugeicons:note-01', accent: 'text-primary' },
-            { label: t('completed-tasks'), value: completedTasks, icon: 'hugeicons:checkmark-circle-02', accent: 'text-success' },
-            { label: t('active-work'), value: activeWork, icon: 'hugeicons:activity-01', accent: 'text-warning' },
-            { label: t('active-study'), value: activeStudy, icon: 'hugeicons:book-open-01', accent: 'text-secondary' },
+            { label: t('notes-this-month'), value: noteStats.noteCount ?? 0, icon: 'hugeicons:note', accent: 'text-primary' },
+            { label: t('completed-tasks'), value: completedTasks, icon: 'hugeicons:edit-02', accent: 'text-success' },
+            { label: t('active-work'), value: activeWork, icon: 'hugeicons:analytics-01', accent: 'text-warning' },
+            { label: t('active-study'), value: activeStudy, icon: 'hugeicons:book-edit', accent: 'text-secondary' },
           ]} />
 
           <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
