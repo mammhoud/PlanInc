@@ -76,3 +76,16 @@ archive and lane-relationship contracts.
   rendering. The browser still reports the existing third-party
   `defaultProps` deprecation from `rctx-contextmenu`; it is not an application
   runtime failure.
+
+## 2026-09-19 — Shared CRUD modal checkpoint
+
+- Added `PlanningCrudModal` as the shared Ticket/Study create and edit shell.
+- Modal state resets from the selected item on open, trims and normalizes
+  fields, disables close actions while saving, and surfaces failed mutations
+  inline without silently closing.
+- Replaced duplicated inline Ticket and Study CRUD form logic with the shared
+  modal.
+- Planning smoke and relationship tests pass (8 tests); the production web
+  build passes.
+- An attempted `build:no-pwa` command was invalid for the current package
+  scripts; the canonical `build:web` command was used successfully instead.

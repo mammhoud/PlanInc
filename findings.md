@@ -95,3 +95,6 @@
   component lived inside the nested-folder breadcrumb branch. The control is
   now rendered in the shared action row, while destinationFolder remains
   conditional for nested paths.
+- Ticket and Study previously duplicated inline form state and metadata modal
+  behavior. The shared `PlanningCrudModal` now owns reset-on-open, normalized
+  tags, loading guards, and inline mutation errors for both surfaces.

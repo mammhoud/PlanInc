@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, CardBody, Chip, Input, Select, SelectItem, Textarea, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
+import { Button, Card, CardBody, Chip, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/trpc';
 import { ScrollArea } from '@/components/Common/ScrollArea';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { showTipsDialog } from '@/components/Common/TipsDialog';
+import { PlanningCrudModal } from '@/components/PlanincPlanning/PlanningCrudModal';
 
 const statuses = ['open', 'in_progress', 'blocked', 'done'] as const;
 const priorities = ['low', 'medium', 'high', 'critical'] as const;
@@ -12,21 +13,16 @@ const priorities = ['low', 'medium', 'high', 'critical'] as const;
 export default function TicketsPage() {
   const { t } = useTranslation();
   const [tickets, setTickets] = useState<any[]>([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<(typeof priorities)[number]>('medium');
-  const [category, setCategory] = useState('');
-  const [tags, setTags] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isCrudOpen, setIsCrudOpen] = useState(false);
   const [isLinksOpen, setIsLinksOpen] = useState(false);
   const [linkTicket, setLinkTicket] = useState<any | null>(null);
   const [linkType, setLinkType] = useState<'study'>('study');
   const [linkTargetId, setLinkTargetId] = useState('');
   const [links, setLinks] = useState<any[]>([]);
   const [studies, setStudies] = useState<any[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'cards' | 'grid'>(() => {
@@ -60,30 +56,10 @@ export default function TicketsPage() {
     }).catch((cause) => console.error('Failed to load link targets', cause));
   }, []);
 
-  const create = async () => {
-    if (!title.trim()) return;
-    const normalizedTags = [...new Set(tags.split(',').map((tag) => tag.trim()).filter(Boolean))];
-    if (editingId == null) {
-      await api.tickets.create.mutate({ title, description, priority, category, tags: normalizedTags });
-    } else {
-      await api.tickets.update.mutate({ id: editingId, title, description, priority, category, tags: normalizedTags });
-    }
-    setTitle('');
-    setDescription('');
-    setPriority('medium');
-    setCategory('');
-    setTags('');
-    setEditingId(null);
+  const save = async (data: { title: string; description: string; status: string; priority?: string; category: string; tags: string[] }, id?: number) => {
+    if (id == null) await api.tickets.create.mutate({ ...data, priority: data.priority as (typeof priorities)[number] });
+    else await api.tickets.update.mutate({ id, ...data, priority: data.priority as (typeof priorities)[number] });
     await load();
-  };
-
-  const edit = (ticket: any) => {
-    setEditingId(ticket.id);
-    setTitle(ticket.title);
-    setDescription(ticket.description);
-    setPriority(ticket.priority);
-    setCategory(ticket.category ?? '');
-    setTags((ticket.tags ?? []).join(', '));
   };
 
   const remove = (ticket: any) => {
@@ -92,14 +68,7 @@ export default function TicketsPage() {
       content: t('this-operation-will-be-delete-resource-are-you-sure'),
       onConfirm: async () => {
         await api.tickets.delete.mutate({ id: ticket.id });
-        if (editingId === ticket.id) {
-          setEditingId(null);
-          setTitle('');
-          setDescription('');
-          setPriority('medium');
-          setCategory('');
-          setTags('');
-        }
+        if (editingItem?.id === ticket.id) setEditingItem(null);
         await load();
       },
     });
@@ -169,18 +138,7 @@ export default function TicketsPage() {
           </Button>
         ))}
       </div>
-      <Card><CardBody className="grid gap-3 md:grid-cols-[1fr_180px]">
-        <Input label={t('title')} value={title} onValueChange={setTitle} />
-        <Select label={t('priority')} selectedKeys={[priority]} onSelectionChange={(keys) => setPriority(String(Array.from(keys)[0]) as (typeof priorities)[number])}>
-          {priorities.map((item) => <SelectItem key={item}>{t(item)}</SelectItem>)}
-        </Select>
-        <Textarea className="md:col-span-2" label={t('description')} value={description} onValueChange={setDescription} />
-        <Button variant="flat" className="w-fit md:col-span-2" onPress={() => setIsDetailsOpen(true)}>{t('categories-and-tags')}</Button>
-        <div className="flex gap-2 md:col-span-2">
-          <Button color="primary" onPress={create} isDisabled={!title.trim()}>{editingId == null ? t('create-ticket') : t('save')}</Button>
-          {editingId != null && <Button variant="flat" onPress={() => { setEditingId(null); setTitle(''); setDescription(''); setPriority('medium'); }}>{t('cancel')}</Button>}
-        </div>
-      </CardBody></Card>
+      <div className="flex justify-end"><Button color="primary" onPress={() => { setEditingItem(null); setIsCrudOpen(true); }}>{t('create-ticket')}</Button></div>
       {error && <p className="rounded-xl bg-danger-50 p-3 text-danger">{error}</p>}
       {isLoading && <p className="py-8 text-center text-foreground-500">{t('in-progress')}</p>}
       <div className={viewMode === 'list' ? 'grid gap-2' : viewMode === 'grid' ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3' : 'grid gap-3 md:grid-cols-2'}>
@@ -192,18 +150,13 @@ export default function TicketsPage() {
               {statuses.map((item) => <SelectItem key={item}>{t(item)}</SelectItem>)}
             </Select>
             <Button size="sm" variant="flat" onPress={() => openLinks(ticket)}>{t('related-items')}</Button>
-            <Button isIconOnly variant="flat" aria-label={t('edit')} onPress={() => edit(ticket)}><Icon icon="hugeicons:edit-02" width="18" height="18" /></Button>
+            <Button isIconOnly variant="flat" aria-label={t('edit')} onPress={() => { setEditingItem(ticket); setIsCrudOpen(true); }}><Icon icon="hugeicons:edit-02" width="18" height="18" /></Button>
             <Button isIconOnly variant="flat" color="danger" aria-label={t('delete')} onPress={() => remove(ticket)}><Icon icon="hugeicons:delete-02" width="18" height="18" /></Button>
           </div>
         </CardBody></Card>)}
       </div>
       {!isLoading && !visibleTickets.length && <p className="py-10 text-center text-foreground-500">{t('no-tickets')}</p>}
-      <Modal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
-        <ModalContent><ModalHeader>{t('categories-and-tags')}</ModalHeader><ModalBody className="gap-3">
-          <Input label={t('category')} placeholder={t('category-placeholder')} value={category} onValueChange={setCategory} />
-          <Input label={t('tags')} placeholder={t('tags-placeholder')} value={tags} onValueChange={setTags} />
-        </ModalBody><ModalFooter><Button color="primary" onPress={() => setIsDetailsOpen(false)}>{t('apply')}</Button></ModalFooter></ModalContent>
-      </Modal>
+      <PlanningCrudModal kind="ticket" isOpen={isCrudOpen} item={editingItem} onClose={() => { setIsCrudOpen(false); setEditingItem(null); }} onSave={save} />
       <Modal isOpen={isLinksOpen} onClose={() => setIsLinksOpen(false)}>
         <ModalContent>
           <ModalHeader>{t('related-items')}{linkTicket ? `: ${linkTicket.title}` : ''}</ModalHeader>

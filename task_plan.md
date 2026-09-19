@@ -64,7 +64,7 @@ feedback.
 
 ### Phase 3 — Shared modal CRUD foundation
 
-**Status:** in_progress
+**Status:** complete
 
 - Standardize modal shells for create, edit, preview, delete confirmation, and
   destructive-operation errors.
@@ -140,7 +140,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 7 — Validation, documentation, and release
 
-**Status:** pending
+**Status:** in_progress
 
 - Add focused server tests for resource operations, relationship ownership,
   settings validation, and graph preview data.
@@ -153,6 +153,9 @@ field validation, error reporting, and no stale state after reopening.
 - Review for duplicate routes, stale branding, unsafe file paths, secrets, and
   accidental changes outside PlanInc.
 - Commit and push to `origin/generic` only after all required checks pass.
+- Shared Ticket/Study CRUD modal behavior, route smoke checks, focused server
+  tests, and the production build have been validated. Remaining work is the
+  final release reconciliation and any archive endpoint integration coverage.
 
 ## Decisions to confirm before implementation
 
@@ -198,9 +201,8 @@ field validation, error reporting, and no stale state after reopening.
 
 ## Next Step
 
-Implement the shared CRUD modal foundation across Tickets and Study, then add
-the remaining responsive browser coverage for modal reset and failed-submit
-flows.
+Finish the release checklist, record the shared CRUD modal validation, and
+push the final checkpoint without touching unrelated workspace changes.
 
 ## Errors Encountered
 
