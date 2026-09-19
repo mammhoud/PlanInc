@@ -13,10 +13,10 @@ export class BaseStore implements Store {
   }
   routerList = [
     {
-      title: 'planinc',
-      href: '/',
-      shallow: true,
-      icon: 'basil:lightning-outline',
+      title: 'dashboard',
+      href: '/dashboard',
+      icon: 'hugeicons:dashboard-square-01',
+      lane: 'work',
     },
     {
       title: 'notes',
@@ -199,6 +199,8 @@ export class BaseStore implements Store {
         this.currentTitle = 'graph';
       } else if (location.pathname == '/ai') {
         this.currentTitle = 'agents';
+      } else if (location.pathname == '/dashboard') {
+        this.currentTitle = 'dashboard';
       } else if (searchParams.get('path') == 'trash') {
         this.currentTitle = 'trash';
       } else if (location.pathname == '/plugin') {

@@ -78,6 +78,18 @@ body {
   font-family: var(--font-family);
 }
 
+.dashboard-hero {
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--background) 92%, var(--primary)), var(--background));
+}
+
+.dark .dashboard-hero {
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, #f5c451 14%, transparent), transparent 34%),
+    linear-gradient(135deg, #171719, var(--background));
+}
+
 .h-mobile-full {
   height: var(--doc-height);
 }

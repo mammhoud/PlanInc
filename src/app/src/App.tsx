@@ -28,6 +28,7 @@ import QuickToolPage from "./pages/quicktool";
 import { useQuicknoteHotkey } from "./hooks/useQuicknoteHotkey";
 
 const HomePage = lazy(() => import('./pages/index'));
+const DashboardPage = lazy(() => import('./pages/dashboard'));
 const SignInPage = lazy(() => import('./pages/signin'));
 const SignUpPage = lazy(() => import('./pages/signup'));
 const HubPage = lazy(() => import('./pages/hub'));
@@ -231,6 +232,7 @@ function AppRoutes() {
         <Suspense fallback={<LoadingPage />}>
           <Routes>
             <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/hub" element={<ProtectedRoute><HubPage /></ProtectedRoute>} />
