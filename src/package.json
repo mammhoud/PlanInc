@@ -20,6 +20,7 @@
     "setup": "bun install",
     "build:planinc:types": "tsc -p tsconfig.planinc.json",
     "seed": "cd server && bun run seed.ts",
+    "seed:planning-fixtures": "cd server && bun run scripts/seed-planning-fixtures.ts",
     "create:superuser": "cd server && bun --env-file=../.env scripts/create-superuser.ts"
   },
   "devDependencies": {

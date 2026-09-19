@@ -32,3 +32,14 @@ archive and lane-relationship contracts.
 - Fixed a JSX composition error found by the first frontend build.
 - Resources phase remains in progress; list/grid/search/sort and archive route
   coverage are still pending.
+
+## 2026-09-19 — Fixture preview validation complete
+
+- Added `seed:planning-fixtures`, an idempotent account-scoped fixture loader
+  for representative tickets and studies across every existing account.
+- Restarted the canonical server from `src/server` with `--env-file ../.env`
+  so fixtures and browser requests use the same database.
+- Authenticated browser preview confirmed fixture tickets and studies, and all
+  seven planning routes rendered successfully after async loading.
+- Server logs showed no application errors. Non-blocking icon fallback and
+  dependency deprecation warnings remain documented for later cleanup.

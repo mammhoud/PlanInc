@@ -173,10 +173,23 @@ field validation, error reporting, and no stale state after reopening.
 | Sidebar becomes crowded | Use stable lanes and progressive disclosure while preserving direct access. |
 | Modal state leaks between records | Reset form state from the selected record key and test reopen/cancel flows. |
 
+## Fixture preview validation
+
+**Status:** complete
+
+- Added an idempotent planning fixture loader for every existing account.
+- Loaded three tickets and two studies per account without duplicating records.
+- Restarted the canonical watch server with the shared `src/.env` database path.
+- Authenticated browser preview confirmed dashboard, tickets, study, and graph
+  fixture content; analytics, resources, and settings also rendered successfully.
+- Route smoke tests returned HTTP 200 for every planning route.
+- Server logs contained no application errors or failed API requests. Existing
+  icon fallback and third-party deprecation warnings remain non-blocking.
+
 ## Next Step
 
-Complete the Resources list/grid/search controls and validate archive behavior
-before starting the shared CRUD modal foundation.vigation/resource foundation.
+Continue with archive authorization tests and the shared CRUD modal foundation
+after committing the fixture preview checkpoint.
 
 ## Errors Encountered
 
