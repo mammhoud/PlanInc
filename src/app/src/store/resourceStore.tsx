@@ -11,6 +11,7 @@ import { t } from "i18next";
 import { ToastPlugin } from "./module/Toast/Toast";
 import { DialogStore } from "./module/Dialog";
 import { Button, Input } from "@heroui/react";
+import axiosInstance from "@/lib/axios";
 
 export class ResourceStore implements Store {
   sid = 'resourceStore';
@@ -145,6 +146,28 @@ export class ResourceStore implements Store {
   clearClipboard = () => {
     this.clipboard = null;
   };
+
+  downloadResources = async (resources: ResourceType[]) => {
+    const attachmentIds = resources.filter((resource) => !resource.isFolder && resource.id).map((resource) => resource.id);
+    const folderPaths = resources.filter((resource) => resource.isFolder && resource.folderName).map((resource) => {
+      return this.currentFolder ? `${this.currentFolder}/${resource.folderName}` : resource.folderName!;
+    });
+    await RootStore.Get(ToastPlugin).promise(
+      axiosInstance.post('/api/file/archive', { attachmentIds, folderPaths }, { responseType: 'blob' }).then((response) => {
+        const objectUrl = URL.createObjectURL(response.data);
+        const anchor = document.createElement('a');
+        anchor.href = objectUrl;
+        anchor.download = 'planinc-resources.zip';
+        anchor.click();
+        URL.revokeObjectURL(objectUrl);
+      }),
+      {
+        loading: t('operation-in-progress'),
+        success: t('operation-success'),
+        error: t('operation-failed'),
+      },
+    );
+  }
 
   use() {
     const [searchParams] = useSearchParams();

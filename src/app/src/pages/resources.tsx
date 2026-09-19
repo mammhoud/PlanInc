@@ -1,7 +1,7 @@
 import { RootStore } from "@/store";
 import { ResourceStore } from "@/store/resourceStore";
 import { observer } from "mobx-react-lite";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { ScrollArea } from "@/components/Common/ScrollArea";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useTranslation } from "react-i18next";
@@ -9,20 +9,38 @@ import { DragDropContext, Droppable } from 'react-beautiful-dnd-next';
 import { toJS } from "mobx";
 import { MemoizedResourceItem } from "@/components/PlanIncResource/ResourceItem";
 import { ResourceMultiSelectPop } from "@/components/PlanIncResource/ResourceMultiSelectpop";
-import { Breadcrumbs, BreadcrumbItem, Button } from "@heroui/react";
+import { Breadcrumbs, BreadcrumbItem, Button, Input } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LoadingAndEmpty } from "@/components/Common/LoadingAndEmpty";
 import { PhotoProvider } from "react-photo-view";
 import { useNavigate } from "react-router-dom";
+import { UploadFileWrapper } from "@/components/Common/UploadFile";
 const Page = observer(() => {
   const navigate = useNavigate();
   const resourceStore = RootStore.Get(ResourceStore);
   const { t } = useTranslation();
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [searchText, setSearchText] = useState('');
+  const [sortMode, setSortMode] = useState<'name' | 'updated'>('updated');
   const resources = useMemo(() => {
     const allResources = toJS(resourceStore.planinc.resourceList.value) || [];
     // Filter out .folder placeholder files
     return allResources.filter(resource => resource.name !== '.folder');
   }, [resourceStore.planinc.resourceList.value]);
+  const visibleResources = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    return resources
+      .filter((resource) => {
+        if (!query) return true;
+        return (resource.name || resource.folderName || '').toLowerCase().includes(query);
+      })
+      .sort((a, b) => {
+        if (sortMode === 'name') {
+          return (a.folderName || a.name).localeCompare(b.folderName || b.name);
+        }
+        return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
+      });
+  }, [resources, searchText, sortMode]);
 
   const selectedItems = resourceStore.selectedItems;
 
@@ -90,9 +108,59 @@ const Page = observer(() => {
                         </BreadcrumbItem>
                       ))}
                     </Breadcrumbs>
+                    <UploadFileWrapper
+                      destinationFolder={resourceStore.currentFolder || undefined}
+                      onUpload={() => { resourceStore.refreshTicker++; }}
+                    >
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        startContent={<Icon icon="tabler:upload" className="w-5 h-5" />}
+                      >
+                        {t('upload')}
+                      </Button>
+                    </UploadFileWrapper>
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2 ">
+              <Input
+                aria-label={t('search')}
+                className="min-w-40 max-w-60"
+                size="sm"
+                value={searchText}
+                onValueChange={setSearchText}
+                placeholder={t('search')}
+                startContent={<Icon icon="tabler:search" className="w-4 h-4" />}
+              />
+              <Button
+                size="sm"
+                variant="bordered"
+                onPress={() => setSortMode(sortMode === 'updated' ? 'name' : 'updated')}
+                startContent={<Icon icon="tabler:sort-ascending" className="w-4 h-4" />}
+              >
+                {sortMode === 'updated' ? t('recent') : t('name')}
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'list' ? 'solid' : 'bordered'}
+                isIconOnly
+                aria-label={t('list-view')}
+                onPress={() => setViewMode('list')}
+              >
+                <Icon icon="tabler:list" className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'grid' ? 'solid' : 'bordered'}
+                isIconOnly
+                aria-label={t('grid-view')}
+                onPress={() => setViewMode('grid')}
+              >
+                <Icon icon="tabler:layout-grid" className="w-4 h-4" />
+              </Button>
             </div>
 
             <div className="flex items-center gap-2 mt-2 ">
@@ -130,16 +198,16 @@ const Page = observer(() => {
                   size="sm"
                   variant="bordered"
                   onPress={() => {
-                    if (selectedItems.size === resources.length) {
+                    if (selectedItems.size === visibleResources.length) {
                       resourceStore.clearSelection();
                     } else {
-                      resourceStore.selectAllFiles(resources);
+                      resourceStore.selectAllFiles(visibleResources);
                     }
                   }}
                   startContent={
                     <Icon
                       icon={
-                        selectedItems.size === resources.length
+                        selectedItems.size === visibleResources.length
                           ? "material-symbols:deselect"
                           : "material-symbols:select-all"
                       }
@@ -147,7 +215,7 @@ const Page = observer(() => {
                     />
                   }
                 >
-                  {selectedItems.size === resources.length ? t('deselect-all') : t('select-all')}
+                  {selectedItems.size === visibleResources.length ? t('deselect-all') : t('select-all')}
                 </Button>
               </motion.div>
 
@@ -171,6 +239,19 @@ const Page = observer(() => {
                   </Button>
                 </motion.div>
               )}
+              {selectedItems.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="light"
+                  onPress={() => {
+                    const selectedResources = resources.filter((resource) => resource.id && selectedItems.has(resource.id));
+                    void resourceStore.downloadResources(selectedResources);
+                  }}
+                  startContent={<Icon icon="material-symbols:download" className="w-5 h-5" />}
+                >
+                  {t('download')}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -186,9 +267,9 @@ const Page = observer(() => {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className="py-2 min-h-[200px]"
+                    className={`py-2 min-h-[200px] ${viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-2 items-start' : ''}`}
                   >
-                    {resources.map((item, index) => (
+                    {visibleResources.map((item, index) => (
                       <MemoizedResourceItem
                         key={item.isFolder ? `folder-${item.folderName}` : `file-${item.id}`}
                         item={item}

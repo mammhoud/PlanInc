@@ -37,14 +37,14 @@ export class BaseStore implements Store {
       href: '/analytics',
       hiddenMobile: true,
       icon: 'hugeicons:analytics-01',
-      lane: 'work',
+      lane: 'insights',
     },
     {
       title: 'resources',
       href: '/resources',
       icon: 'solar:database-linear',
       hiddenMobile: true,
-      lane: 'work',
+      lane: 'knowledge',
     },
     {
       title: 'tickets',
@@ -57,13 +57,13 @@ export class BaseStore implements Store {
       href: '/ai',
       icon: 'hugeicons:ai-chat-02',
       hiddenMobile: true,
-      lane: 'work',
+      lane: 'knowledge',
     },
     {
       title: 'graph',
       href: '/graph',
       icon: 'hugeicons:share-08',
-      lane: 'work',
+      lane: 'knowledge',
     },
     {
       title: 'study',
@@ -76,6 +76,7 @@ export class BaseStore implements Store {
       href: '/?path=archived',
       icon: 'solar:box-broken',
       hiddenMobile: true,
+      lane: 'work',
     },
     {
       title: 'trash',
@@ -83,22 +84,24 @@ export class BaseStore implements Store {
       hiddenMobile: true,
       hiddenSidebar: true,
       icon: 'hugeicons:delete-02',
+      lane: 'work',
     },
     {
       title: 'plugin',
       href: '/plugin',
-      hiddenSidebar: true,
       hiddenMobile: true,
       icon: 'hugeicons:plug-socket',
+      lane: 'system',
     },
     {
       title: 'settings',
       href: '/settings',
-      hiddenSidebar: true,
       hiddenMobile: true,
       icon: 'hugeicons:settings-01',
+      lane: 'system',
     },
   ];
+  laneOrder = ['work', 'insights', 'knowledge', 'learn', 'system'] as const;
   currentRouter = this.routerList[0];
   currentQuery = {};
   currentTitle = '';

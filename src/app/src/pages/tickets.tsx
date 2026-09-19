@@ -23,6 +23,15 @@ export default function TicketsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'cards' | 'grid'>(() => {
+    if (typeof window === 'undefined') return 'cards';
+    const saved = window.localStorage.getItem('planinc:tickets:view');
+    return saved === 'list' || saved === 'grid' ? saved : 'cards';
+  });
+  const changeViewMode = (mode: 'list' | 'cards' | 'grid') => {
+    setViewMode(mode);
+    window.localStorage.setItem('planinc:tickets:view', mode);
+  };
   const load = async () => {
     setIsLoading(true);
     try {
@@ -96,6 +105,19 @@ export default function TicketsPage() {
         <Button size="sm" variant={selectedCategory ? 'flat' : 'solid'} onPress={() => setSelectedCategory('')}>{t('all-categories')}</Button>
         {availableCategories.map((categoryName) => <Button key={categoryName} size="sm" variant={selectedCategory === categoryName ? 'solid' : 'flat'} onPress={() => setSelectedCategory(categoryName)}>{categoryName}</Button>)}
       </div>
+      <div className="flex items-center justify-end gap-2" aria-label={t('ticket-view')}>
+        {(['list', 'cards', 'grid'] as const).map((mode) => (
+          <Button
+            key={mode}
+            size="sm"
+            variant={viewMode === mode ? 'solid' : 'flat'}
+            onPress={() => changeViewMode(mode)}
+            startContent={<Icon icon={mode === 'list' ? 'tabler:list' : mode === 'grid' ? 'tabler:layout-grid' : 'tabler:layout-cards'} width="16" height="16" />}
+          >
+            {t(`view-${mode}`)}
+          </Button>
+        ))}
+      </div>
       <Card><CardBody className="grid gap-3 md:grid-cols-[1fr_180px]">
         <Input label={t('title')} value={title} onValueChange={setTitle} />
         <Select label={t('priority')} selectedKeys={[priority]} onSelectionChange={(keys) => setPriority(String(Array.from(keys)[0]) as (typeof priorities)[number])}>
@@ -110,7 +132,7 @@ export default function TicketsPage() {
       </CardBody></Card>
       {error && <p className="rounded-xl bg-danger-50 p-3 text-danger">{error}</p>}
       {isLoading && <p className="py-8 text-center text-foreground-500">{t('in-progress')}</p>}
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className={viewMode === 'list' ? 'grid gap-2' : viewMode === 'grid' ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3' : 'grid gap-3 md:grid-cols-2'}>
         {!isLoading && visibleTickets.map((ticket) => <Card key={ticket.id}><CardBody className="gap-3">
           <div className="flex items-start justify-between gap-2"><div><h2 className="font-semibold">{ticket.title}</h2><p className="text-sm text-foreground-500">{ticket.description}</p><p className="mt-1 text-xs text-foreground-400">{ticket.category || t('uncategorized')}</p></div><Chip size="sm" color={ticket.priority === 'critical' ? 'danger' : 'default'}>{t(ticket.priority)}</Chip></div>
           <div className="flex flex-wrap items-end gap-2">

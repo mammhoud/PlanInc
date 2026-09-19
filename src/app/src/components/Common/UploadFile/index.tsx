@@ -14,9 +14,10 @@ type IProps = {
   onUpload?: ({ filePath, fileName }) => void
   children?: React.ReactNode
   acceptImage?: boolean
+  destinationFolder?: string
 }
 
-export const UploadFileWrapper = observer(({ onUpload, children, acceptImage = false }: IProps) => {
+export const UploadFileWrapper = observer(({ onUpload, children, acceptImage = false, destinationFolder }: IProps) => {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const planinc = RootStore.Get(PlanIncStore)
@@ -36,6 +37,7 @@ export const UploadFileWrapper = observer(({ onUpload, children, acceptImage = f
         const file = acceptedFiles[0]!
         const formData = new FormData();
         formData.append('file', file)
+        if (destinationFolder) formData.append('destinationFolder', destinationFolder)
 
         const { onUploadProgress } = RootStore.Get(ToastPlugin)
           .setSizeThreshold(40)

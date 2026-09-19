@@ -353,9 +353,9 @@ export class FileService {
 
   static async uploadFileStream(
     {
-      stream, originalName, fileSize, type, accountId, metadata
+      stream, originalName, fileSize, type, accountId, metadata, destinationFolder
     }: {
-      stream: ReadableStream, originalName: string, fileSize: number, type: string, accountId: number, metadata?: any
+      stream: ReadableStream, originalName: string, fileSize: number, type: string, accountId: number, metadata?: any, destinationFolder?: string
     }) {
     const config = await getGlobalConfig({ useAdmin: true });
     const extension = path.extname(originalName);
@@ -374,7 +374,8 @@ export class FileService {
           customPath = customPath.endsWith('/') ? customPath : customPath + '/';
         }
 
-        const s3Key = `${customPath}${timestampedFileName}`.replace(/^\//, '');
+        const folder = destinationFolder ? `${destinationFolder.replace(/^\/+|\/+$/g, '')}/` : '';
+        const s3Key = `${customPath}${folder}${timestampedFileName}`.replace(/^\//, '');
 
         const passThrough = new PassThrough();
         const nodeReadable = Readable.fromWeb(stream as any);
@@ -427,7 +428,8 @@ export class FileService {
           customPath = customPath.endsWith('/') ? customPath : customPath + '/';
         }
 
-        const relativePath = `${customPath}${timestampedFileName}`.replace(/^\//, '');
+        const folder = destinationFolder ? `${destinationFolder.replace(/^\/+|\/+$/g, '')}/` : '';
+        const relativePath = `${customPath}${folder}${timestampedFileName}`.replace(/^\//, '');
         const fullPath = this.validateAndResolvePath(relativePath);
         await fs.mkdir(path.dirname(fullPath), { recursive: true });
 
@@ -623,4 +625,3 @@ export class FileService {
     }
   }
 }
-

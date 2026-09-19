@@ -199,7 +199,11 @@ export const ResourceContextMenu = observer(({ onTrigger }: ResourceContextMenuP
       </DropdownTrigger>
       <DropdownMenu aria-label="Resource Actions">
         {
-          resource?.isFolder ? null : (
+          resource?.isFolder ? (
+            <DropdownItem key="download-folder" onPress={() => void resourceStore.downloadResources([resource])}>
+              <MenuItem icon="material-symbols:folder-zip" label={t('download')} />
+            </DropdownItem>
+          ) : (
             <DropdownItem key="download" onPress={handleDownload}>
               <MenuItem icon="material-symbols:download" label={t('download')} />
             </DropdownItem>

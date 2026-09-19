@@ -30,6 +30,7 @@ import uploadRouter from './routerExpress/file/upload';
 import deleteRouter from './routerExpress/file/delete';
 import s3fileRouter from './routerExpress/file/s3file';
 import pluginRouter from './routerExpress/file/plugin';
+import archiveRouter from './routerExpress/file/archive';
 import rssRouter from './routerExpress/rss';
 import openaiRouter from './routerExpress/openai';
 import mcpRouter from './routerExpress/mcp';
@@ -171,6 +172,7 @@ async function setupApiRoutes(app: express.Application) {
   );
 
   // File handling endpoints
+  app.use('/api/file/archive', archiveRouter);
   app.use('/api/file', fileRouter);
   app.use('/api/file/upload', uploadRouter);
   app.use('/api/file/delete', deleteRouter);

@@ -97,6 +97,7 @@ router.post('/', async (req, res) => {
     let isUserVoiceRecording = false;
     let audioDuration: string | null = null;
     let audioDurationSeconds: number | null = null;
+    let destinationFolder = '';
 
     bb.on('field', (fieldname, value) => {
       if (fieldname === 'isUserVoiceRecording' && value === 'true') {
@@ -105,6 +106,12 @@ router.post('/', async (req, res) => {
         audioDuration = value;
       } else if (fieldname === 'audioDurationSeconds') {
         audioDurationSeconds = parseInt(value, 10);
+      } else if (fieldname === 'destinationFolder') {
+        destinationFolder = value
+          .split(/[\\/]+/)
+          .map((segment) => segment.trim())
+          .filter((segment) => segment && segment !== '.' && segment !== '..')
+          .join('/');
       }
     });
 
@@ -169,7 +176,8 @@ router.post('/', async (req, res) => {
           fileSize: fileInfo.size,
           type: fileInfo.mimeType,
           accountId: Number(token.id),
-          metadata: Object.keys(metadata).length > 0 ? metadata : undefined
+          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+          destinationFolder: destinationFolder || undefined
         });
         
         res.set({

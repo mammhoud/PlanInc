@@ -94,6 +94,23 @@ describe('File Upload — Full Flow', () => {
     expect(content).toBe('hello world');
   });
 
+  test('uploads file into the requested destination folder', async () => {
+    const stream = createReadableStream('nested content');
+    const result = await FileService.uploadFileStream({
+      stream,
+      originalName: 'nested.txt',
+      fileSize: 14,
+      type: 'text/plain',
+      accountId: 1,
+      destinationFolder: 'projects/reports',
+    });
+
+    const relativePath = result.filePath.replace('/api/file/', '');
+    expect(relativePath).toContain('projects/reports/');
+    const content = await fs.readFile(path.join(TEMP_UPLOAD_DIR, relativePath), 'utf-8');
+    expect(content).toBe('nested content');
+  });
+
   test('uploads file with Chinese characters in name', async () => {
     const stream = createReadableStream('中文内容');
     const result = await FileService.uploadFileStream({
