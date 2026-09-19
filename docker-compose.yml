@@ -4,7 +4,7 @@
 # SurrealDB runs in embedded file mode (surrealkv://) — no container needed.
 # The database file is stored at ./runtime/data/planinc.db inside the
 # planing service volume. No surrealdb image, no port 8000.
-# Served at tools.structa.cloud/planing/ via the tools-proxy Nginx.
+# Served at tools.structa.cloud/planinc/ via the tools-proxy Nginx.
 # =============================================================================
 
 networks:
@@ -12,35 +12,35 @@ networks:
     external: true
 
 services:
-  planing:
+  planinc:
     build:
-      context: ./runtime
-      dockerfile: Dockerfile
-    image: planing-local:latest
-    container_name: planing
+      context: ./src
+      dockerfile: dockerfile
+    image: planinc-local:latest
+    container_name: planinc
     ports:
-      - "${PLANING_PORT:-1111}:1111"
+      - "${PLANINC_PORT:-1111}:1111"
     environment:
-      NEXTAUTH_SECRET: ${PLANING_NEXTAUTH_SECRET:-planing-secret-change-me}
-      # Planing is mounted below /planing/ by tools-proxy; both URL settings
+      NEXTAUTH_SECRET: ${PLANINC_NEXTAUTH_SECRET:-planinc-secret-change-me}
+      # PlanInc is mounted below /planinc/ by tools-proxy; both URL settings
       # must use the public prefix while Nginx strips it upstream.
-      NEXTAUTH_URL: ${PLANING_PUBLIC_URL:-https://tools.structa.cloud/planing}
-      NEXT_PUBLIC_BASE_URL: ${PLANING_PUBLIC_URL:-https://tools.structa.cloud/planing}
-      PLANING_PORT: "1111"
+      NEXTAUTH_URL: ${PLANINC_PUBLIC_URL:-https://tools.structa.cloud/planinc}
+      NEXT_PUBLIC_BASE_URL: ${PLANINC_PUBLIC_URL:-https://tools.structa.cloud/planinc}
+      PLANINC_PORT: "1111"
       NODE_ENV: production
       # SurrealDB embedded file — path inside the container data volume.
-      # Override SURREALDB_FILE to point to a different path if needed.
-      SURREALDB_FILE: /app/data/planinc.db
-      SURREALDB_NS: planinc
-      SURREALDB_DB: planinc
+      PLANINC_DB_FILE: /app/data/planinc.db
+      PLANINC_DB_NS: planinc
+      PLANINC_DB_NAME: planinc
+      PLANINC_CORS_ORIGINS: ${PLANINC_CORS_ORIGINS:-}
       # Chat context root: the project tree is mounted read-only so a chat can
       # read the repository it is asked about but never write to it.
-      PLANING_CONTEXT_PROJECT_DIR: /app/context
-      PLANING_CONTEXT_MAX_BYTES: ${PLANING_CONTEXT_MAX_BYTES:-262144}
+      PLANINC_CONTEXT_PROJECT_DIR: /app/context
+      PLANINC_CONTEXT_MAX_BYTES: ${PLANINC_CONTEXT_MAX_BYTES:-262144}
     volumes:
       # Persist the SurrealDB file and uploads across container restarts.
-      - ./runtime/data:/app/data
-      - ${PLANING_CONTEXT_DIR:-../../..}:/app/context:ro
+      - ./src/data:/app/data
+      - ${PLANINC_CONTEXT_DIR:-../../..}:/app/context:ro
     networks:
       - common
     healthcheck:

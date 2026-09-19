@@ -23,24 +23,53 @@ export class BaseStore implements Store {
       shallow: true,
       href: '/?path=notes',
       icon: 'hugeicons:note',
+      lane: 'work',
     },
     {
       title: 'todo',
       shallow: true,
       href: '/?path=todo',
       icon: 'solar:bill-check-linear',
+      lane: 'work',
     },
     {
       title: 'analytics',
       href: '/analytics',
       hiddenMobile: true,
       icon: 'hugeicons:analytics-01',
+      lane: 'work',
     },
     {
       title: 'resources',
       href: '/resources',
       icon: 'solar:database-linear',
       hiddenMobile: true,
+      lane: 'work',
+    },
+    {
+      title: 'tickets',
+      href: '/tickets',
+      icon: 'hugeicons:task-01',
+      lane: 'work',
+    },
+    {
+      title: 'agents',
+      href: '/ai',
+      icon: 'hugeicons:ai-chat-02',
+      hiddenMobile: true,
+      lane: 'work',
+    },
+    {
+      title: 'graph',
+      href: '/graph',
+      icon: 'hugeicons:share-08',
+      lane: 'work',
+    },
+    {
+      title: 'study',
+      href: '/study',
+      icon: 'hugeicons:book-open-01',
+      lane: 'learn',
     },
     {
       title: 'archived',
@@ -162,6 +191,14 @@ export class BaseStore implements Store {
         this.currentTitle = 'archived';
       } else if (location.pathname == '/resources') {
         this.currentTitle = 'resources';
+      } else if (location.pathname == '/tickets') {
+        this.currentTitle = 'tickets';
+      } else if (location.pathname == '/study') {
+        this.currentTitle = 'study';
+      } else if (location.pathname == '/graph') {
+        this.currentTitle = 'graph';
+      } else if (location.pathname == '/ai') {
+        this.currentTitle = 'agents';
       } else if (searchParams.get('path') == 'trash') {
         this.currentTitle = 'trash';
       } else if (location.pathname == '/plugin') {

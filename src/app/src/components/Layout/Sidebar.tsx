@@ -93,22 +93,26 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
 
       <ScrollShadow className="-mr-[16px] mt-[-5px] h-full max-h-full pr-6 hide-scrollbar">
         <div className={`flex flex-col gap-1 mt-4 font-semibold ${base.isSidebarCollapsed ? 'items-center gap-4' : ''}`}>
-          {base.routerList
-            .filter((i) => !i.hiddenSidebar)
-            .map((i) => (
-              <Link
-                key={i.title}
-                to={i.href}
-                onClick={() => {
-                  base.currentRouter = i;
-                  onItemClick?.();
-                }}
-                className={`flex items-center gap-1 group ${SideBarItem} ${base.isSideBarActive(routerInfo, i) ? '!bg-primary  !text-primary-foreground' : ''}`}
-              >
-                <Icon className={`${base.isSidebarCollapsed ? 'mx-auto' : ''}`} icon={i.icon} width="20" height="20" />
-                {!base.isSidebarCollapsed && <span className="!transition-all">{t(i.title)}</span>}
-              </Link>
-            ))}
+          {(['work', 'learn'] as const).map((lane) => {
+            const items = base.routerList.filter((i) => !i.hiddenSidebar && (i.lane ?? 'work') === lane);
+            if (!items.length) return null;
+            return (
+              <div key={lane} className="flex flex-col gap-1">
+                {!base.isSidebarCollapsed && <div className="px-2 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-foreground-500">{t(lane)}</div>}
+                {items.map((i) => (
+                  <Link
+                    key={i.title}
+                    to={i.href}
+                    onClick={() => { base.currentRouter = i; onItemClick?.(); }}
+                    className={`flex items-center gap-1 group ${SideBarItem} ${base.isSideBarActive(routerInfo, i) ? '!bg-primary !text-primary-foreground' : ''}`}
+                  >
+                    <Icon className={`${base.isSidebarCollapsed ? 'mx-auto' : ''}`} icon={i.icon} width="20" height="20" />
+                    {!base.isSidebarCollapsed && <span className="!transition-all">{t(i.title)}</span>}
+                  </Link>
+                ))}
+              </div>
+            );
+          })}
           {!base.isSidebarCollapsed && planincStore.tagList.value?.listTags.length != 0 && planincStore.tagList.value?.listTags && <TagListPanel />}
         </div>
       </ScrollShadow>

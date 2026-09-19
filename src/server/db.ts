@@ -61,6 +61,8 @@ const DATE_FIELDS: Record<string, string[]> = {
   aiScheduledTask: ['createdAt', 'updatedAt', 'lastRun'],
   mcpServers: ['createdAt', 'updatedAt'],
   fonts: ['createdAt', 'updatedAt'],
+  tickets: ['createdAt', 'updatedAt'],
+  studyItems: ['createdAt', 'updatedAt'],
 };
 
 const TABLES = Object.keys(DATE_FIELDS);
@@ -96,9 +98,48 @@ interface UpsertArgs {
 // Value helpers
 // ---------------------------------------------------------------------
 
-function parseDates(table: string, row: any): any {
+function normalizeRecord(table: string, row: any): any {
   if (!row || typeof row !== 'object') return row;
   const out = { ...row };
+
+  if (table === 'notes') {
+    out.isReviewed ??= false;
+    out.metadata ??= {};
+    out.shareEncryptedUrl ??= null;
+    out.shareMaxView ??= null;
+    out.shareViewCount ??= null;
+    out.sortOrder ??= 0;
+  } else if (table === 'attachments') {
+    out.accountId ??= null;
+    out.sortOrder ??= 0;
+    out.type ??= '';
+    out.depth ??= null;
+    out.perfixPath ??= null;
+  } else if (table === 'tag') {
+    out.sortOrder ??= 0;
+  } else if (table === 'accounts') {
+    out.image ??= '';
+    out.apiToken ??= '';
+    out.note ??= 0;
+  } else if (table === 'tickets') {
+    out.description ??= '';
+    out.status ??= 'open';
+    out.priority ??= 'medium';
+    out.noteId ??= null;
+    out.studyItemId ??= null;
+  } else if (table === 'studyItems') {
+    out.description ??= '';
+    out.status ??= 'planned';
+    out.sourceUrl ??= '';
+    out.noteId ??= null;
+  }
+
+  return out;
+}
+
+function parseDates(table: string, row: any): any {
+  if (!row || typeof row !== 'object') return row;
+  const out = normalizeRecord(table, row);
   for (const f of DATE_FIELDS[table] || []) {
     if (out[f] != null && typeof out[f] === 'string') {
       const d = new Date(out[f]);
@@ -114,8 +155,9 @@ function parseDatesAll(table: string, rows: any[]): any[] {
 
 function stripIdPrefix(id: any): number {
   if (typeof id === 'number') return id;
-  if (typeof id === 'string') return Number(String(id).split(':').pop());
-  return Number(id);
+  const value = String(id);
+  const numericId = Number(value.split(':').pop());
+  return Number.isFinite(numericId) ? numericId : Number(id);
 }
 
 function toRecordId(table: string, id: any): string {
@@ -862,6 +904,8 @@ export async function ensureSurrealSchema(): Promise<void> {
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_nis ON TABLE noteInternalShare COLUMNS noteId, accountId UNIQUE;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_noteref ON TABLE noteReference COLUMNS fromNoteId, toNoteId UNIQUE;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_fonts_name ON TABLE fonts COLUMNS name UNIQUE;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_tickets_account ON TABLE tickets COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_study_account ON TABLE studyItems COLUMNS accountId;`);
   await query(statements.join('\n'));
 }
 

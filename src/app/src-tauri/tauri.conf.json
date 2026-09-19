@@ -5,7 +5,7 @@
   "identifier": "com.planinc.app",
   "build": {
     "beforeDevCommand": "bun run dev",
-    "devUrl": "http://localhost:1112",
+    "devUrl": "http://localhost:1111",
     "beforeBuildCommand": "bun run build:no-pwa",
     "frontendDist": "../../dist/public"
   },

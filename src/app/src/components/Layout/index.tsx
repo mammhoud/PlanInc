@@ -76,7 +76,11 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
     location.pathname == '/oauth-callback' ||
     location.pathname.includes('/ai-share')
   ) {
-    return <>{children}</>;
+    return (
+      <div id="outer-container">
+        <main id="page-wrap">{children}</main>
+      </div>
+    );
   }
 
   return (
@@ -182,7 +186,6 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
                 {!planincStore.config.value?.isCloseDailyReview && <Badge size="sm" className="shrink-0" content={planincStore.dailyReviewNoteList.value?.length} color="warning">
                   <Link to="/review">
                     <Button
-                      as="a"
                       className="mt-[2px]"
                       isIconOnly
                       size="sm"

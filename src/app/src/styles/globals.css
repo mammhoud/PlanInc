@@ -163,6 +163,8 @@ body {
 @layer base {
   :root {
     --font-family: 'Inter', sans-serif;
+    --doc-height: 100vh;
+    --min-editor-height: 50vh;
     --swiper-3d-shadow: rgba(0, 0, 0, .15);
     --background: hsl(0 0% 100%);
     --foreground: hsl(222.2 47.4% 11.2%);

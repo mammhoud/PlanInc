@@ -37,6 +37,9 @@ const ReviewPage = lazy(() => import('./pages/review'));
 const SettingsPage = lazy(() => import('./pages/settings'));
 const PluginPage = lazy(() => import('./pages/plugin'));
 const AnalyticsPage = lazy(() => import('./pages/analytics'));
+const TicketsPage = lazy(() => import('./pages/tickets'));
+const StudyPage = lazy(() => import('./pages/study'));
+const GraphPage = lazy(() => import('./pages/graph'));
 const AllPage = lazy(() => import('./pages/all'));
 const OAuthCallbackPage = lazy(() => import('./pages/oauth-callback'));
 const DetailPage = lazy(() => import('./pages/detail'));
@@ -130,11 +133,9 @@ function AppRoutes() {
   const navigate = useNavigate();
   const windowType = getWindowType();
 
-  // Initialize Quick AI hotkey handler inside Router context (only for main window on desktop)
-  if (windowType === 'main' && isDesktop()) {
-    useQuickaiHotkey();
-    useQuicknoteHotkey(true);
-  }
+  // Keep hooks unconditional; each hook handles non-desktop environments.
+  useQuickaiHotkey();
+  useQuicknoteHotkey(true);
 
   // Listen for navigation commands from Tauri (only for current window type)
   useEffect(() => {
@@ -239,6 +240,9 @@ function AppRoutes() {
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/plugin" element={<ProtectedRoute><PluginPage /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+            <Route path="/tickets" element={<ProtectedRoute><TicketsPage /></ProtectedRoute>} />
+            <Route path="/study" element={<ProtectedRoute><StudyPage /></ProtectedRoute>} />
+            <Route path="/graph" element={<ProtectedRoute><GraphPage /></ProtectedRoute>} />
             <Route path="/all" element={<ProtectedRoute><AllPage /></ProtectedRoute>} />
             <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
             <Route path="/detail/*" element={<ProtectedRoute><DetailPage /></ProtectedRoute>} />
@@ -261,10 +265,8 @@ function App() {
   // Initialize Android shortcuts handler
   useAndroidShortcuts();
 
-  // Initialize hotkey setup for desktop app only
-  if (isDesktop()) {
-    useInitialHotkeySetup();
-  }
+  // The hook itself guards browser and non-desktop environments.
+  useInitialHotkeySetup();
 
   useEffect(() => {
     RootStore.Get(PluginManagerStore).initInstalledPlugins();

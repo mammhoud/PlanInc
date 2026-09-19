@@ -17,9 +17,9 @@ PlanInc is a self-hosted planning and project incubation platform for modern tea
 
 ### Core Services
 
-- **Planing**: Main planning and project management service (port 1111)
-- **Runtime**: Execution runtime for workflows and automation
-- **PlanInc Data**: Data persistence layer (embedded SurrealDB)
+- **PlanInc**: Main planning and project management service (port 1111)
+- **Embedded SurrealDB**: Data persistence inside the Bun/Express application
+- **Tauri desktop client**: Native desktop shell using the same local web server
 
 ### Infrastructure
 
@@ -76,12 +76,12 @@ PlanInc serves as an incubation platform for innovative ideas and projects.
 ```
 PlanInc/
 ├── src/               # PlanInc application source (frontend, server, shared)
-├── runtime/           # Execution runtime (built app + playwright tests)
-│   ├── public/        # Frontend assets
-│   ├── tests/         # Playwright e2e tests
-│   └── data/          # Runtime data (uploads, DB)
-├── planinc-data/      # Persistent data volumes
-└── docker-compose.yml # Service orchestration
+├── runtime/           # Isolated browser-test fixtures and compatibility runtime
+├── src/               # Canonical Bun + React + Tauri application
+│   ├── app/            # React/Vite/Tauri frontend
+│   ├── server/         # Bun/Express/TRPC backend
+│   └── shared/         # Shared schemas and types
+└── docker-compose.yml  # Canonical source-based deployment
 ```
 
 ## 🚦 Quick Start
@@ -94,7 +94,7 @@ PlanInc/
 
 2. **Copy and configure environment**
    ```bash
-   make setup       # copies .env.example → .env
+   cp .env.example .env
    # edit .env with your values
    ```
 
@@ -118,31 +118,51 @@ Copy `.env.example` to `.env` and adjust:
 
 ```env
 # Server
-PLANING_PORT=1111
-PLANING_PUBLIC_URL=http://localhost:1111
-PLANING_NEXTAUTH_SECRET=change-me-in-production
+PLANINC_PORT=1111
+PLANINC_PUBLIC_URL=http://localhost:1111
+PLANINC_NEXTAUTH_SECRET=change-me-in-production
 
 # SurrealDB (embedded — no extra container needed)
-SURREALDB_FILE=./runtime/data/planinc.db
-SURREALDB_NS=planinc
-SURREALDB_DB=planinc
+PLANINC_DB_FILE=./src/data/planinc.db
+PLANINC_DB_NS=planinc
+PLANINC_DB_NAME=planinc
 ```
 
 ## 🧪 Development
 
 ```bash
-# Start development environment
-make dev
+# Browser development — Bun backend + ViteExpress frontend
+cd src
+bun install
+cp .env.tmpl .env
+bun run dev:backend
+# Open http://localhost:1111
+
+# Canonical planning surfaces
+# /tickets  - first-class ticket CRUD
+# /study    - first-class study items
+# /graph    - responsive cross-domain graph view
+
+# Desktop development — Tauri shell connected to the same server
+cd src
+bun run dev
 
 # Run tests
 make test
 
-# Build for production
-make build
+# Build the canonical web/backend application
+cd src
+bun run build:web
+bun run start:server:production
 
-# Verify SurrealDB runtime contract
-make verify-surrealdb
+# Validate the deployment wrapper
+docker compose config -q
 ```
+
+The authenticated sidebar is organized into two responsive lanes: **Work**
+(notes, todos, tickets, agents, analytics, resources, and graph) and **Learn**
+(study). Tickets and study items are stored in the embedded SurrealDB as
+account-scoped records; they do not revive the historical `planing/` tree.
 
 ## 📖 Documentation
 

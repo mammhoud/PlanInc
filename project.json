@@ -27,9 +27,8 @@
     "dev": "make dev"
   },
   "services": [
-    "planing",
-    "runtime",
-    "planinc-data"
+    "planinc",
+    "embedded-surrealdb"
   ],
   "tools": [
     "anytype",

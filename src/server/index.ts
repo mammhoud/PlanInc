@@ -95,6 +95,29 @@ const app = express();
 const PORT = Number(process.env.PLANINC_PORT) || 1111;
 const appRootDev = path.resolve(__dirname, '../app');
 const appRootProd = path.resolve(__dirname, '../server');
+const corsOrigins = new Set(
+  String(process.env.PLANINC_CORS_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+for (const origin of ['tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost']) {
+  corsOrigins.add(origin);
+}
+const isDevelopmentLoopbackOrigin = (origin: string) => {
+  if (process.env.NODE_ENV === 'production') return false;
+
+  try {
+    const url = new URL(origin);
+    const port = url.port || (url.protocol === 'https:' ? '443' : '80');
+    return (
+      ['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname) &&
+      port === String(PORT)
+    );
+  } catch {
+    return false;
+  }
+};
 let server: any = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -274,7 +297,17 @@ async function setupApiRoutes(app: express.Application) {
 async function bootstrap() {
   try {
     app.use(cors({
-      origin: true,
+      origin: (origin, callback) => {
+        // Same-origin browser requests do not include an Origin header.
+        if (!origin || corsOrigins.has(origin) || isDevelopmentLoopbackOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        // Let the browser enforce the policy without turning a normal
+        // cross-origin request into an application error response.
+        callback(null, false);
+      },
       credentials: true
     }));
 
