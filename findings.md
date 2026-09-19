@@ -91,3 +91,7 @@
 - Focused relationship tests cover same-account creation, cross-account
   source/target rejection, duplicate-link reuse, and ownership-protected
   deletion.
+- The root Resources page previously hid its upload control because the
+  component lived inside the nested-folder breadcrumb branch. The control is
+  now rendered in the shared action row, while destinationFolder remains
+  conditional for nested paths.

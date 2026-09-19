@@ -71,3 +71,8 @@ archive and lane-relationship contracts.
 - Route smoke checks for `/dashboard` and `/resources` returned HTTP 200.
 - The production web build passes; existing icon fallback warnings remain
   non-blocking and do not prevent interaction.
+- Authenticated browser checks also confirmed fixture tickets, tag/category
+  filters, List/Cards/Grid switching, Related items actions, and Graph route
+  rendering. The browser still reports the existing third-party
+  `defaultProps` deprecation from `rctx-contextmenu`; it is not an application
+  runtime failure.
