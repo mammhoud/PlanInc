@@ -3,6 +3,8 @@
 # Runtime data (databases, uploads — local only)
 planinc-data/
 runtime/data/
+src/data/planinc.db/
+src/server/data/planinc.db/
 
 # Env files
 .env

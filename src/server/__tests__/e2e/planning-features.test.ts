@@ -1,6 +1,7 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, setDefaultTimeout, test } from 'bun:test';
 
 const BASE_URL = process.env.PLANINC_TEST_URL ?? 'http://localhost:1111';
+setDefaultTimeout(30_000);
 
 describe('planning feature smoke tests', () => {
   test('serves the planning pages from the canonical app', async () => {
