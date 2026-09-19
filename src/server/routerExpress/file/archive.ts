@@ -6,6 +6,20 @@ import { FileService } from '../../lib/files';
 
 const router = express.Router();
 
+function normalizeFolderPath(value: string) {
+  const segments = value
+    .replace(/\\/g, '/')
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  if (!segments.length || segments.some((segment) => segment === '.' || segment === '..')) return null;
+  return segments.join(',');
+}
+
+function safeArchiveSegment(value: string) {
+  return value.replace(/[\\/]/g, '_').replace(/\.\./g, '_');
+}
+
 router.post('/', async (req, res) => {
   const token = await getTokenFromRequest(req);
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
@@ -13,11 +27,18 @@ router.post('/', async (req, res) => {
   const attachmentIds = Array.isArray(req.body?.attachmentIds)
     ? req.body.attachmentIds.filter((id: unknown): id is number => Number.isInteger(id)).slice(0, 100)
     : [];
-  const folderPaths = Array.isArray(req.body?.folderPaths)
-    ? req.body.folderPaths.filter((path: unknown): path is string => typeof path === 'string' && path.trim()).slice(0, 20)
+  const rawFolderPaths = Array.isArray(req.body?.folderPaths)
+    ? req.body.folderPaths
+      .filter((path: unknown): path is string => typeof path === 'string' && path.trim())
+      .slice(0, 20)
     : [];
+  const folderPaths = rawFolderPaths.map(normalizeFolderPath);
+  if (folderPaths.some((path) => !path)) {
+    return res.status(400).json({ error: 'Invalid folder path' });
+  }
+  const normalizedFolderPaths = folderPaths.filter((path): path is string => Boolean(path));
 
-  if (!attachmentIds.length && !folderPaths.length) {
+  if (!attachmentIds.length && !normalizedFolderPaths.length) {
     return res.status(400).json({ error: 'Select at least one file or folder' });
   }
 
@@ -26,10 +47,10 @@ router.post('/', async (req, res) => {
     where: {
       OR: [
         { id: { in: attachmentIds }, accountId },
-        ...folderPaths.map((folderPath) => ({
-          perfixPath: { startsWith: folderPath.replace(/[\\/]+/g, ',').replace(/^,|,$/g, '') },
-          accountId,
-        })),
+        ...normalizedFolderPaths.flatMap((folderPath) => [
+          { perfixPath: folderPath, accountId },
+          { perfixPath: { startsWith: `${folderPath},` }, accountId },
+        ]),
       ],
     },
   });
@@ -50,8 +71,10 @@ router.post('/', async (req, res) => {
 
   for (const attachment of files) {
     const content = await FileService.getFileBuffer(attachment.path);
-    const folder = attachment.perfixPath ? `${String(attachment.perfixPath).split(',').join('/')}/` : '';
-    archive.append(content, { name: `${folder}${attachment.name}` });
+    const folder = attachment.perfixPath
+      ? `${String(attachment.perfixPath).split(',').map(safeArchiveSegment).join('/')}/`
+      : '';
+    archive.append(content, { name: `${folder}${safeArchiveSegment(attachment.name)}` });
   }
 
   await archive.finalize();
