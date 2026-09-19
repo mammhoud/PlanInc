@@ -25,6 +25,7 @@ import { mcpServersRouter } from './mcpServers';
 import { fontRouter } from './font';
 import { ticketRouter } from './ticket';
 import { studyRouter } from './study';
+import { planningLinkRouter } from './planningLink';
 export const appRouter = router({
   ai: aiRouter,
   notes: noteRouter,
@@ -46,6 +47,7 @@ export const appRouter = router({
   fonts: fontRouter,
   tickets: ticketRouter,
   study: studyRouter,
+  planningLinks: planningLinkRouter,
 });
 
 export const createCaller = t.createCallerFactory(appRouter);

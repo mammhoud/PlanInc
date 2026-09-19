@@ -38,7 +38,7 @@ duplicate links remain, and all current routes remain reachable.
 
 ### Phase 2 — Resources file-manager completion
 
-**Status:** in_progress
+**Status:** complete
 
 - Map the existing attachment/file API and identify missing operations for:
   upload, directory creation, directory rename/delete, file rename/delete,
@@ -58,9 +58,13 @@ duplicate links remain, and all current routes remain reachable.
 and download resources from desktop and mobile with visible success/failure
 feedback.
 
+- Completed upload, folder-aware archive download, search, sort, selection,
+  list/grid switching, and destination-folder support.
+- Remaining archive authorization/path-traversal tests are tracked in Phase 7.
+
 ### Phase 3 — Shared modal CRUD foundation
 
-**Status:** pending
+**Status:** in_progress
 
 - Standardize modal shells for create, edit, preview, delete confirmation, and
   destructive-operation errors.
@@ -95,7 +99,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 5 — Ticket list/card/grid views and lane binding
 
-**Status:** pending
+**Status:** in_progress
 
 - Add a view switcher with accessible list, compact card, and grid modes.
 - Persist the selected view per user/device without breaking existing filters.
@@ -105,6 +109,10 @@ field validation, error reporting, and no stale state after reopening.
 - Define the relationship model explicitly: ticket-to-note links, ticket-to-study
   links, and optional graph edge metadata; preserve account ownership checks.
 - Add a related-items panel to ticket detail/edit modals.
+- Added an account-scoped `planningLinks` router and a reversible Study
+  binding modal on ticket cards. Note-capable links are supported server-side;
+  the current ticket UI intentionally exposes Study targets only until the
+  legacy mutation-style note list client is migrated safely.
 
 **Exit criteria:** tickets can be viewed in all three layouts, filtered without
   losing context, and linked to another lane through a persisted, reversible
@@ -112,7 +120,7 @@ field validation, error reporting, and no stale state after reopening.
 
 ### Phase 6 — Graph links, previews, and switch modal
 
-**Status:** pending
+**Status:** in_progress
 
 - Replace route-only graph anchors with typed node targets carrying entity ID,
   kind, label, and preview metadata.
@@ -124,6 +132,8 @@ field validation, error reporting, and no stale state after reopening.
 - Make graph nodes keyboard accessible and usable at mobile widths.
 - Reuse the same relationship records created by lane binding; do not maintain
   a second disconnected graph state.
+- Added account-scoped link loading, accessible SVG node buttons, read-only
+  previews, and node-kind visibility filters backed by the shared link data.
 
 **Exit criteria:** clicking a graph node opens a preview, users can switch
   visible node/edge types, and “open” navigates to the correct detail surface.
@@ -188,8 +198,8 @@ field validation, error reporting, and no stale state after reopening.
 
 ## Next Step
 
-Continue with archive authorization tests and the shared CRUD modal foundation
-after committing the fixture preview checkpoint.
+Implement the shared relationship contract and ticket lane-binding controls,
+then derive graph links and previews from the same account-scoped records.
 
 ## Errors Encountered
 

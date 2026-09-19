@@ -65,3 +65,24 @@
 - Prefer one shared relation contract for lane bindings and graph edges.
 - Use explicit toasts/errors; do not hide unsupported folder download behavior.
 - Keep all resource, ticket, note, study, and graph queries account-scoped.
+
+## 2026-09-19 continuation analysis
+
+- Ticket and study records currently store nullable `noteId`/`studyItemId`
+  pointers, but there is no reusable relation table or agent/resource target
+  contract.
+- The graph page currently renders SVG anchors to collection routes only; it
+  does not expose entity IDs in navigation or provide a node preview/switch
+  interaction.
+- Ticket CRUD is still an inline form with a category/tag modal; this is the
+  most direct surface for adding reversible lane binding without first
+  rewriting every CRUD page.
+- PlanInc's source workspace scripts live under `application/tools/PlanInc/src`;
+  invoking them from the repository root or wrapper directory reports missing
+  scripts.
+- The last production web build passes. The dedicated TypeScript build still
+  exhausts the available Node heap before emitting diagnostics, so it is not a
+  useful gate without a memory/toolchain change.
+- Notes are available through `api.notes.list` with an explicit paging/filter
+  input; the relationship UI can use the first page of account-scoped notes
+  alongside tickets and studies.

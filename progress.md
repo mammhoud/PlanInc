@@ -43,3 +43,17 @@ archive and lane-relationship contracts.
   seven planning routes rendered successfully after async loading.
 - Server logs showed no application errors. Non-blocking icon fallback and
   dependency deprecation warnings remain documented for later cleanup.
+
+## 2026-09-19 — Relationship and graph checkpoint
+
+- Added the account-scoped `planningLinks` table contract, indexes, ownership
+  checks, duplicate prevention, and create/list/delete tRPC procedures.
+- Added reversible ticket-to-study binding controls with related-item display.
+- Added accessible graph node buttons, read-only previews, and node-kind
+  filters using the same relationship records.
+- Production web build passed and focused upload coverage remains green
+  (11 tests).
+- During preview, the legacy `notes.list` mutation-style endpoint was
+  mistakenly queried from the new ticket target loader; it caused HTTP 405
+  errors and was removed from that UI path. The server router remains
+  note-capable, and no new errors appeared after the fix.

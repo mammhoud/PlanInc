@@ -63,6 +63,7 @@ const DATE_FIELDS: Record<string, string[]> = {
   fonts: ['createdAt', 'updatedAt'],
   tickets: ['createdAt', 'updatedAt'],
   studyItems: ['createdAt', 'updatedAt'],
+  planningLinks: ['createdAt', 'updatedAt'],
 };
 
 const TABLES = Object.keys(DATE_FIELDS);
@@ -136,6 +137,9 @@ function normalizeRecord(table: string, row: any): any {
     out.noteId ??= null;
     out.category ??= '';
     out.tags ??= [];
+  } else if (table === 'planningLinks') {
+    out.label ??= '';
+    out.metadata ??= {};
   }
 
   return out;
@@ -910,6 +914,10 @@ export async function ensureSurrealSchema(): Promise<void> {
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_fonts_name ON TABLE fonts COLUMNS name UNIQUE;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_tickets_account ON TABLE tickets COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_study_account ON TABLE studyItems COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_account ON TABLE planningLinks COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_source ON TABLE planningLinks COLUMNS sourceType, sourceId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_target ON TABLE planningLinks COLUMNS targetType, targetId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS uniq_planning_link ON TABLE planningLinks COLUMNS accountId, sourceType, sourceId, targetType, targetId UNIQUE;`);
   await query(statements.join('\n'));
 }
 
