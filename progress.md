@@ -59,3 +59,15 @@ archive and lane-relationship contracts.
   mistakenly queried from the new ticket target loader; it caused HTTP 405
   errors and was removed from that UI path. The server router remains
   note-capable, and no new errors appeared after the fix.
+
+## 2026-09-19 — Resource upload visibility and validation checkpoint
+
+- Moved the upload control out of the folder-only breadcrumb branch so upload
+  is available at the resource root and inside nested folders.
+- Verified the authenticated Resources page exposes `Choose File` and
+  `Upload` controls at `/resources`.
+- Planning smoke, relationship authorization, and upload integration suites
+  pass: 19 tests total.
+- Route smoke checks for `/dashboard` and `/resources` returned HTTP 200.
+- The production web build passes; existing icon fallback warnings remain
+  non-blocking and do not prevent interaction.

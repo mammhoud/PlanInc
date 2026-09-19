@@ -198,8 +198,9 @@ field validation, error reporting, and no stale state after reopening.
 
 ## Next Step
 
-Implement the shared relationship contract and ticket lane-binding controls,
-then derive graph links and previews from the same account-scoped records.
+Implement the shared CRUD modal foundation across Tickets and Study, then add
+the remaining responsive browser coverage for modal reset and failed-submit
+flows.
 
 ## Errors Encountered
 

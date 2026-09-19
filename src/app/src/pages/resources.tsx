@@ -108,18 +108,6 @@ const Page = observer(() => {
                         </BreadcrumbItem>
                       ))}
                     </Breadcrumbs>
-                    <UploadFileWrapper
-                      destinationFolder={resourceStore.currentFolder || undefined}
-                      onUpload={() => { resourceStore.refreshTicker++; }}
-                    >
-                      <Button
-                        size="sm"
-                        variant="bordered"
-                        startContent={<Icon icon="tabler:upload" className="w-5 h-5" />}
-                      >
-                        {t('upload')}
-                      </Button>
-                    </UploadFileWrapper>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -164,6 +152,23 @@ const Page = observer(() => {
             </div>
 
             <div className="flex items-center gap-2 mt-2 ">
+              <UploadFileWrapper
+                destinationFolder={
+                  resourceStore.currentFolder && resourceStore.currentFolder !== 'Root'
+                    ? resourceStore.currentFolder
+                    : undefined
+                }
+                onUpload={() => { resourceStore.refreshTicker++; }}
+              >
+                <Button
+                  size="sm"
+                  variant="bordered"
+                  startContent={<Icon icon="tabler:upload" className="w-5 h-5" />}
+                >
+                  {t('upload')}
+                </Button>
+              </UploadFileWrapper>
+
               <motion.div
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
