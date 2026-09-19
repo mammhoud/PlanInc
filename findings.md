@@ -4,8 +4,7 @@
 
 - Canonical nested repository: `application/tools/PlanInc`.
 - Active branch: `generic`.
-- Current HEAD: `16582c9c`, the history-reconciliation merge that preserves the
-  SurrealDB-native tree.
+- Current HEAD: `1659226f` on `generic`, pushed to `origin/generic`.
 - The old `runtime/` tree still exists for legacy tests/demo behavior but is not
   the canonical application surface.
 
@@ -59,3 +58,8 @@ graph UI. Existing notes remain the source of truth for note nodes.
 Tickets and study items are first-class account-scoped SurrealDB records with
 authenticated CRUD procedures. The graph uses explicit node kinds rather than
 localized labels, so navigation remains stable across locales.
+
+Authentication uses the existing PBKDF2 password helper. The sign-in UI does
+not persist plaintext passwords, and `src/server/scripts/create-superuser.ts`
+provisions or updates a `superadmin` account from environment variables,
+arguments, or an interactive password prompt.

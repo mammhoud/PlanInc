@@ -98,13 +98,21 @@ current code and committed history.
   sources are staged.
 - Provide a feature/commit map and exact validation results.
 
+### Ticket 11 — Harden authentication and provisioning
+**Status:** complete
+
+- Remove plaintext password persistence from the sign-in flow.
+- Add a hashed, environment-driven superuser provisioning command.
+- Verify authenticated navigation and invalid-credential handling.
+- Document credential handling and local provisioning.
+
 ## Current phase
 
 All planned phases complete.
 
 ## Next step
 
-No planned implementation steps remain. Keep local SurrealDB data untracked and
+No planned implementation steps remain. Keep local SurrealDB data ignored and
 review the feature/validation summary before any optional commit.
 
 ## Errors Encountered
@@ -113,3 +121,6 @@ review the feature/validation summary before any optional commit.
 |---|---:|---|
 | Frontend `tsc --noEmit` exhausted the default ~2 GB heap | 1 | Use the app's configured `build:web` command with a 4 GB Node heap; retain the failure as a validation limitation if the host cannot provide it |
 | Frontend/server `tsc` remained resource-bound after the larger-heap retry | 2 | Stopped the long-running checks; production frontend and backend builds passed, plus HTTP smoke checks |
+| Full legacy Playwright suite could not start because Docker was unavailable | 1 | Ran canonical authenticated browser checks and focused API smoke tests instead |
+| Integrated Playwright MCP could not launch the configured Chrome binary | 1 | Used the available browser automation surface for sign-in and post-auth navigation checks |
+| A full disk caused temporary `ENOSPC` build failures | 1 | Cleared generated Vite/Bun caches, ignored database artifacts, and reran builds successfully |

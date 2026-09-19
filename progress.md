@@ -39,3 +39,9 @@
   documented `create:superuser` provisioning command.
 - The legacy Playwright suite remains blocked when Docker is unavailable; the
   integrated browser runner also lacks its configured Chrome binary.
+- Cleaned generated caches after a temporary full-disk `ENOSPC` condition and
+  reran the backend/frontend builds successfully.
+- Added a default 30-second timeout to the focused Bun smoke tests for cold
+  Vite startup; all 3 tests pass against the live server.
+- Removed tracked local SurrealDB files and added both runtime database paths to
+  `.gitignore`.
