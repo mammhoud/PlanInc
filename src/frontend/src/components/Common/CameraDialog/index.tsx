@@ -1,7 +1,7 @@
 import { RootStore } from "@/store";
 import { DialogStandaloneStore } from "@/store/module/DialogStandalone";
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 
@@ -195,9 +195,10 @@ export const MyCamera = ({ onComplete }: MyCameraProps) => {
       )}
 
       <Button
-        isIconOnly
+        size="icon"
+        variant="ghost"
         className="absolute right-5 top-5 backdrop-blur-sm rounded-full"
-        onPress={() => RootStore.Get(DialogStandaloneStore).close()}
+        onClick={() => RootStore.Get(DialogStandaloneStore).close()}
       >
         <Icon icon="iconamoon:close-thin" width="24" height="24" />
       </Button>
@@ -205,7 +206,7 @@ export const MyCamera = ({ onComplete }: MyCameraProps) => {
 
       <div className="fixed bottom-10 left-0 right-0 flex justify-center items-center gap-5">
         {lastCaptureType && !showBlackScreen && (
-          <Button isIconOnly onPress={handleComplete} radius='lg' className={`absolute right-10 group w-fit`} color='primary' >
+          <Button size="icon" onClick={handleComplete} className={`absolute right-10 group w-fit`} >
             <Icon icon="mynaui:upload" width="24" height="24" />
           </Button>
         )}
@@ -228,8 +229,8 @@ export const MyCamera = ({ onComplete }: MyCameraProps) => {
         </button>
 
         <Button
-          className="absolute left-10" radius="lg" isIconOnly
-          onPress={handleSwitchCamera}
+          className="absolute left-10" size="icon"
+          onClick={handleSwitchCamera}
         >
           <Icon icon="icon-park-solid:flip-camera" width="24" height="24" />
         </Button>

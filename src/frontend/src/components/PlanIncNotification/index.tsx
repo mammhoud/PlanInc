@@ -1,0 +1,166 @@
+import { useEffect } from 'react';
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Icon } from '@/components/Common/Iconify/icons';
+import { api } from '@/lib/trpc';
+import dayjs from '@/lib/dayjs';
+import { useTranslation } from 'react-i18next';
+import { observer } from 'mobx-react-lite';
+import { RootStore } from '@/store';
+import { PromisePageState, PromiseState } from '@/store/standard/PromiseState';
+import { ScrollArea } from '../Common/ScrollArea';
+import { Notifications, NotificationType } from '@shared/lib/recordSchemas';
+import { ShowCommentDialog } from '../PlanIncCard/commentButton';
+import { PlanIncStore } from '@/store/planincStore';
+import { UserStore } from '@/store/user';
+
+
+export const PlanIncNotification = observer(() => {
+  const { t } = useTranslation();
+  const planinc = RootStore.Get(PlanIncStore)
+  const user = RootStore.Get(UserStore)
+  const store = RootStore.Local(() => ({
+    isOpen: false,
+    setIsOpen(open: boolean) {
+      this.isOpen = open;
+      if (open) {
+        this.notificationList.resetAndCall({});
+      }
+    },
+    notificationList: new PromisePageState({
+      autoAuthRedirect: false,
+      function: async ({ page, size }) => {
+        return await api.notifications.list.query({ page, size });
+      }
+    }),
+    unreadCount: new PromiseState({
+      value: 0,
+      autoAuthRedirect: false,
+      function: async () => {
+        return await api.notifications.unreadCount.query();
+      },
+    }),
+    markAsRead: new PromiseState({
+      function: async ({ id, all }: { id?: number; all?: boolean }) => {
+        await api.notifications.markAsRead.mutate({ id, all });
+        store.unreadCount.call();
+        store.notificationList.resetAndCall({});
+      }
+    }),
+    handleMarkAllAsRead() {
+      this.markAsRead.call({ all: true });
+    },
+    handleMarkAsRead(notification: Notifications) {
+      if (notification.type === NotificationType.COMMENT) {
+        ShowCommentDialog(notification.metadata.noteId);
+      }
+      this.markAsRead.call({ id: notification.id });
+    }
+  }));
+
+  useEffect(() => {
+    if (user.isLogin) {
+      store.unreadCount.call();
+      store.notificationList.resetAndCall({});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user.isLogin) {
+      store.unreadCount.call();
+      store.notificationList.resetAndCall({});
+    }
+  }, [planinc.updateTicker]);
+
+  if (store.unreadCount.value === 0 || planinc.config.value?.isHiddenNotification) {
+    return null
+  }
+
+  return (
+    <Popover
+      open={store.isOpen}
+      onOpenChange={(open) => store.setIsOpen(open)}
+    >
+      <PopoverTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+        >
+          <span className="relative inline-flex">
+            <Icon icon="mi:notification" width="24" height="24" />
+            {!!store.unreadCount.value && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive" />
+            )}
+          </span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent side="bottom" align="end" className="w-[350px] p-0">
+        <div className="flex items-center justify-between p-4  w-full">
+          <div className="text-xl font-semibold">{t('notification')}</div>
+          {/* @ts-ignore  */}
+          {store?.unreadCount?.value > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => store.handleMarkAllAsRead()}
+            >
+              <Icon icon="material-symbols:check-circle-outline" />
+              {t('mark-all-as-read')}
+            </Button>
+          )}
+        </div>
+        <ScrollArea className="max-h-[600px] overflow-y-auto w-full" onBottom={() => {
+          store.notificationList.callNextPage({});
+        }}>
+          {store.notificationList.isEmpty ? (
+            <div className="text-center py-8 text-default-500">
+              {t('no-notification')}
+            </div>
+          ) : (
+            store.notificationList.value?.map((notification) => (
+              <div
+                key={notification.id}
+                className="px-4 py-3 hover:bg-default-50 cursor-pointer bg-background"
+                onClick={() => store.handleMarkAsRead(notification)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-default-100 p-2">
+                    <Icon
+                      icon={
+                        notification.type === NotificationType.SYSTEM ? 'mdi:bell' :
+                          notification.type === NotificationType.COMMENT ? 'mdi:comment' :
+                            notification.type === NotificationType.FOLLOW ? 'mingcute:user-star-line' :
+                              'mdi:account-plus'
+                      }
+                      className="text-xl text-default-600"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      {!notification.isRead && (
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                      )}
+                      <div className="font-medium text-sm line-clamp-1">
+                        {t(notification.title || 'new-notification')}
+                      </div>
+                      <div className="text-xs text-default-400 ml-auto">
+                        {dayjs(notification.createdAt).fromNow()}
+                      </div>
+                    </div>
+                    <div className="text-sm text-default-500 line-clamp-2 mb-1">
+                      {notification.content
+                        .replace('followed-you', t('followed-you'))
+                        .replace('backup-success', t('backup-success'))
+                      }
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+});

@@ -1,56 +1,67 @@
-import { useCheckbox, Chip, VisuallyHidden, tv } from "@heroui/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-const checkbox = tv({
-  slots: {
-    base: "border-default hover:bg-primary hover:bg-opacity-20",
-    content: "text-foreground pl-1"
-  },
-  variants: {
-    isSelected: {
-      true: {
-        base: "border-primary bg-primary hover:bg-primary hover:border-primary",
-        content: "text-primary-foreground"
-      }
-    },
-    isFocusVisible: {
-      true: { 
-        base: "",
-      }
-    }
-  }
-})
+interface CustomCheckboxProps {
+  children?: React.ReactNode;
+  label?: React.ReactNode;
+  checked?: boolean;
+  isSelected?: boolean;
+  value?: string;
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
+  className?: string;
+  disabled?: boolean;
+}
 
-export const CustomCheckbox = (props) => {
-  const {
-    children,
-    isSelected,
-    isFocusVisible,
-    getBaseProps,
-    getLabelProps,
-    getInputProps,
-  } = useCheckbox({
-    ...props
-  })
+export const CustomCheckbox = ({
+  children,
+  label,
+  checked,
+  isSelected,
+  value,
+  defaultChecked,
+  onChange,
+  onCheckedChange,
+  className,
+  disabled,
+}: CustomCheckboxProps) => {
+  const selected = checked ?? isSelected ?? defaultChecked ?? false;
+  const content = children ?? label ?? (selected ? "Enabled" : "Disabled");
 
-  const styles = checkbox({ isSelected, isFocusVisible })
-  const { ref, ...labelProps } = getLabelProps()
+  const handleCheckedChange = (next: boolean | "indeterminate") => {
+    const value = next === true;
+    onChange?.(value);
+    onCheckedChange?.(value);
+  };
 
   return (
-    <label {...getBaseProps()}>
-      <VisuallyHidden>
-        <input {...getInputProps()} />
-      </VisuallyHidden>
-      <Chip
-        classNames={{
-          base: styles.base(),
-          content: styles.content(),
-        }}
-        color="primary"
-        variant="faded"
-        {...labelProps}
+    <label
+      className={cn(
+        "inline-flex cursor-pointer items-center",
+        disabled && "cursor-not-allowed opacity-50",
+        className
+      )}
+    >
+      <Checkbox
+        checked={selected}
+        onCheckedChange={handleCheckedChange}
+        value={value}
+        disabled={disabled}
+        className="sr-only peer"
+      />
+      <Badge
+        variant={selected ? "default" : "secondary"}
+        className={cn(
+          "border px-2.5 py-0.5 transition-colors hover:bg-primary/20",
+          selected
+            ? "border-primary bg-primary hover:bg-primary"
+            : "border-border hover:border-primary"
+        )}
       >
-        {children ? children : isSelected ? "Enabled" : "Disabled"}
-      </Chip>
+        {content}
+      </Badge>
     </label>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Input, Button } from '@heroui/react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { eventBus } from '@/lib/event';
 import PopoverFloat from '.';
@@ -94,23 +95,27 @@ const AiWritePop = observer(() => {
       >
         <div className="flex flex-col gap-3 min-w-[300px]">
           <div className="flex gap-2">
-            <Input
-              className='border-none'
-              value={ai.writeQuestion}
-              onChange={(e) => ai.writeQuestion = e.target.value}
-              placeholder={'Prompt...'}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  store.handleSubmit()
-                }
-              }}
-              startContent={<Icon className='text-primary' icon="hugeicons:ai-beautify" width="16" height="16" />}
-              endContent={<>
+            <div className="relative w-full">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
+                <Icon className='text-primary' icon="hugeicons:ai-beautify" width="16" height="16" />
+              </span>
+              <Input
+                className='border-none pl-9 pr-9'
+                value={ai.writeQuestion}
+                onChange={(e) => ai.writeQuestion = e.target.value}
+                placeholder={'Prompt...'}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    store.handleSubmit()
+                  }
+                }}
+              />
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center">
                 {ai.isLoading ?
                   <Icon icon="mingcute:loading-line" width="16" height="16" /> :
                   <SendIcon onClick={store.handleSubmit} className='cursor-pointer primary-foreground group-hover:rotate-[-35deg] !transition-all' />}
-              </>}
-            />
+              </span>
+            </div>
           </div>
           {
             ai.writingResponseText != '' && <ScrollArea ref={scrollRef} className='p-2 max-h-[200px]' onBottom={() => { }}>
@@ -119,33 +124,33 @@ const AiWritePop = observer(() => {
           }
           {ai.isWriting && (
             <div id='ai-write-suggestions' className='flex gap-2 items-center'>
-              <Button onPress={() => {
+              <Button onClick={() => {
                 ai.isWriting = false;
                 eventBus.emit('editor:insert', ai.writingResponseText)
                 ai.writingResponseText = ''
                 store.hidden()
-              }} startContent={<Icon icon="ic:sharp-check" className='green' />} size='sm' variant='light' color='success'>{t('accept')}</Button>
-              <Button onPress={() => {
+              }} size='sm' variant='secondary'><Icon icon="ic:sharp-check" className='green' />{t('accept')}</Button>
+              <Button onClick={() => {
                 ai.isWriting = false;
                 ai.writingResponseText = ''
                 store.hidden()
-              }} startContent={<Icon icon="ic:sharp-close" className='red' />} size='sm' variant='light' color='danger'>{t('reject')}</Button>
-              <Button onPress={() => {
+              }} size='sm' variant='destructive'><Icon icon="ic:sharp-close" className='red' />{t('reject')}</Button>
+              <Button onClick={() => {
                 ai.abortAiWrite();
-              }} startContent={<Icon icon="mynaui:stop" className='planinc' />} size='sm' variant='light' color='warning'>{t('stop')} </Button>
+              }} size='sm' variant='secondary'><Icon icon="mynaui:stop" className='planinc' />{t('stop')} </Button>
             </div>
           )}
 
           <div className='flex items-center gap-2'>
-            <Button startContent={<Icon icon="proicons:text-expand" width="16" height="16" />} variant='flat' color='warning' size='sm' onPress={e => {
+            <Button variant='ghost' size='sm' onClick={e => {
               ai.writeStream('expand', planinc.isCreateMode ? planinc.noteContent : planinc.curSelectedNote!.content)
               // store.hidden()
-            }}>{t('ai-expand')}</Button>
-            <Button startContent={<Icon icon="lucide:scan-text" width="16" height="16" />} variant='flat' color='warning' size='sm' onPress={e => {
+            }}><Icon icon="proicons:text-expand" width="16" height="16" />{t('ai-expand')}</Button>
+            <Button variant='ghost' size='sm' onClick={e => {
               ai.writeStream('polish', planinc.isCreateMode ? planinc.noteContent : planinc.curSelectedNote!.content)
               // store.hidden()
-            }}>{t('ai-polish')}</Button>
-            <Button className='ml-auto' isLoading={ai.isLoading} isIconOnly size='sm' onPress={e => {
+            }}><Icon icon="lucide:scan-text" width="16" height="16" />{t('ai-polish')}</Button>
+            <Button className='ml-auto' loading={ai.isLoading} size='icon-sm' onClick={e => {
               store.hidden()
             }}>
               <Icon icon="ic:sharp-close" />

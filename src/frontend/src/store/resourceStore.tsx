@@ -10,7 +10,9 @@ import { PromiseCall } from "./standard/PromiseState";
 import { t } from "i18next";
 import { ToastPlugin } from "./module/Toast/Toast";
 import { DialogStore } from "./module/Dialog";
-import { Button, Input } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import axiosInstance from "@/lib/axios";
 
 export class ResourceStore implements Store {
@@ -231,21 +233,21 @@ export class ResourceStore implements Store {
 
         return (
           <div className="flex flex-col gap-2 p-2">
+            <Label htmlFor="new-folder-name">{t('folder-name')}</Label>
             <Input
-              label={t('folder-name')}
+              id="new-folder-name"
               value={newName}
               onChange={(e) => {
                 setNewName(e.target.value);
                 setError('');
               }}
-              errorMessage={error}
-              isInvalid={!!error}
+              aria-invalid={!!error}
             />
+            {!!error && <p className="text-sm text-destructive">{error}</p>}
             <Button
-              color="primary"
               className="mt-2"
-              onPress={validateAndCreateFolder}
-              isDisabled={!newName.trim()}
+              onClick={validateAndCreateFolder}
+              disabled={!newName.trim()}
             >
               {t('confirm')}
             </Button>

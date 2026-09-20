@@ -1,5 +1,5 @@
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Tooltip } from "@heroui/react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "motion/react";
 import { observer } from "mobx-react-lite";
 import { useTranslation } from 'react-i18next';
@@ -18,7 +18,8 @@ export const IconButton = observer(({ tooltip, icon, onClick, classNames, childr
 }) => {
   const { t } = useTranslation()
   return (
-    <Tooltip content={typeof tooltip == 'string' ? t(tooltip) : tooltip} placement="bottom" delay={300}>
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
       <motion.div
         whileTap={{ y: 1 }}
         className={`hover:bg-hover !transition-all duration-200 cursor-pointer rounded-md flex items-center justify-center ${classNames?.base}`}
@@ -37,6 +38,8 @@ export const IconButton = observer(({ tooltip, icon, onClick, classNames, childr
         )}
         {children}
       </motion.div>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{typeof tooltip == 'string' ? t(tooltip) : tooltip}</TooltipContent>
     </Tooltip>
   )
 })

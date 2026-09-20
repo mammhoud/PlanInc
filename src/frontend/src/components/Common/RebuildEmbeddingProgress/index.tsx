@@ -8,7 +8,7 @@ import { observer } from 'mobx-react-lite'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/Common/Iconify/icons'
-import { Progress } from "@heroui/react"
+import { Progress } from "@/components/ui/progress"
 import { DialogStandaloneStore } from '@/store/module/DialogStandalone'
 
 export const ImportProgress = observer(({ force }: { force: boolean }) => {
@@ -163,22 +163,18 @@ export const ImportProgress = observer(({ force }: { force: boolean }) => {
   return <div className="space-y-4">
     <div className="space-y-4">
       <div className="space-y-3">
-        <Progress
-          classNames={{
-            base: "w-full",
-            track: "border border-default",
-            indicator: "bg-linear-to-r from-progress-from to-progress-to",
-            label: "tracking-wider font-medium text-default-600",
-            value: "text-foreground/60",
-          }}
-          label={<span>
-            <span className="font-medium">{store.progress}</span> / <span className="font-medium">{store.total}</span> items
-          </span>}
-          radius="none"
-          showValueLabel={true}
-          size="sm"
-          value={store.value}
-        />
+        <div className="w-full">
+          <div className="flex justify-between items-center text-sm mb-1">
+            <span>
+              <span className="font-medium">{store.progress}</span> / <span className="font-medium">{store.total}</span> items
+            </span>
+            <span className="text-foreground/60">{store.value}%</span>
+          </div>
+          <Progress
+            value={store.value}
+            className="w-full"
+          />
+        </div>
 
         <div className="flex justify-between items-center text-xs text-desc">
           <span></span>

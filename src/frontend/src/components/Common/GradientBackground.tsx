@@ -4,7 +4,7 @@ import { ShaderGradientCanvas, ShaderGradient } from '@shadergradient/react';
 import * as reactSpring from '@react-spring/three'
 import { RootStore } from '@/store/root';
 import { PlanIncStore } from '@/store/planincStore';
-import { cn } from '@heroui/react';
+import { cn } from '@/lib/utils';
 
 class GradientErrorBoundary extends Component<{ children: ReactNode }> {
   state = { hasError: false };

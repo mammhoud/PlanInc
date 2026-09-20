@@ -5,7 +5,15 @@ import { RootStore } from "@/store";
 import { PlanIncStore } from "@/store/planincStore";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { SideBarItem } from "../Layout";
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Input, Button } from "@heroui/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
 import { useTheme } from "next-themes";
 import { ShowUpdateTagDialog } from "./UpdateTagPop";
@@ -51,17 +59,19 @@ const ShowEmojiPicker = (element, theme) => {
 const CustomIcon = observer(({ onSubmit }: { onSubmit: (icon: string) => void }) => {
   const [icon, setIcon] = useState('')
   return <div className='w-full flex flex-col gap-2'>
-    <Input
-      label='Custom Icon'
-      placeholder='Enter custom icon like "ri:star-smile-line"'
-      value={icon}
-      onValueChange={setIcon}
-      description={<>
+    <div className="space-y-1.5">
+      <Label>Custom Icon</Label>
+      <Input
+        placeholder='Enter custom icon like "ri:star-smile-line"'
+        value={icon}
+        onChange={e => setIcon(e.target.value)}
+      />
+      <p className="text-xs text-muted-foreground">
         PlanInc use <a className="text-blue-500" href="https://icon-sets.iconify.design/" target="_blank">Iconify</a> for custom icon
-      </>}
-    />
+      </p>
+    </div>
     <div className="flex justify-end">
-      <Button color="primary" onPress={() => { onSubmit(icon) }}>Submit</Button>
+      <Button onClick={() => { onSubmit(icon) }}>Submit</Button>
     </div>
   </div>
 })
@@ -148,15 +158,15 @@ export const TagListPanel = observer(() => {
                   <span className="ml-1 text-xs opacity-60">({element.children.length})</span>
                 )}
               </div>
-              <Dropdown>
-                <DropdownTrigger>
-                  <div className="ml-auto group-hover:opacity-100 opacity-0 !transition-all group-hover:translate-x-0 translate-x-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="ml-auto group-hover:opacity-100 opacity-0 !transition-all group-hover:translate-x-0 translate-x-2 cursor-pointer">
                     <Icon icon="ri:more-fill" width="20" height="20" />
                   </div>
-                </DropdownTrigger>
-                <DropdownMenu aria-label="Static Actions">
+                </DropdownMenuTrigger>
+                <DropdownMenuContent aria-label="Static Actions">
                   {
-                    planinc.showAi ? <DropdownItem key="aiEmoji" onPress={async () => {
+                    planinc.showAi ? <DropdownMenuItem key="aiEmoji" onSelect={async () => {
                       if (!isPc) {
                         eventBus.emit('close-sidebar')
                       }
@@ -166,9 +176,9 @@ export const TagListPanel = observer(() => {
                         <Icon icon="ri:robot-line" width="20" height="20" />
                         {t('ai-emoji')}
                       </div>
-                    </DropdownItem> : <></>
+                    </DropdownMenuItem> : <></>
                   }
-                  <DropdownItem key="aiEmoji" onPress={async () => {
+                  <DropdownMenuItem key="aiEmoji" onSelect={async () => {
                     if (!isPc) {
                       eventBus.emit('close-sidebar')
                     }
@@ -178,8 +188,8 @@ export const TagListPanel = observer(() => {
                       <Icon icon="ri:star-smile-line" width="20" height="20" />
                       {t('custom-icon')}
                     </div>
-                  </DropdownItem>
-                  <DropdownItem key="updateIcon" onPress={async () => {
+                  </DropdownMenuItem>
+                  <DropdownMenuItem key="updateIcon" onSelect={async () => {
                     if (!isPc) {
                       eventBus.emit('close-sidebar')
                     }
@@ -189,8 +199,8 @@ export const TagListPanel = observer(() => {
                       <Icon icon="gg:smile" width="20" height="20" />
                       {t('update-tag-icon')}
                     </div>
-                  </DropdownItem>
-                  <DropdownItem key="Update" onPress={async () => {
+                  </DropdownMenuItem>
+                  <DropdownMenuItem key="Update" onSelect={async () => {
                     if (!isPc) {
                       eventBus.emit('close-sidebar')
                     }
@@ -210,8 +220,8 @@ export const TagListPanel = observer(() => {
                       <Icon icon="ic:outline-drive-file-rename-outline" width="20" height="20" />
                       {t('update-name')}
                     </div>
-                  </DropdownItem>
-                  <DropdownItem key="moveUp" onPress={async () => {
+                  </DropdownMenuItem>
+                  <DropdownMenuItem key="moveUp" onSelect={async () => {
                     if (!isPc) {
                       eventBus.emit('close-sidebar')
                     }
@@ -245,8 +255,8 @@ export const TagListPanel = observer(() => {
                       <Icon icon="icon-park-outline:up-one" width="20" height="20" />
                       {t('move-up')}
                     </div>
-                  </DropdownItem>
-                  <DropdownItem key="moveDown" onPress={async () => {
+                  </DropdownMenuItem>
+                  <DropdownMenuItem key="moveDown" onSelect={async () => {
                     if (!isPc) {
                       eventBus.emit('close-sidebar')
                     }
@@ -280,25 +290,25 @@ export const TagListPanel = observer(() => {
                       <Icon className="rotate-180" icon="icon-park-outline:up-one" width="20" height="20" />
                       {t('move-down')}
                     </div>
-                  </DropdownItem>
-                  <DropdownItem key="deletetag" className="text-danger" color="danger" onPress={async () => {
+                  </DropdownMenuItem>
+                  <DropdownMenuItem key="deletetag" className="text-destructive" onSelect={async () => {
                     PromiseCall(api.tags.deleteOnlyTag.mutate(({ id: element.id as number })))
                   }}>
                     <div className="flex items-center gap-2">
                       <Icon icon="hugeicons:delete-02" width="20" height="20" />
                       {t('delete-only-tag')}
                     </div>
-                  </DropdownItem>
-                  <DropdownItem key="delete" className="text-danger" color="danger" onPress={async () => {
+                  </DropdownMenuItem>
+                  <DropdownMenuItem key="delete" className="text-destructive" onSelect={async () => {
                     PromiseCall(api.tags.deleteTagWithAllNote.mutate(({ id: element.id as number })))
                   }}>
                     <div className="flex items-center gap-2">
                       <Icon icon="hugeicons:delete-02" width="20" height="20" />
                       {t('delete-tag-with-note')}
                     </div>
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div >
         )}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Common/Iconify/icons';
 
@@ -49,11 +49,11 @@ export function PlanningViewSwitch({ value, onChange, modes = ['list', 'cards', 
         <Button
           key={mode}
           size="sm"
-          variant={value === mode ? 'solid' : 'flat'}
-          onPress={() => onChange(mode)}
-          startContent={<Icon icon={MODE_ICONS[mode]} width="16" height="16" />}
+          variant={value === mode ? 'default' : 'ghost'}
+          onClick={() => onChange(mode)}
           aria-pressed={value === mode}
         >
+          <Icon icon={MODE_ICONS[mode]} width="16" height="16" />
           {t(labels?.[mode] ?? MODE_LABELS[mode])}
         </Button>
       ))}

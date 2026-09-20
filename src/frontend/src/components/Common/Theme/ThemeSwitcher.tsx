@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { observer } from 'mobx-react-lite';
-import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -19,13 +25,22 @@ const ThemeSwitcher = observer(({ onChange }: ThemeSwitcherProps) => {
 
   if (!isMounted) return null;
 
+  const handleSelect = async (key: string) => {
+    await onChange?.(key);
+    if (key === 'system') {
+      setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    } else {
+      setTheme(key)
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
-      <Dropdown>
-        <DropdownTrigger>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
-            variant="flat"
-            isIconOnly
+            variant="ghost"
+            size="icon"
             type="button"
             className="py-2 transition duration-300 ease-in-out cursor-pointer"
           >
@@ -35,28 +50,22 @@ const ThemeSwitcher = observer(({ onChange }: ThemeSwitcherProps) => {
               <Icon icon="line-md:sun-rising-loop" width="24" height="24" />
             )}
           </Button>
-        </DropdownTrigger>
-        <DropdownMenu
-          onAction={async (key) => {
-            await onChange?.(key.toString());
-            if (key === 'system') {
-              setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-            } else {
-              setTheme(key.toString())
-            }
-          }}
-        >
-          <DropdownItem key="light" startContent={<Icon icon="line-md:sun-rising-loop" />}>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onSelect={() => handleSelect('light')}>
+            <Icon icon="line-md:sun-rising-loop" />
             {t('light-mode')}
-          </DropdownItem>
-          <DropdownItem key="dark" startContent={<Icon icon="line-md:moon-alt-loop" />}>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleSelect('dark')}>
+            <Icon icon="line-md:moon-alt-loop" />
             {t('dark-mode')}
-          </DropdownItem>
-          <DropdownItem key="system" startContent={<Icon icon="mdi:theme-light-dark" />}>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleSelect('system')}>
+            <Icon icon="mdi:theme-light-dark" />
             {t('follow-system')}
-          </DropdownItem>
-        </DropdownMenu>
-      </Dropdown>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 });

@@ -1,7 +1,7 @@
 import { IconButton } from '../IconButton';
 import { useTranslation } from 'react-i18next';
 import { eventBus } from '@/lib/event';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useSideNav } from '@/platform/PlatformProvider';
 
 interface Props {
@@ -43,39 +43,32 @@ export const ViewModeButton = ({ viewMode }: Props) => {
   };
 
   return (
-    <Dropdown>
-      <DropdownTrigger>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <div className="hover:bg-default-100 rounded-md">
           <IconButton
             tooltip="View Mode"
             icon={getCurrentMode().icon}
           />
         </div>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Editor view mode"
-        selectedKeys={[viewMode]}
-        selectionMode="single"
-        onSelectionChange={(keys) => {
-          const selectedKey = Array.from(keys)[0] as string;
-          if (selectedKey && selectedKey !== viewMode) {
-            handleModeChange(selectedKey);
-          }
-        }}
-      >
+      </DropdownMenuTrigger>
+      <DropdownMenuContent aria-label="Editor view mode">
         {modes.map((mode) => (
-          <DropdownItem
+          <DropdownMenuItem
             key={mode.key}
-            startContent={
-              <div className="flex items-center">
-                <i className={`${mode.icon} text-lg`} />
-              </div>
-            }
+            onSelect={() => {
+              if (mode.key !== viewMode) {
+                handleModeChange(mode.key);
+              }
+            }}
           >
+            <div className="flex items-center">
+              <i className={`${mode.icon} text-lg`} />
+            </div>
             {mode.label}
-          </DropdownItem>
+          </DropdownMenuItem>
         ))}
-      </DropdownMenu>
-    </Dropdown>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }; 

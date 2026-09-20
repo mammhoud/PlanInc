@@ -1,8 +1,8 @@
 import { IconButton } from '../IconButton';
 import { useTranslation } from 'react-i18next';
 import { EditorStore } from '../../editorStore';
-import { Input } from '@heroui/react';
-import { Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/Common/ScrollArea';
 import { PlanIncStore } from '@/store/planincStore';
 import { RootStore } from '@/store/root';
@@ -43,11 +43,10 @@ export const HashtagButton = observer(({ store, content }: Props) => {
 
   return (
     <Popover
-      placement="bottom"
-      isOpen={localStore.show}
+      open={localStore.show}
       onOpenChange={localStore.setShow}
     >
-      <PopoverTrigger>
+      <PopoverTrigger asChild>
         <div
           onClick={e => {
             e.preventDefault()
@@ -60,12 +59,11 @@ export const HashtagButton = observer(({ store, content }: Props) => {
           />
         </div>
       </PopoverTrigger>
-      <PopoverContent className='flex flex-col max-w-[300px] p-2'>
+      <PopoverContent side="bottom" align="start" className='flex flex-col max-w-[300px] p-2'>
         <ScrollArea className={'max-h-[300px]'} onBottom={() => { }}>
           <Input
             className='mb-2'
             placeholder={t('search-tags')}
-            size='sm'
             autoFocus
             value={localStore.searchText} onChange={e => {
               localStore.searchText = e.target.value

@@ -9,7 +9,7 @@ import { Icon } from '@/components/Common/Iconify/icons';
 import { PlanningViewSwitch } from '@/components/PlanincPlanning/PlanningViewSwitch';
 import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPagination';
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
-import { PlanincGraph } from '@/components/PlanincGraph/PlanincGraph';
+import { PlanincGraph } from '@/components/PlanIncGraph/PlanIncGraph';
 
 export type GraphKind = 'root' | 'note' | 'ticket' | 'study' | 'resource' | 'agent';
 

@@ -1,10 +1,10 @@
+import { Button } from '@/components/ui/button';
 import {
-  Dropdown,
-  DropdownTrigger,
   DropdownMenu,
-  DropdownItem
-} from "@heroui/dropdown";
-import { Button } from '@heroui/react';
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { RootStore } from '@/store';
 import { BaseStore } from '@/store/baseStore';
 import { useTranslation } from 'react-i18next';
@@ -18,37 +18,38 @@ interface LanguageSwitcherProps {
 const LanguageSwitcher = ({ value, onChange }: LanguageSwitcherProps = {}) => {
   const baseStore = RootStore.Get(BaseStore)
   const { i18n } = useTranslation();
-  
+
   function onSelectChange(nextLocale: string) {
     baseStore.changeLanugage(i18n, nextLocale)
     onChange?.(nextLocale)
   }
 
   const currentLocale = value || baseStore.locale.value
-  
+
   return (
-    <Dropdown>
-      <DropdownTrigger>
-        <Button variant="flat" startContent={<Icon icon="hugeicons:global" width="24" height="24" />}>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost">
+          <Icon icon="hugeicons:global" width="24" height="24" />
           {baseStore.locales.find(i => i.value === currentLocale)?.label}
         </Button>
-      </DropdownTrigger>
+      </DropdownMenuTrigger>
 
-      <DropdownMenu className="p-2 space-y-1">
+      <DropdownMenuContent className="p-2 space-y-1">
         {baseStore.locales.map((locale) => (
-          <DropdownItem
+          <DropdownMenuItem
             key={locale.value}
             className="flex items-center justify-between cursor-pointer"
-            onClick={() => {
+            onSelect={() => {
               onSelectChange(locale.value);
             }}
           >
-            <div className='flex items-center justify-between'> {locale.label}
+            <div className='flex items-center justify-between w-full gap-2'> {locale.label}
               {currentLocale === locale.value && <Icon icon="mingcute:check-fill" width="18" height="18" />}</div>
-          </DropdownItem>
+          </DropdownMenuItem>
         ))}
-      </DropdownMenu>
-    </Dropdown>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

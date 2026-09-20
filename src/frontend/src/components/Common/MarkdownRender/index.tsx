@@ -17,7 +17,6 @@ import { ListItem } from './ListItem';
 import { TableWrapper } from './TableWrapper';
 import { useNavigate, useLocation } from 'react-router-dom';
 import remarkTaskList from 'remark-task-list';
-import { Skeleton } from '@heroui/react';
 import { MermaidWrapper } from './MermaidWrapper';
 import { MarkmapWrapper } from './MarkmapWrapper';
 import { EchartsWrapper } from './EchartsWrapper';

@@ -1,6 +1,6 @@
 import { Icon } from '@/components/Common/Iconify/icons';
 import { observer } from 'mobx-react-lite';
-import { Button, ScrollShadow } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 import { RootStore } from '@/store';
 import { BaseStore } from '@/store/baseStore';
 import { SideBarItem } from './index';
@@ -76,19 +76,19 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
               keeps it always visible wherever the pointer is coarse. */}
           {isPc ? (
             <Button
-              isIconOnly
-              variant="light"
+              size="icon"
+              variant="ghost"
               className={`hover-only-on-fine ml-auto ${!base.isSidebarCollapsed ? '-translate-x-1 ' : 'translate-x-0'}`}
-              onPress={base.toggleSidebar}
+              onClick={base.toggleSidebar}
             >
               <Icon icon={base.isSidebarCollapsed ? 'mdi:chevron-right' : 'mdi:chevron-left'} width="20" height="20" />
             </Button>
           ) : (
             <Button
-              isIconOnly
-              variant="light"
+              size="icon"
+              variant="ghost"
               className="ml-auto"
-              onPress={() => {
+              onClick={() => {
                 navigate('/settings')
                 eventBus.emit('close-sidebar')
               }}
@@ -99,7 +99,7 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
         </div>
       </div>
 
-      <ScrollShadow className="-mr-[16px] mt-[-5px] h-full max-h-full pr-6 hide-scrollbar">
+      <div className="-mr-[16px] mt-[-5px] h-full max-h-full overflow-y-auto pr-6 hide-scrollbar">
         <div className={`flex flex-col gap-1 mt-4 font-semibold ${base.isSidebarCollapsed ? 'items-center gap-4' : ''}`}>
           {base.laneOrder.map((lane) => {
             const items = base.routerList.filter((i) => !i.hiddenSidebar && (i.lane ?? 'work') === lane);
@@ -123,7 +123,7 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
           })}
           {!base.isSidebarCollapsed && planincStore.tagList.value?.listTags.length != 0 && planincStore.tagList.value?.listTags && <TagListPanel />}
         </div>
-      </ScrollShadow>
+      </div>
 
       {/* ***** background *****  */}
       <div className="halation absolute inset-0 h-[250px] w-[250px] overflow-hidden blur-3xl z-[0] pointer-events-none">

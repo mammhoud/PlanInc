@@ -1,4 +1,3 @@
-import { Image } from '@heroui/react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 
 interface ImageWrapperProps {
@@ -16,10 +15,8 @@ export const ImageWrapper = ({ src = '', width, height, alt }: ImageWrapperProps
     <div className='markdown-image-wrapper w-full'>
       <PhotoProvider>
         <PhotoView src={src} >
-          <Image src={src} {...props}
-            classNames={{
-              wrapper: '!max-w-fit !m-auto',
-            }} className='w-full max-h-[200px] object-cover' />
+          <img src={src} {...props}
+            className='w-full max-h-[200px] object-cover !max-w-fit !m-auto' />
         </PhotoView>
       </PhotoProvider>
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Card, Image, Popover, PopoverTrigger, PopoverContent } from '@heroui/react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { api } from '@/lib/trpc';
 import { LinkInfo } from '@shared/lib/types';
 import { RootStore } from '@/store';
@@ -66,12 +66,13 @@ export const LinkPreview = observer(({ href, text, isBlock = false }: LinkPrevie
       >
         <div className='flex items-center gap-2 w-full'>
           <div className='font-bold truncate text-sm'>{store.previewData.value?.title}</div>
-          {store.previewData.value?.favicon && 
-            <Image 
-              fallbackSrc="/fallback.png" 
-              className='flex-1 rounded-full ml-auto min-w-[16px]' 
-              src={store.previewData.value.favicon} 
-              width={16} 
+          {store.previewData.value?.favicon &&
+            <img
+              src={store.previewData.value.favicon}
+              onError={(e) => { (e.target as HTMLImageElement).src = "/fallback.png"; }}
+              alt=""
+              className='flex-1 rounded-full ml-auto min-w-[16px] max-w-[16px]'
+              width={16}
               height={16}
             />
           }
@@ -93,17 +94,15 @@ export const LinkPreview = observer(({ href, text, isBlock = false }: LinkPrevie
   }
 
   return (
-    <Popover 
-      isOpen={isOpen}
+    <Popover
+      open={isOpen}
       onOpenChange={setIsOpen}
-      placement="bottom" 
-      triggerScaleOnOpen={false} 
     >
-      <PopoverTrigger>
-        <a 
-          href={href} 
-          target="_blank" 
-          rel="noopener noreferrer" 
+      <PopoverTrigger asChild>
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-primary hover:underline inline-block cursor-pointer"
           onClick={(e) => e.stopPropagation()}
           onMouseEnter={handleMouseEnter}
@@ -112,8 +111,10 @@ export const LinkPreview = observer(({ href, text, isBlock = false }: LinkPrevie
           {text}
         </a>
       </PopoverTrigger>
-      <PopoverContent 
-        className="p-0 bg-transparent border-none shadow-none"
+      <PopoverContent
+        side="bottom"
+        align="start"
+        className="p-0 bg-transparent border-none shadow-none w-auto"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >

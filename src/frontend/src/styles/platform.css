@@ -188,6 +188,20 @@ html[data-tier="4xl"] {
   --pi-content-max-width: 2560px;
 }
 
+/* ------------------------------------------------- density (appearance v2) */
+
+/* Settings rows carry `.pi-setting-row` (see PlanincSettings/Item.tsx).
+ * Compact density tightens their vertical rhythm; comfortable is the base. */
+.pi-setting-row {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+html[data-density="compact"] .pi-setting-row {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
 /* ------------------------------------------------- reduced data / motion */
 
 /* Android/iOS low-power and any target with reduce-motion on: the appearance

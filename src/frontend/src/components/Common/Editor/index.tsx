@@ -9,7 +9,8 @@ import { FileType, OnSendContentType } from './type';
 import { PlanIncStore } from '@/store/planincStore';
 import { useTranslation } from 'react-i18next';
 import { type Attachment } from '@shared/lib/types';
-import { Card, Popover, PopoverTrigger, PopoverContent } from '@heroui/react';
+import { Card } from '@/components/ui/card';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { AttachmentsRender, ReferenceRender } from '../AttachmentRender';
 import { UploadButtons } from './Toolbar/UploadButtons';
 import { ReferenceButton } from './Toolbar/ReferenceButton';
@@ -98,13 +99,12 @@ const Editor = observer(({ content, onChange, onSend, isSendLoading, originFiles
               item.content ? (
                 <Popover
                   key={item.name}
-                  placement={item.placement}
-                  isOpen={openPopover === item.name}
+                  open={openPopover === item.name}
                   onOpenChange={(open) => {
                     setOpenPopover(open ? item.name : null);
                   }}
                 >
-                  <PopoverTrigger>
+                  <PopoverTrigger asChild>
                     <div className="hover:bg-default-100 rounded-md">
                       <IconButton icon={item.icon} tooltip={item.tooltip} onClick={item.onClick} />
                     </div>
@@ -216,7 +216,6 @@ const Editor = observer(({ content, onChange, onSend, isSendLoading, originFiles
       
       <div {...getRootProps()} className={`${isDragAccept ? 'border-2 border-green-500 border-dashed' : ''} ${showTopToolbar ? 'h-full flex flex-col' : ''}`}>
       <Card
-        shadow='none'
         className={`${showTopToolbar ? 'h-full flex flex-col flex-1 min-h-0' : 'p-2'} relative ${withoutOutline ? '' : 'border-2 border-border'} !transition-all ${showTopToolbar ? 'overflow-hidden' : 'overflow-visible'} 
         ${store.isFullscreen ? 'fixed inset-0 z-[9999] m-0 rounded-none border-none bg-background' : ''}`}
         ref={el => {

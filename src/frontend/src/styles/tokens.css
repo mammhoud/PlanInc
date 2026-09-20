@@ -655,8 +655,10 @@
     --swiper-3d-shadow: color-mix(in oklab, var(--pi-color-neutral-100) 15%, transparent);
     --shadow: 0 0 1px 1px var(--pi-color-neutral-750);
 
-    /* Dark mode remaps for responsive component radii (same values as light,
-     * since radius is a spatial metric, not a colour metric) */
+    /* Dark radii/motion follow the responsive tier scale above: these are the
+     * base (xs-tier) values — `html[data-tier=*]` selectors win on
+     * specificity, so rounded design stays symmetric across themes + tiers.
+     * Required by the token contract (validate-tokens theme parity). */
     --card-radius: var(--pi-radius-md);
     --surface-radius: var(--pi-radius-sm);
     --modal-radius: var(--pi-radius-lg);
@@ -675,7 +677,7 @@
     --contextmenu-radius: 10px;
     --contextmenu-item-radius: 6px;
 
-    /* Dark mode motion curves (same as light - motion is theme-invariant) */
+    /* Dark motion curves (theme-invariant values; tiers override above). */
     --motion-fast: 150ms;
     --motion-base: 250ms;
     --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -685,6 +687,93 @@
     --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --curve-enter: var(--curve-smooth);
     --curve-exit: var(--curve-sharp);
+  }
+
+  /* ======================================================================
+   * APPEARANCE v2 WIRING (PI-011 · P3) — single source of truth.
+   * `lib/appearance.ts` writes data-* attributes + --pi-ui-scale on <html>;
+   * these selectors turn them into token overrides. Components only consume
+   * tokens, never the attributes directly.
+   * ==================================================================== */
+
+  /* Interface scale: scales the rem base so the whole UI grows/shrinks. */
+  html {
+    font-size: calc(16px * var(--pi-ui-scale, 1));
+  }
+
+  /* Line height: compact / normal / relaxed. */
+  html[data-line-height="compact"] body {
+    --pi-line-height: 1.4;
+    line-height: 1.4;
+  }
+  html[data-line-height="normal"] body,
+  html:not([data-line-height]) body {
+    --pi-line-height: 1.55;
+    line-height: 1.55;
+  }
+  html[data-line-height="relaxed"] body {
+    --pi-line-height: 1.8;
+    line-height: 1.8;
+  }
+
+  /* Density: compact tightens radii + control spacing (single definition —
+   * previously duplicated between tokens.css and globals.css). */
+  html[data-density="compact"] {
+    --chip-radius: 2px;
+    --contextmenu-item-radius: 4px;
+    --card-radius: var(--pi-radius-sm);
+    --surface-radius: var(--pi-radius-sm);
+    --chip-font-size: 0.75rem;
+  }
+
+  /* Shadow style: flat removes depth, soft is the tier default, strong
+   * deepens it. Only --shadow is overridden — specialty shadows
+   * (--swiper-3d-shadow, chart shadows) keep their own values. */
+  html[data-shadow-style="flat"] {
+    --shadow: none;
+  }
+  html[data-shadow-style="strong"] {
+    --shadow: 0 8px 30px 6px color-mix(in oklab, var(--pi-color-neutral-425) 35%, transparent);
+  }
+  html.dark[data-shadow-style="strong"] {
+    --shadow: 0 0 1px 1px var(--pi-color-neutral-750), 0 12px 32px 8px color-mix(in oklab, var(--pi-color-ink-1000) 60%, transparent);
+  }
+
+  /* Corner style: sharp collapses every component radius to a precise edge;
+   * rounded (default) keeps the responsive tier scale. Declared after
+   * density so it wins when both are set (same specificity, later source). */
+  html[data-corner-style="sharp"] {
+    --card-radius: 2px;
+    --surface-radius: 2px;
+    --modal-radius: 3px;
+    --sheet-radius: 3px;
+    --button-radius: 2px;
+    --input-radius: 2px;
+    --image-radius: 2px;
+    --tooltip-radius: 2px;
+    --dropdown-radius: 3px;
+    --chip-radius: 2px;
+    --contextmenu-radius: 4px;
+    --contextmenu-item-radius: 2px;
+  }
+
+  /* Contrast boost: strengthens muted text + borders per theme. */
+  html[data-contrast-boost="true"] {
+    --desc: var(--pi-color-neutral-800);
+    --ignore: var(--pi-color-neutral-600);
+    --border: var(--pi-color-neutral-400);
+  }
+  html.dark[data-contrast-boost="true"] {
+    --desc: var(--pi-color-neutral-300);
+    --ignore: var(--pi-color-neutral-400);
+    --border: var(--pi-color-neutral-600);
+  }
+
+  /* Reduced motion via setting: mirrors prefers-reduced-motion so both
+   * resolve to the same token values. */
+  html[data-reduce-motion="true"] {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
   }
 
   /* ======================================================================

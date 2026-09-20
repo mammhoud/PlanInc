@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Badge } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { UserStore } from '@/store/user';
 import { observer } from 'mobx-react-lite';
@@ -114,7 +115,7 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
           </div> */}
           <div className="flex max-w-full items-center gap-2 md:p-2 w-full z-[1]">
             {!isPc && (
-              <Button isIconOnly className="flex" size="sm" variant="light" onPress={() => setisOpen(!isOpen)}>
+              <Button size="icon-sm" variant="ghost" className="flex" onClick={() => setisOpen(!isOpen)}>
                 <Icon className="text-default-500" height={24} icon="solar:hamburger-menu-outline" width={24} />
               </Button>
             )}
@@ -166,7 +167,7 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
                   )}
                 </div>
                 {!base.isOnline && (
-                  <Badge color="warning" variant="flat" className="animate-pulse">
+                  <Badge variant="warning" className="animate-pulse">
                     <div className="flex text-sm items-center gap-1 text-yellow-500">
                       <span>{t('offline-status')}</span>
                     </div>
@@ -176,18 +177,20 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
               <div className="flex items-center justify-center gap-2 md:gap-4 w-auto ">
                 <BarSearchInput isPc={isPc} />
                 <FilterPop />
-                {!planincStore.config.value?.isCloseDailyReview && <Badge size="sm" className="shrink-0" content={planincStore.dailyReviewNoteList.value?.length} color="warning">
+                {!planincStore.config.value?.isCloseDailyReview && <span className="relative inline-flex shrink-0">
                   <Link to="/review">
                     <Button
                       className="mt-[2px]"
-                      isIconOnly
-                      size="sm"
-                      variant="light"
+                      size="icon-sm"
+                      variant="ghost"
                     >
                       <Icon className="cursor-pointer text-default-600" icon="tabler:bulb" width="24" height="24" />
                     </Button>
                   </Link>
-                </Badge>}
+                  <Badge variant="warning" className="absolute -right-1 -top-1 min-w-5 justify-center px-1">
+                    {planincStore.dailyReviewNoteList.value?.length}
+                  </Badge>
+                </span>}
                 <PlanIncNotification />
               </div>
             </div>

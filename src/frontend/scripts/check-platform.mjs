@@ -372,6 +372,7 @@ if (attributed.size === 0) fail('attributes', 'PlatformProvider.tsx sets no data
 // Attributes styled but owned by another module (documented exemptions).
 const ATTR_OWNERS = new Map([
   ['reduce-motion', 'src/lib/appearance.ts (appearance v2 setting)'],
+  ['density', 'src/lib/appearance.ts (appearance v2 setting)'],
   ['safe-bottom', 'component opt-in hook, not an environment fact'],
   ['reveal', 'component opt-in: reveals .hover-only-on-fine children on hover'],
 ]);

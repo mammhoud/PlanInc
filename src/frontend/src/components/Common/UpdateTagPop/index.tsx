@@ -3,7 +3,16 @@ import { PlanIncStore } from '@/store/planincStore';
 import { _ } from '@/lib/lodash';
 import { observer } from 'mobx-react-lite';
 import { RootStore } from '@/store';
-import { Button, Input, Select, SelectItem } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useEffect } from 'react';
 import { DialogStore } from '@/store/module/Dialog';
 import i18n from '@/lib/i18n';
@@ -27,20 +36,27 @@ export const UpdateTag = observer(({ onSave, defaultValue = '', type = 'input' }
   return <div className="flex items-center gap-2 pb-4">
     {
       type == 'input' ? <Input value={store.tagName} onChange={e => store.tagName = (e.target.value)} />
-        : <Select
-          label="Select a tag"
-          className="max-w-xs"
-          onChange={e => store.tagName = e.target.value}
-        >
-          {(planinc.tagList.value?.pathTags as string[]).map((tag) => (
-            <SelectItem key={tag}>
-              {tag}
-            </SelectItem>
-          ))}
-        </Select>
+        : <div className="max-w-xs w-full space-y-1.5">
+          <Label>Select a tag</Label>
+          <Select
+            value={store.tagName}
+            onValueChange={value => store.tagName = value}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a tag" />
+            </SelectTrigger>
+            <SelectContent>
+              {(planinc.tagList.value?.pathTags as string[]).map((tag) => (
+                <SelectItem key={tag} value={tag}>
+                  {tag}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
     }
 
-    <Button style={{ width: '30px' }} color="primary" onPress={async () => {
+    <Button style={{ width: '30px' }} onClick={async () => {
       await onSave?.(store.tagName)
       RootStore.Get(DialogStore).close()
     }}>Save</Button>

@@ -2,6 +2,125 @@
 @import "./tokens.css";
 @import "./platform.css";
 
+/* --------------------------------------------------------------------------
+ * Tokens → Tailwind v4 theme namespace.
+ * This is the shadcn-style contract: semantic CSS variables exposed as
+ * utilities (`bg-background`, `text-desc`, `border-border`, `ring-ring`, …).
+ * `inline` keeps the resolution at the utility site so the `.dark` remap in
+ * tokens.css flows through without a `dark:` branch anywhere.
+ * (Restored: without this block no token utility exists and the build fails
+ * at `@apply border-border`. The legacy JS config cannot be loaded via
+ * `@config` because it requires the removed flyonui plugin.)
+ * ------------------------------------------------------------------------ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondbackground: var(--secondbackground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-destructive-soft-foreground: var(--destructive-soft-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-progress-from: var(--progress-from);
+  --color-progress-to: var(--progress-to);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-header: var(--header);
+  --color-hover: var(--hover);
+  --color-desc: var(--desc);
+  --color-ignore: var(--ignore);
+  --color-tag: var(--tag);
+  --color-tag-foreground: var(--tag-foreground);
+
+  --radius-sm: var(--pi-radius-sm);
+  --radius-md: var(--pi-radius-md);
+  --radius-lg: var(--pi-radius-lg);
+  --radius-xl: var(--pi-radius-xl);
+  --radius-2xl: var(--pi-radius-2xl);
+}
+
+/* Burger menu + masonry grids (consumed by Layout / hub / index). */
+.bm-burger-button {
+  display: none;
+}
+
+.bm-menu-wrap {
+  width: fit-content;
+  height: 100%;
+  overflow: hidden !important;
+}
+
+.bm-menu {
+  overflow: hidden !important;
+}
+
+.card-masonry-grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -10px;
+  width: auto;
+}
+
+.card-masonry-grid_column {
+  padding-left: 10px;
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.card-masonry-grid_column>div {
+  margin-bottom: 10px;
+}
+
+
+.blog-masonry-grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -20px;
+  width: auto;
+}
+
+.blog-masonry-grid_column {
+  padding-left: 20px;
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.blog-masonry-grid_column>div {
+  margin-bottom: 20px;
+}
+
 @layer base {
   :root {
     /* shadcn/ui theme variables */
@@ -30,13 +149,16 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
-    --radius-2xl: 1rem;
-    --radius-3xl: 1.25rem;
+    /* Rounded design: single source is tokens.css --pi-radius-*.
+     * These shadcn aliases track the responsive scale instead of
+     * hardcoding a second radius system. */
+    --radius: var(--pi-radius-lg);
+    --radius-sm: var(--pi-radius-sm);
+    --radius-md: var(--pi-radius-md);
+    --radius-lg: var(--pi-radius-lg);
+    --radius-xl: var(--pi-radius-xl);
+    --radius-2xl: var(--pi-radius-2xl);
+    --radius-3xl: var(--pi-radius-3xl);
   }
 
   .dark {
@@ -65,29 +187,8 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
-
-    /* Dark mode remaps for responsive component radii */
-    --card-radius: var(--pi-radius-md);
-    --surface-radius: var(--pi-radius-md);
-    --modal-radius: var(--pi-radius-2xl);
-    --sheet-radius: var(--pi-radius-3xl);
-    --avatar-radius: 9999px;
-    --image-radius: var(--pi-radius-lg);
-    --input-radius: var(--pi-radius-md);
-    --button-radius: var(--pi-radius-md);
-    --tag-radius: var(--pi-radius-sm);
-    --tooltip-radius: var(--pi-radius-md);
-    --dropdown-radius: var(--pi-radius-lg);
-    --skeleton-radius: var(--pi-radius-md);
-    --scrollbar-radius: 2px;
-
-    /* Dark mode remaps for motion curves */
-    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
+    /* Dark radii/motion follow tokens.css (single source) — no second
+     * remap here so light/dark stay symmetric across tiers. */
   }
 
   * {
@@ -199,225 +300,29 @@
   }
 }
 
-/* Responsive design tokens - 8-tier system */
+/* Responsive tiers + appearance bridge.
+ * tokens.css owns the 8-tier radius / motion / component-edge scale
+ * (single source — this file only aliases shadcn names onto it and wires
+ * the appearance attributes that lib/appearance.ts writes). */
 @layer base {
-  /* Base tier (mobile first) */
+  /* Base tier (mobile first): interface scale multiplies the rem base so
+   * the ui-scale setting rescales the whole UI. */
   html {
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: calc(16px * var(--pi-ui-scale, 1));
+    line-height: var(--pi-line-height, 1.55);
   }
 
-  /* Responsive border-radius scale */
-  html[data-tier="xs"] {
-    --radius: 0.375rem;
-    --radius-sm: 2px;
-    --radius-md: 4px;
-    --radius-lg: 6px;
-    --radius-xl: 8px;
-    --radius-2xl: 12px;
-    --radius-3xl: 16px;
-  }
+  /* shadcn radius aliases track the responsive --pi-radius-* scale.
+   * Tier overrides live in tokens.css; do NOT redefine them here. */
+  /* Tier radius values: see tokens.css html[data-tier=*] (single source). */
 
-  html[data-tier="sm"] {
-    --radius: 0.4rem;
-    --radius-sm: 3px;
-    --radius-md: 5px;
-    --radius-lg: 7px;
-    --radius-xl: 9px;
-    --radius-2xl: 13px;
-    --radius-3xl: 17px;
-  }
-
-  html[data-tier="md"] {
-    --radius: 0.45rem;
-    --radius-sm: 4px;
-    --radius-md: 6px;
-    --radius-lg: 8px;
-    --radius-xl: 10px;
-    --radius-2xl: 14px;
-    --radius-3xl: 18px;
-  }
-
-  html[data-tier="lg"] {
-    --radius: 0.5rem;
-    --radius-sm: 5px;
-    --radius-md: 7px;
-    --radius-lg: 9px;
-    --radius-xl: 12px;
-    --radius-2xl: 16px;
-    --radius-3xl: 20px;
-  }
-
-  html[data-tier="xl"] {
-    --radius: 0.55rem;
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 10px;
-    --radius-xl: 14px;
-    --radius-2xl: 18px;
-    --radius-3xl: 22px;
-  }
-
-  html[data-tier="2xl"] {
-    --radius: 0.625rem;
-    --radius-sm: 7px;
-    --radius-md: 9px;
-    --radius-lg: 11px;
-    --radius-xl: 16px;
-    --radius-2xl: 20px;
-    --radius-3xl: 24px;
-  }
-
-  html[data-tier="3xl"],
-  html[data-tier="4xl"] {
-    --radius: 0.7rem;
-    --radius-sm: 8px;
-    --radius-md: 10px;
-    --radius-lg: 12px;
-    --radius-xl: 18px;
-    --radius-2xl: 22px;
-    --radius-3xl: 26px;
-  }
-
-  /* Tier 4xl extra large */
-  html[data-tier="4xl"] {
-    --radius: 0.8rem;
-    --radius-sm: 9px;
-    --radius-md: 12px;
-    --radius-lg: 14px;
-    --radius-xl: 20px;
-    --radius-2xl: 24px;
-    --radius-3xl: 28px;
-  }
-
-  /* Responsive component edge attributes */
-  html[data-tier="xs"] {
-    --card-radius: var(--radius-md);
-    --modal-radius: var(--radius-lg);
-    --sheet-radius: var(--radius-xl);
-    --button-radius: var(--radius-sm);
-    --input-radius: var(--radius-sm);
-    --chip-radius: 4px;
-    --contextmenu-radius: 10px;
-    --contextmenu-item-radius: 6px;
-    --surface-radius: var(--radius-sm);
-    --avatar-radius: 9999px;
-    --image-radius: var(--radius-md);
-    --dropdown-radius: var(--radius-md);
-    --tooltip-radius: var(--radius-sm);
-    --progress-radius: 9999px;
-    --skeleton-radius: var(--radius-sm);
-    --scrollbar-radius: 2px;
-  }
-
-  html[data-tier="md"] {
-    --card-radius: var(--radius-lg);
-    --modal-radius: var(--radius-2xl);
-    --sheet-radius: var(--radius-3xl);
-    --button-radius: var(--radius-md);
-    --input-radius: var(--radius-md);
-    --chip-radius: 6px;
-    --contextmenu-radius: 14px;
-    --contextmenu-item-radius: 10px;
-    --surface-radius: var(--radius-md);
-    --avatar-radius: 9999px;
-    --image-radius: var(--radius-lg);
-    --dropdown-radius: var(--radius-lg);
-    --tooltip-radius: var(--radius-md);
-    --progress-radius: 9999px;
-    --skeleton-radius: var(--radius-md);
-    --scrollbar-radius: 2px;
-  }
-
-  html[data-tier="lg"] {
-    --card-radius: var(--radius-xl);
-    --modal-radius: var(--radius-3xl);
-    --sheet-radius: var(--radius-3xl);
-    --button-radius: var(--radius-md);
-    --input-radius: var(--radius-md);
-    --chip-radius: 7px;
-    --contextmenu-radius: 16px;
-    --contextmenu-item-radius: 12px;
-    --surface-radius: var(--radius-lg);
-    --avatar-radius: 9999px;
-    --image-radius: var(--radius-xl);
-    --dropdown-radius: var(--radius-xl);
-    --tooltip-radius: var(--radius-md);
-    --progress-radius: 9999px;
-    --skeleton-radius: var(--radius-md);
-    --scrollbar-radius: 2px;
-  }
-
-  html[data-tier="4xl"] {
-    --card-radius: var(--radius-3xl);
-    --modal-radius: calc(var(--radius-3xl) * 1.6);
-    --sheet-radius: calc(var(--radius-3xl) * 1.6);
-    --button-radius: var(--radius-lg);
-    --input-radius: var(--radius-md);
-    --chip-radius: 12px;
-    --contextmenu-radius: 24px;
-    --contextmenu-item-radius: 20px;
-    --surface-radius: var(--radius-3xl);
-    --avatar-radius: 9999px;
-    --image-radius: var(--radius-3xl);
-    --dropdown-radius: var(--radius-3xl);
-    --tooltip-radius: var(--radius-md);
-    --progress-radius: 9999px;
-    --skeleton-radius: var(--radius-md);
-    --scrollbar-radius: 2px;
-  }
-
-  /* Responsive motion curves */
-  html[data-tier="xs"] {
-    --motion-fast: 150ms;
-    --motion-base: 250ms;
-    --motion-slow: 350ms;
-    --curve-enter: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  html[data-tier="sm"],
-  html[data-tier="md"] {
-    --motion-fast: 150ms;
-    --motion-base: 300ms;
-    --motion-slow: 400ms;
-    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  html[data-tier="lg"],
-  html[data-tier="xl"] {
-    --motion-fast: 200ms;
-    --motion-base: 400ms;
-    --motion-slow: 500ms;
-    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  html[data-tier="2xl"],
-  html[data-tier="3xl"],
-  html[data-tier="4xl"] {
-    --motion-fast: 250ms;
-    --motion-base: 500ms;
-    --motion-slow: 600ms;
-    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
-    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* Component edges / motion: see tokens.css (single source, all 8 tiers).
+   * Appearance attributes written by lib/appearance.ts: */
+  /* Density row tightening lives in platform.css (.pi-setting-row) so the
+   * platform checker sees the single consumer↔rule pair.
+   * Line height follows the resolved token. */
+  body {
+    line-height: var(--pi-line-height, 1.55);
   }
 }
 

@@ -109,6 +109,17 @@ const DIRECTION_OPTIONS: readonly SettingOption[] = [
   { value: 'rtl', labelKey: 'direction-rtl' },
 ];
 
+const SHADOW_STYLE_OPTIONS: readonly SettingOption[] = [
+  { value: 'flat', labelKey: 'shadow-style-flat' },
+  { value: 'soft', labelKey: 'shadow-style-soft' },
+  { value: 'strong', labelKey: 'shadow-style-strong' },
+];
+
+const CORNER_STYLE_OPTIONS: readonly SettingOption[] = [
+  { value: 'sharp', labelKey: 'corner-style-sharp' },
+  { value: 'rounded', labelKey: 'corner-style-rounded' },
+];
+
 /**
  * Every preference the app exposes.
  *
@@ -197,6 +208,30 @@ export const SETTINGS: readonly SettingDefinition[] = [
     hintKey: 'density-hint',
     validation: { kind: 'enum', values: ['comfortable', 'compact'] },
     options: DENSITY_OPTIONS,
+  },
+  {
+    id: 'shadowStyle',
+    section: 'appearance',
+    group: 'layout',
+    type: 'select',
+    scope: 'user',
+    default: 'soft',
+    labelKey: 'shadow-style',
+    hintKey: 'shadow-style-hint',
+    validation: { kind: 'enum', values: ['flat', 'soft', 'strong'] },
+    options: SHADOW_STYLE_OPTIONS,
+  },
+  {
+    id: 'cornerStyle',
+    section: 'appearance',
+    group: 'layout',
+    type: 'select',
+    scope: 'user',
+    default: 'rounded',
+    labelKey: 'corner-style',
+    hintKey: 'corner-style-hint',
+    validation: { kind: 'enum', values: ['sharp', 'rounded'] },
+    options: CORNER_STYLE_OPTIONS,
   },
   {
     id: 'customBackgroundUrl',

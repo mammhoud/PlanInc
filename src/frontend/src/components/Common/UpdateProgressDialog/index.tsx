@@ -1,5 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, Progress, Button } from '@heroui/react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { check } from '@tauri-apps/plugin-updater';
@@ -147,21 +150,6 @@ export const UpdateProgressDialog: React.FC<UpdateProgressDialogProps> = ({
     }
   };
 
-  const getProgressColor = () => {
-    switch (updateStatus) {
-      case 'downloading':
-        return 'primary';
-      case 'installing':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'error':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
-
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -175,21 +163,18 @@ export const UpdateProgressDialog: React.FC<UpdateProgressDialogProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      isDismissable={updateStatus === 'completed' || updateStatus === 'error'}
-      hideCloseButton={updateStatus === 'downloading' || updateStatus === 'installing'}
-      classNames={{
-        backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
       }}
     >
-      <ModalContent>
-        <ModalHeader className="flex items-center gap-2">
+      <DialogContent className="max-w-md">
+        <DialogHeader className="flex flex-row items-center gap-2">
           {getStatusIcon()}
-          <span>{t('app-update')}</span>
-        </ModalHeader>
-        <ModalBody className="pb-6">
+          <DialogTitle>{t('app-update')}</DialogTitle>
+        </DialogHeader>
+        <div className="pb-6">
           <div className="space-y-4">
             <div className="text-center">
               <p className="text-sm text-default-600 mb-2">{getStatusText()}</p>
@@ -202,24 +187,16 @@ export const UpdateProgressDialog: React.FC<UpdateProgressDialogProps> = ({
 
             {updateStatus === 'downloading' && (
               <div className="space-y-3">
-                <Progress
-                  size="lg"
-                  value={downloadProgress}
-                  color={getProgressColor()}
-                  showValueLabel={true}
-                  formatOptions={{
-                    style: "percent",
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1,
-                  }}
-                  classNames={{
-                    base: "max-w-md",
-                    track: "drop-shadow-md border border-default",
-                    indicator: "bg-gradient-to-r from-pink-500 to-yellow-500",
-                    label: "tracking-wider font-medium text-default-600",
-                    value: "text-foreground/60",
-                  }}
-                />
+                <div className="w-full max-w-md">
+                  <div className="flex justify-between items-center text-sm mb-1">
+                    <span>{getStatusText()}</span>
+                    <span className="text-foreground/60">{downloadProgress.toFixed(1)}%</span>
+                  </div>
+                  <Progress
+                    value={downloadProgress}
+                    className="max-w-md"
+                  />
+                </div>
 
                 {downloadedBytes > 0 && totalBytes > 0 && (
                   <div className="flex justify-between text-xs text-default-500">
@@ -235,16 +212,9 @@ export const UpdateProgressDialog: React.FC<UpdateProgressDialogProps> = ({
             )}
 
             {updateStatus === 'installing' && (
-              <Progress
-                size="lg"
-                isIndeterminate
-                color={getProgressColor()}
-                classNames={{
-                  base: "max-w-md",
-                  track: "drop-shadow-md border border-default",
-                  indicator: "bg-gradient-to-r from-blue-500 to-purple-500",
-                }}
-              />
+              <div className="flex justify-center max-w-md">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
             )}
 
 
@@ -258,18 +228,16 @@ export const UpdateProgressDialog: React.FC<UpdateProgressDialogProps> = ({
                 </p>
                 <div className="flex gap-2">
                   <Button
-                    color="danger"
-                    variant="flat"
-                    startContent={<Icon icon="mdi:refresh" width="16" height="16" />}
-                    onPress={retryUpdate}
+                    variant="destructive"
+                    onClick={retryUpdate}
                     className="flex-1"
                   >
+                    <Icon icon="mdi:refresh" width="16" height="16" />
                     {t('retry')}
                   </Button>
                   <Button
-                    color="default"
-                    variant="flat"
-                    onPress={handleClose}
+                    variant="ghost"
+                    onClick={handleClose}
                     className="flex-1"
                   >
                     {t('cancel')}
@@ -278,8 +246,8 @@ export const UpdateProgressDialog: React.FC<UpdateProgressDialogProps> = ({
               </div>
             )}
           </div>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

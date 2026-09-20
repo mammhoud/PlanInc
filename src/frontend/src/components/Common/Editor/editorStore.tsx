@@ -11,7 +11,7 @@ import Vditor from 'vditor';
 import { showTipsDialog } from '../TipsDialog';
 import i18n from '@/lib/i18n';
 import { DialogStandaloneStore } from '@/store/module/DialogStandalone';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { ToastPlugin } from '@/store/module/Toast/Toast';
 import { NoteType } from '@shared/lib/types';
@@ -303,8 +303,8 @@ export class EditorStore {
       title: i18n.t('insert-attachment-or-note'),
       content: i18n.t('paste-to-note-or-attachment'),
       buttonSlot: <>
-        <Button variant='flat' className="ml-auto" color='default'
-          onPress={e => {
+        <Button variant='ghost' className="ml-auto"
+          onClick={e => {
             if (type.includes('image')) {
               this.vditor?.insertValue(`![${fileName}](${filePath})`)
             } else {
@@ -312,7 +312,7 @@ export class EditorStore {
             }
             RootStore.Get(DialogStandaloneStore).close()
           }}>{i18n.t('context')}</Button>
-        <Button color='primary' onPress={async e => {
+        <Button onClick={async e => {
           const _file = {
             name: fileName,
             size,

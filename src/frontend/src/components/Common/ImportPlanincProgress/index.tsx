@@ -3,7 +3,7 @@ import { type RestoreResult } from '@shared/lib/types'
 import { RootStore } from '@/store'
 import { PlanIncStore } from '@/store/planincStore'
 import { DialogStore } from '@/store/module/Dialog'
-import { Progress } from '@heroui/react'
+import { Progress } from '@/components/ui/progress'
 import { observer } from 'mobx-react-lite'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -48,14 +48,16 @@ export const ImportProgress = observer(({ filePath }: { filePath: string }) => {
   }, [])
 
   return <div >
-    <Progress
-      size="sm"
-      radius="sm"
-      color="warning"
-      label="Progress"
-      value={store.value}
-      showValueLabel={true}
-    />
+    <div className="w-full">
+      <div className="flex justify-between items-center text-sm mb-1">
+        <span>Progress</span>
+        <span className="text-foreground/60">{store.value}%</span>
+      </div>
+      <Progress
+        value={store.value}
+        className="w-full"
+      />
+    </div>
     <div className='flex flex-col max-h-[400px] overflow-y-auto mt-2' >
       {store.message.map((item, index) => (
         <div className='flex gap-2'>

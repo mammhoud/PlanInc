@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
-  Dropdown,
-  DropdownTrigger,
   DropdownMenu,
-  DropdownItem,
-  DropdownSection
-} from "@heroui/dropdown";
-import { Button, Spinner } from '@heroui/react';
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Loader2 } from 'lucide-react';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { api } from '@/lib/trpc';
 import { FontManager, FontMetadata } from '@/lib/fontManager';
@@ -79,48 +79,47 @@ const FontSwitcher = ({ fontname = 'default', onChange }: FontSwitcherProps) => 
 
   if (loading) {
     return (
-      <Button variant="flat" isLoading>
+      <Button variant="ghost" loading>
         Loading...
       </Button>
     );
   }
 
   return (
-    <Dropdown>
-      <DropdownTrigger>
-        <Button variant="flat">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost">
           {currentFont?.displayName || fontname || 'Select Font'}
         </Button>
-      </DropdownTrigger>
+      </DropdownMenuTrigger>
 
-      <DropdownMenu
+      <DropdownMenuContent
         className="p-2 max-h-[400px] overflow-y-auto"
         aria-label="Font selection"
       >
         {fonts.map((font) => (
-          <DropdownItem
+          <DropdownMenuItem
             key={font.name}
             className="flex items-center justify-between cursor-pointer"
-            onClick={() => handleFontSelect(font.name)}
-            endContent={
-              loadingFont === font.name ? (
-                <Spinner size="sm" />
-              ) : fontname === font.name ? (
-                <Icon icon="mingcute:check-fill" width="18" height="18" />
-              ) : null
-            }
+            onSelect={() => handleFontSelect(font.name)}
           >
             <span
+              className="flex-1"
               style={{
                 fontFamily: font.isSystem ? undefined : `"${font.name}", ${font.category}`
               }}
             >
               {font.displayName}
             </span>
-          </DropdownItem>
+            {loadingFont === font.name ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : fontname === font.name ? (
+              <Icon icon="mingcute:check-fill" width="18" height="18" />
+            ) : null}
+          </DropdownMenuItem>
         ))}
-      </DropdownMenu>
-    </Dropdown>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

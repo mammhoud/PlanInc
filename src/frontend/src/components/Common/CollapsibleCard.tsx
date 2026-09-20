@@ -1,4 +1,5 @@
-import { Card, Button } from "@heroui/react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { motion, AnimatePresence } from "motion/react";
 import { useState, ReactNode, useEffect } from "react";
@@ -40,13 +41,16 @@ const RandomIcon = ({ className = "" }) => {
     setIcon(randomIcon);
   }, []);
 
+  // Random rotation/size via inline style: dynamic `rotate-*` Tailwind classes
+  // are never generated (purge-time), so they rendered unrotated before.
   const randomRotate = Math.floor(Math.random() * 360);
   const randomSize = 30 + Math.floor(Math.random() * 30);
 
   return icon ? (
     <Icon
       icon={icon}
-      className={`absolute transform rotate-${randomRotate} ${className}`}
+      className={`absolute ${className}`}
+      style={{ transform: `rotate(${randomRotate}deg)` }}
       width={randomSize}
     />
   ) : null;
@@ -72,7 +76,10 @@ export const CollapsibleCard = ({
   };
 
   return (
-    <Card shadow="none" className={`flex flex-col p-2 md:p-4 bg-background relative ${className}`}>
+    <Card
+      className={`flex min-w-0 flex-col relative border border-border bg-background p-3 sm:p-4 lg:p-5 ${className}`}
+      style={{ borderRadius: 'var(--card-radius)' }}
+    >
       <div className="absolute inset-0 overflow-hidden opacity-[0.03] pointer-events-none">
         <RandomIcon className="right-[10%] bottom-[20%]" />
         <RandomIcon className="left-[15%] top-[25%]" />
@@ -84,16 +91,15 @@ export const CollapsibleCard = ({
         <RandomIcon className="left-[35%] bottom-[25%]" />
       </div>
 
-      <div className='flex items-center justify-between mb-2'>
-        <div className="flex items-center gap-2">
+      <div className='flex min-w-0 items-center justify-between gap-2'>
+        <div className="flex min-w-0 items-center gap-2">
           <Icon icon={icon} width="20" height="20" />
-          <div className="font-bold">{title}</div>
+          <div className="truncate font-bold">{title}</div>
         </div>
         <Button
-          size="sm"
-          isIconOnly
-          variant="flat"
-          onPress={() => handleCollapse(!isCollapsed)}
+          size="icon-sm"
+          variant="ghost"
+          onClick={() => handleCollapse(!isCollapsed)}
         >
           <Icon
             icon={isCollapsed ? "tabler:chevron-down" : "tabler:chevron-up"}

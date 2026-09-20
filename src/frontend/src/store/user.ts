@@ -384,6 +384,31 @@ export class UserStore implements Store {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Appearance v2 (PI-011 · P3) reactive sync: initializeSettings() applies
+    // once on load, but settings-page writes must take effect immediately —
+    // without a reload. The config observable is read here (inside the
+    // observer Layout) and re-applied whenever an appearance key changes.
+    const appearanceCfg = this.planinc.config.value as Record<string, unknown> | undefined;
+    const appearanceKey = JSON.stringify([
+      appearanceCfg?.density,
+      appearanceCfg?.uiScale,
+      appearanceCfg?.lineHeight,
+      appearanceCfg?.direction,
+      appearanceCfg?.reduceMotion,
+      appearanceCfg?.contrastBoost,
+      appearanceCfg?.shadowStyle,
+      appearanceCfg?.cornerStyle,
+      appearanceCfg?.language,
+    ]);
+    useEffect(() => {
+      try {
+        applyAppearance(readAppearance(appearanceCfg), appearanceCfg?.language as string | undefined);
+      } catch {
+        /* registry owns validation; a partially-loaded config simply skips */
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [appearanceKey]);
+
     useEffect(() => {
       this.initializeSettings(setTheme, i18n);
     }, []);

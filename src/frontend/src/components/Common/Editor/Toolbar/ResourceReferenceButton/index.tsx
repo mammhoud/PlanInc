@@ -1,5 +1,6 @@
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Input, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import { observer } from 'mobx-react-lite';
 import { IconButton } from '../IconButton';
 import { ScrollArea } from '../../../ScrollArea';
@@ -66,15 +67,20 @@ export const ResourceReferenceButton = observer(({ store }: Props) => {
   };
 
   return (
-    <Popover isOpen={isOpen} onOpenChange={setIsOpen} placement="bottom">
-      <PopoverTrigger>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
         <div className="hover:bg-default-100 rounded-md">
           <IconButton icon="hugeicons:file-link" tooltip={t('referenceResource')} />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] sm:w-[300px]">
+      <PopoverContent side="bottom" align="start" className="w-[300px] sm:w-[300px]">
         <div className="p-1 w-full">
-          <Input size="sm" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder={t('search')} className="mb-2" startContent={<Icon icon="mdi:magnify" width={20} height={20} />} />
+          <div className="relative mb-2">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+              <Icon icon="mdi:magnify" width={20} height={20} />
+            </span>
+            <Input value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder={t('search')} className="mb-2 pl-9" />
+          </div>
           <ScrollArea
             className="h-[300px] "
             onBottom={() => {

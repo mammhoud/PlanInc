@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FileType } from '../Editor/type';
-import { Image } from '@heroui/react';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { DeleteIcon, DownloadIcon, InsertConextButton, CopyIcon } from './icons';
@@ -78,16 +77,14 @@ export const ImageThumbnailRender = ({ src, className }: { src: string, classNam
         </div>
       )}
       {!loading && (
-        <Image
+        <img
           src={currentSrc}
-          classNames={{
-            wrapper: '!max-w-full',
-          }}
           draggable={false}
           onError={() => {
             setIsOriginalError(true);
           }}
-          className={`object-cover w-full ${className}`}
+          alt=""
+          className={`object-cover w-full !max-w-full ${className}`}
         />
       )}
     </>

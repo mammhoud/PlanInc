@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { Icon } from '@/components/Common/Iconify/icons';
 
 interface Action {
@@ -23,24 +23,22 @@ export const MultiSelectToolbar = ({ show, actions, onClose }: MultiSelectToolba
         {actions.map((action, index) => (
           <Button
             key={index}
-            size="md"
-            color={action.isDeleteButton ? "danger" : "default"}
-            variant="light"
-            startContent={<Icon icon={action.icon} />}
-            onPress={action.onClick}
+            variant={action.isDeleteButton ? "destructive" : "ghost"}
+            onClick={action.onClick}
           >
+            <Icon icon={action.icon} />
             {action.text}
           </Button>
         ))}
         <Button
           className="w-[32px]! h-[32px]! min-w-0!"
-          size="md"
-          variant="light"
-          isIconOnly
-          startContent={<Icon icon="material-symbols:close" />}
-          onPress={onClose}
-        />
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+        >
+          <Icon icon="material-symbols:close" />
+        </Button>
       </div>
     </div>
   );
-}; 
+};

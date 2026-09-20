@@ -1,6 +1,6 @@
 import { Store } from "@/store/standard/base";
 import toast, { Toaster } from "react-hot-toast";
-import { Progress } from "@heroui/react";
+import { Progress } from "@/components/ui/progress";
 import i18n from "@/lib/i18n";
 
 interface UploadProgressProps {
@@ -17,20 +17,11 @@ const UploadProgressToast = ({ progress, fileName, speed, loaded, total }: Uploa
       <div className="text-sm font-medium truncate" title={fileName}>
         {fileName}
       </div>
-      <Progress 
-        value={progress} 
+      <Progress
+        value={progress}
         className="max-w-md"
-        size="sm"
-        radius="sm"
-        classNames={{
-          base: "max-w-md",
-          track: "drop-shadow-md border border-default",
-          indicator: "bg-gradient-to-r from-progress-from to-progress-to",
-          label: "tracking-wider font-medium text-default-600",
-          value: "text-foreground/60"
-        }}
-        showValueLabel={true}
       />
+      <div className="text-xs text-muted-foreground tabular-nums">{progress}%</div>
       <div className="flex justify-between text-xs text-desc">
         <span>{speed}/s</span>
         <span>

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Card } from '@heroui/react';
+import { Card } from '@/components/ui/card';
 import { motion } from "motion/react"
 import { useSideNav } from '@/platform/PlatformProvider';
 
@@ -96,14 +96,12 @@ const PopoverFloat = observer(({
         zIndex: -99
       }}>
       <Card
-        shadow='lg'
-        radius='md'
         style={{
           maxHeight: maxHeight + 'px',
           maxWidth: maxWidth + 'px',
           minWidth: '150px'
         }}
-        className={`p-2 rounded-md overflow-y-scroll overflow-x-hidden`}
+        className={`p-2 rounded-md overflow-y-scroll overflow-x-hidden shadow-lg`}
       >
         {children}
       </Card>

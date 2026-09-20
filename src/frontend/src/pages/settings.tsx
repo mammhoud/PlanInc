@@ -249,16 +249,18 @@ const Page = observer(() => {
   };
 
   const visibleSettings = getVisibleSettings();
+  const visibleKeys = visibleSettings.map((setting) => setting.key).join('|');
 
   useEffect(() => {
     if (!visibleSettings.some((setting) => setting.key === selected)) {
       setSelected(visibleSettings[0]?.key ?? 'basic');
     }
-  }, [selected, visibleSettings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, visibleKeys]);
 
   const getCurrentComponent = () => {
     const setting = allSettings.find((s) => s.key === selected);
-    return setting ? <div key={setting.key}>{setting.component}</div> : null;
+    return setting ? <div key={setting.key} className="min-w-0">{setting.component}</div> : null;
   };
 
   const tabItems: TabItem[] = visibleSettings.map((setting) => ({
@@ -268,14 +270,13 @@ const Page = observer(() => {
   }));
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full min-h-0 flex flex-col">
       <ImportAIDialog onSelectTab={setSelected} />
 
       {isMobile ? (
-        <div className="w-full">
-          <div className="sticky top-0 z-10 w-full">
-            <div className="mx-1 backdrop-blur-md bg-background rounded-2xl">
-              {isMobile && <div className='h-16'></div>}
+        <div className="w-full min-h-0 flex-1 flex flex-col">
+          <div className="sticky top-0 z-10 w-full shrink-0 pt-[env(safe-area-inset-top,0px)]">
+            <div className="mx-1 backdrop-blur-md bg-background border border-border" style={{ borderRadius: 'var(--card-radius)' }}>
               <ScrollableTabs
                 items={tabItems}
                 selectedKey={selected}
@@ -284,41 +285,45 @@ const Page = observer(() => {
               />
             </div>
           </div>
-          <ScrollArea onBottom={() => { }} className="flex-1">
-            <div className="max-w-[1024px] mx-auto flex flex-col gap-6 px-2 py-4">
+          <ScrollArea onBottom={() => { }} className="flex-1 min-h-0">
+            <div className="w-full max-w-[1024px] mx-auto flex min-w-0 flex-col gap-4 sm:gap-6 px-3 sm:px-4 py-4">
               {getCurrentComponent()}
             </div>
           </ScrollArea>
         </div>
       ) : (
-        <div className="w-full max-w-[1200px] mx-auto px-4 py-4 flex flex-row h-full">
-          <div className="w-56 mr-6">
-            <div className="rounded-xl bg-background p-1 mb-4">
+        <div className="w-full max-w-[var(--pi-content-max-width,1200px)] mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-row h-full min-h-0 gap-4 lg:gap-6">
+          {/* Responsive nav: icon rail on md (tablet), full labels on lg (desktop) */}
+          <nav aria-label={t('settings')} className="hidden md:flex md:w-16 lg:w-60 shrink-0 min-h-0">
+            <div className="w-full border border-border bg-background p-1 mb-4 min-h-0" style={{ borderRadius: 'var(--card-radius)' }}>
               <ScrollArea onBottom={() => { }} className="h-auto max-h-[calc(100vh-140px)]">
                 <div className="p-1 flex flex-col flex-nowrap gap-1">
                   {Object.entries(groupLabels).map(([group, label]) => {
                     const groupItems = visibleSettings.filter((setting) => setting.group === group);
                     if (!groupItems.length) return null;
                     return (
-                      <div key={group} className="flex flex-col gap-1">
-                        <p className="px-3 pt-2 text-[10px] font-semibold uppercase tracking-wider text-foreground/50">
+                      <div key={group} className="flex flex-col gap-1 min-w-0">
+                        <p className="hidden lg:block px-3 pt-2 text-[10px] font-semibold uppercase tracking-wider text-foreground/50 truncate">
                           {label}
                         </p>
                         {groupItems.map((item) => (
                           <button
                             key={item.key}
+                            title={t(item.title)}
+                            aria-current={selected === item.key ? 'page' : undefined}
                             onClick={() => setSelected(item.key)}
-                            className={`cursor-pointer flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${selected === item.key
+                            className={`cursor-pointer flex items-center justify-center lg:justify-start min-h-[var(--pi-tap-target,32px)] px-0 lg:px-3 py-2 text-sm transition-colors min-w-0 ${selected === item.key
                               ? 'bg-primary text-primary-foreground font-medium'
                               : 'hover:bg-muted/50 text-foreground/80 hover:text-foreground'
                               }`}
+                            style={{ borderRadius: 'var(--button-radius)' }}
                           >
                             {item.icon && (
-                              <span className="flex-shrink-0 mr-2">
+                              <span className="flex-shrink-0 lg:mr-2">
                                 <Icon icon={item.icon} width="18" />
                               </span>
                             )}
-                            <span className="font-bold">{t(item.title)}</span>
+                            <span className="hidden lg:inline truncate font-bold">{t(item.title)}</span>
                           </button>
                         ))}
                       </div>
@@ -327,11 +332,11 @@ const Page = observer(() => {
                 </div>
               </ScrollArea>
             </div>
-          </div>
+          </nav>
 
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea onBottom={() => { }} className="h-full">
-              <div className="max-w-[900px] mx-auto flex flex-col gap-6">
+          <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+            <ScrollArea onBottom={() => { }} className="h-full min-h-0">
+              <div className="w-full max-w-[900px] mx-auto flex min-w-0 flex-col gap-4 sm:gap-6 px-1 sm:px-2">
                 {getCurrentComponent()}
               </div>
             </ScrollArea>

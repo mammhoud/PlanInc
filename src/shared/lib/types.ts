@@ -63,6 +63,8 @@ export const ZUserPerferConfigKey = z.union([
   z.literal('direction'),
   z.literal('reduceMotion'),
   z.literal('contrastBoost'),
+  z.literal('shadowStyle'),
+  z.literal('cornerStyle'),
   z.literal('pageSize'),
 ]);
 
@@ -201,7 +203,17 @@ export const ZConfigSchema = z.object({
   fontStyle: z.string().optional(),
   signinFooterEnabled: z.boolean().optional(),
   signinFooterText: z.string().optional(),
-  customTitle: z.string().optional()
+  customTitle: z.string().optional(),
+  // appearance v2 (PI-011 · P3): without these entries the `list` output
+  // strips the values and every client falls back to registry defaults.
+  density: z.any().optional(),
+  uiScale: z.any().optional(),
+  lineHeight: z.any().optional(),
+  direction: z.any().optional(),
+  reduceMotion: z.any().optional(),
+  contrastBoost: z.any().optional(),
+  shadowStyle: z.any().optional(),
+  cornerStyle: z.any().optional(),
 });
 
 export type GlobalConfig = z.infer<typeof ZConfigSchema>;

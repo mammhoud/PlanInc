@@ -8,7 +8,7 @@ import { DeleteIcon, DownloadIcon } from './icons';
 import { ImageRender } from './imageRender';
 import { HandleFileType } from '../Editor/editorUtils';
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Popover, PopoverContent, PopoverTrigger } from '@heroui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PlanIncCard } from '@/components/PlanIncCard';
 import { EditorStore } from '../Editor/editorStore';
 import { DraggableFileGrid } from './DraggableFileGrid';
@@ -146,8 +146,8 @@ const ReferenceRender = observer(({ store }: { store: EditorStore }) => {
   return <div className='grid grid-cols-2 md:grid-cols-3 gap-2'>
     {
       store?.currentReferences?.map(i => {
-        return <Popover placement="bottom">
-          <PopoverTrigger>
+        return <Popover>
+          <PopoverTrigger asChild>
             <div className="flex items-center gap-1 planinc-tag cursor-pointer hover:opacity-80 group">
               <Icon className="min-w-[20px] max-w-[20px] !text-primary" icon="uim:arrow-up-left" width="20" height="20" />
               <div className="truncate">{i.content}</div>

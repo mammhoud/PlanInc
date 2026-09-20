@@ -1,5 +1,11 @@
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Autocomplete, AutocompleteItem } from "@heroui/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useTranslation } from "react-i18next";
 import { RootStore } from "@/store";
 import { PlanIncStore } from "@/store/planincStore";
@@ -19,43 +25,36 @@ export default function TagSelector({
 }: TagSelectorProps) {
   const { t } = useTranslation();
   const planincStore = RootStore.Get(PlanIncStore);
+  const tags = planincStore.tagList.value?.falttenTags || [];
+  const selected = tags.find(t => String(t.id) === String(selectedTag));
 
   return (
-    <Autocomplete
-      variant={variant}
-      placeholder={t('select-tags')}
-      defaultItems={planincStore.tagList.value?.falttenTags || []}
-      labelPlacement="outside"
-      className={className}
-      selectedKey={selectedTag}
-      startContent={
-        selectedTag ? (
-          (() => {
-            const tag = planincStore.tagList.value?.falttenTags.find(t => t.id === Number(selectedTag));
-            return tag?.icon ? (
-              <div>{tag.icon}</div>
-            ) : (
-              <Icon icon="mingcute:hashtag-line" width="20" height="20" />
-            );
-          })()
+    <Select
+      value={selectedTag ?? undefined}
+      onValueChange={(key) => onSelectionChange(key as string)}
+    >
+      <SelectTrigger className={className}>
+        {selected?.icon ? (
+          <div>{selected.icon}</div>
         ) : (
           <Icon icon="mingcute:hashtag-line" width="20" height="20" />
-        )
-      }
-      onSelectionChange={(key) => onSelectionChange(key as string)}
-    >
-      {(tag: any) => (
-        <AutocompleteItem key={tag.id} textValue={tag.name}>
-          <div className="flex gap-2 items-center">
-            {tag.icon ? (
-              <div>{tag.icon}</div>
-            ) : (
-              <Icon icon="mingcute:hashtag-line" width="20" height="20" />
-            )}
-            <span className="text-small">{tag.name}</span>
-          </div>
-        </AutocompleteItem>
-      )}
-    </Autocomplete>
+        )}
+        <SelectValue placeholder={t('select-tags')} />
+      </SelectTrigger>
+      <SelectContent>
+        {tags.map((tag: any) => (
+          <SelectItem key={tag.id} value={String(tag.id)}>
+            <div className="flex gap-2 items-center">
+              {tag.icon ? (
+                <div>{tag.icon}</div>
+              ) : (
+                <Icon icon="mingcute:hashtag-line" width="20" height="20" />
+              )}
+              <span className="text-small">{tag.name}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
-} 
+}

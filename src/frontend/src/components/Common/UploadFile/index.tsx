@@ -1,5 +1,5 @@
 import { useDropzone } from "react-dropzone";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,12 +61,11 @@ export const UploadFileWrapper = observer(({ onUpload, children, acceptImage = f
     {children ?
       <div onClick={open}>{children}</div>
       : <Button
-        isDisabled={planinc.config.value?.objectStorage === 's3'}
-        onPress={open}
-        isLoading={isLoading}
-        color='primary'
-        startContent={<Icon icon="tabler:upload" width="24" height="24" />}
+        disabled={planinc.config.value?.objectStorage === 's3'}
+        onClick={open}
+        loading={isLoading}
       >
+        <Icon icon="tabler:upload" width="24" height="24" />
         {t('upload')}
       </Button>}
   </div>

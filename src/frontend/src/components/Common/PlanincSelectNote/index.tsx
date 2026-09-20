@@ -1,4 +1,5 @@
-import { Input, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import { observer } from 'mobx-react-lite';
 import { PlanIncStore } from '@/store/planincStore';
 import { RootStore } from '@/store';
@@ -45,8 +46,7 @@ export const PlanIncSelectNote = observer(({ iconButton, onSelect, blackList = [
 
   return (
     <Popover
-      placement="bottom"
-      isOpen={isOpen}
+      open={isOpen}
       onOpenChange={(open) => {
         setIsOpen(open);
         if (open) {
@@ -54,11 +54,11 @@ export const PlanIncSelectNote = observer(({ iconButton, onSelect, blackList = [
         }
       }}
     >
-      <PopoverTrigger>
+      <PopoverTrigger asChild>
         <div>{iconButton || defaultIconButton}</div>
       </PopoverTrigger>
       <PopoverContent className="flex flex-col max-w-[300px]">
-        <Input onChange={(e) => handleSearch(e.target.value)} type="text" autoFocus className="w-full my-1 focus:outline-none focus:ring-0" placeholder="Search" size="sm" />
+        <Input onChange={(e) => handleSearch(e.target.value)} type="text" autoFocus className="w-full my-1 h-9 focus:outline-none focus:ring-0" placeholder="Search" />
         <ScrollArea
           className="max-h-[400px] max-w-[290px] flex flex-col gap-1"
           onBottom={() => {

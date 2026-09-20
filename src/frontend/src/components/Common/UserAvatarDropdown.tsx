@@ -1,5 +1,10 @@
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Image } from '@heroui/react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { observer } from 'mobx-react-lite';
 import { RootStore } from '@/store';
 import { BaseStore } from '@/store/baseStore';
@@ -21,18 +26,14 @@ export const UserAvatarDropdown = observer(({ onItemClick, collapsed = false, sh
   const { t } = useTranslation();
   const navigate = useNavigate()
   return (
-    <Dropdown
-      classNames={{
-        content: 'bg-secondbackground',
-      }}
-    >
-      <DropdownTrigger>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <div className={`cursor-pointer ${collapsed ? 'flex justify-center' : 'flex items-center gap-2'}`}>
           <div className="relative group">
             {user.image ? (
               <img src={getPlanIncEndpoint(`${user.image}?token=${user.tokenData.value?.token}`)} alt="avatar" className={`${collapsed ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover transition-all`} />
             ) : (
-              <Image src="/logo.png" width={30} />
+              <img src="/logo.png" width={30} alt="avatar" />
             )}
             <div className={`absolute inset-0 bg-black/30 rounded-full flex items-center justify-center transition-opacity ${showOverlay ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
               <Icon icon="mdi:cog" width="16" height="16" className="text-white" />
@@ -40,40 +41,40 @@ export const UserAvatarDropdown = observer(({ onItemClick, collapsed = false, sh
           </div>
           {!collapsed && <span className="font-bold">{user.nickname || user.name}</span>}
         </div>
-      </DropdownTrigger>
-      <DropdownMenu aria-label="User Actions">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent aria-label="User Actions" className="bg-secondbackground">
         <>
           {base.routerList
             .filter((i) => i.hiddenSidebar)
             .map((i) => (
-              <DropdownItem
+              <DropdownMenuItem
                 key={i.title}
                 className='font-bold'
-                startContent={<Icon icon={i.icon} width="20" height="20" />}
-                onPress={() => {
+                onSelect={() => {
                   navigate(i.href);
                   base.currentRouter = i;
                   onItemClick?.();
                 }}
               >
+                <Icon icon={i.icon} width="20" height="20" />
                 {t(i.title)}
-              </DropdownItem>
+              </DropdownMenuItem>
             ))}
 
-          <DropdownItem
+          <DropdownMenuItem
             key="logout"
-            className="font-bold text-danger"
-            startContent={<Icon icon="hugeicons:logout-05" width="20" height="20" />}
-            onPress={async () => {
+            className="font-bold text-destructive"
+            onSelect={async () => {
               await signOut({ callbackUrl: '/signin', redirect: false });
               navigate('/signin');
               onItemClick?.();
             }}
           >
+            <Icon icon="hugeicons:logout-05" width="20" height="20" />
             {t('logout')}
-          </DropdownItem>
+          </DropdownMenuItem>
         </>
-      </DropdownMenu>
-    </Dropdown>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 });

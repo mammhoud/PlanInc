@@ -1,5 +1,14 @@
 import { observer } from "mobx-react-lite";
-import { Button, Card, Input, Switch, Tooltip, Select, SelectItem, Alert } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RootStore } from "@/store";
 import { useTranslation } from "react-i18next";
 import { DialogStore } from "@/store/module/Dialog";
@@ -43,33 +52,42 @@ export const LinkAccountModal = observer(() => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Select
-        label={t('select-account')}
-        placeholder={'username'}
-        value={selectedAccount}
-        onChange={(e) => setSelectedAccount(e.target.value)}
-      >
-        {accounts.map((account) => (
-          <SelectItem key={account.id} >
-            {account.nickname}
-          </SelectItem>
-        ))}
-      </Select>
+      <div className="space-y-1.5">
+        <Label>{t('select-account')}</Label>
+        <Select
+          value={selectedAccount}
+          onValueChange={(value) => setSelectedAccount(value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={'username'} />
+          </SelectTrigger>
+          <SelectContent>
+            {accounts.map((account) => (
+              <SelectItem key={account.id} value={String(account.id)}>
+                {account.nickname}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Input
-        type="password"
-        label={t('password')}
-        placeholder={'12345678'}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <div className="space-y-1.5">
+        <Label>{t('password')}</Label>
+        <Input
+          type="password"
+          placeholder={'12345678'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
 
-      <Alert color={'warning'} title={t('link-account-warning')} />
+      <div role="alert" className="rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-600 dark:text-amber-400">
+        {t('link-account-warning')}
+      </div>
 
       <Button
-        color="primary"
-        isLoading={loading}
-        onPress={handleLinkAccount}
+        loading={loading}
+        onClick={handleLinkAccount}
         className="mt-2"
       >
         {t('link-account')}

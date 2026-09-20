@@ -7,7 +7,8 @@ import { HeatMap } from "@/components/PlanIncAnalytics/HeatMap"
 import { StatsCards } from "@/components/PlanIncAnalytics/StatsCards"
 import { TagDistributionChart } from "@/components/PlanIncAnalytics/TagDistributionChart"
 import dayjs from "dayjs"
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@heroui/react"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import { Icon } from '@/components/Common/Iconify/icons'
 import { ScrollArea } from '@/components/Common/ScrollArea'
 
@@ -36,38 +37,30 @@ const Analytics = observer(() => {
   return (
     <ScrollArea onBottom={() => { }} fixMobileTopBar className="px-6 space-y-2 md:p-6 md:space-y-6  mx-auto max-w-7xl" >
       <div className="w-72">
-        <Dropdown>
-          <DropdownTrigger>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
-              variant="flat"
+              variant="ghost"
               className="w-[160px] justify-between bg-default-100 hover:bg-default-200"
-              size="md"
-              endContent={<Icon icon="mdi:chevron-down" className="h-4 w-4" />}
-              startContent={<Icon icon="mdi:calendar" className="h-4 w-4" />}
             >
+              <Icon icon="mdi:calendar" className="h-4 w-4" />
               {selectedMonth}
+              <Icon icon="mdi:chevron-down" className="h-4 w-4" />
             </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            aria-label="Select month"
-            selectionMode="single"
-            selectedKeys={[selectedMonth]}
-            className="max-h-[400px]"
-            onSelectionChange={(key) => {
-              const value = Array.from(key)[0] as string
-              setSelectedMonth(value)
-            }}
-          >
+          </DropdownMenuTrigger>
+          <DropdownMenuContent aria-label="Select month" className="max-h-[400px] overflow-y-auto">
             {last12Months.map((month) => (
-              <DropdownItem
+              <DropdownMenuItem
                 key={month}
+                onSelect={() => setSelectedMonth(month)}
                 className="data-[selected=true]:bg-primary-500/20"
+                data-selected={selectedMonth === month}
               >
                 {month}
-              </DropdownItem>
+              </DropdownMenuItem>
             ))}
-          </DropdownMenu>
-        </Dropdown>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <StatsCards stats={stats ?? {}} />

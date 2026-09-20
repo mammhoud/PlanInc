@@ -1,6 +1,5 @@
 import React from "react";
 import Provider from "./Provider";
-import { ModalSlots, SlotsToClasses } from "@heroui/react";
 import { Store } from "@/store/standard/base";
 import { RootStore } from "@/store/root";
 import { makeAutoObservable } from "mobx";
@@ -18,7 +17,7 @@ export class DialogStandaloneStore implements Store {
   showOnlyContentCloseButton = false;
   className: string = "";
   transparent = false;
-  classNames?: SlotsToClasses<ModalSlots>;
+  classNames?: Record<string, string>;
   theme = "default";
   content: React.ReactNode | ((props: any) => React.ReactNode) = "";
   isDismissable = true;

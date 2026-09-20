@@ -1,4 +1,6 @@
-import { Button, Modal, ModalBody, ModalContent, ModalHeader } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Dialog as UIDialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { observer } from "mobx-react-lite";
 import { DialogStore } from ".";
 import { RootStore } from "@/store/root";
@@ -16,11 +18,11 @@ const CloseButton = ({ onClose }: { onClose: () => void }) => (
     !w-[35px] !h-[35px] flex items-center justify-center shadow-lg`}
     whileTap={{
       scale: 0.85,
-      backgroundColor: "var(--heroui-colors-default-100)"
+      backgroundColor: "var(--muted)"
     }}
     whileHover={{
       scale: 1.1,
-      backgroundColor: "var(--heroui-colors-default-50)"
+      backgroundColor: "var(--accent)"
     }}
     transition={{
       type: "spring",
@@ -41,7 +43,7 @@ const CloseButton = ({ onClose }: { onClose: () => void }) => (
 const Dialog = observer(() => {
   const modal = RootStore.Get(DialogStore);
   const isPc = useSideNav()
-  const { className, classNames, isOpen, placement, title, size, content, isDismissable, onlyContent = false, noPadding = false, showOnlyContentCloseButton = false, transparent = false } = modal;
+  const { className, isOpen, title, size, content, isDismissable, onlyContent = false, noPadding = false, showOnlyContentCloseButton = false, transparent = false } = modal;
   const Content = typeof content === 'function' ? content : () => content;
   const isIOS = useIsIOS()
   useHistoryBack({
@@ -65,6 +67,39 @@ const Dialog = observer(() => {
         opacity: 0,
         transition: { type: 'spring', bounce: 0.5, duration: 0.3 },
       },
+    }
+  };
+
+  const dialogMaxWidth = (() => {
+    switch (size) {
+      case 'xs':
+        return 'max-w-xs';
+      case 'sm':
+        return 'max-w-sm';
+      case 'md':
+        return 'max-w-lg';
+      case 'lg':
+        return 'max-w-xl';
+      case 'xl':
+        return 'max-w-2xl';
+      case '2xl':
+        return 'max-w-4xl';
+      case '3xl':
+        return 'max-w-5xl';
+      case '4xl':
+        return 'max-w-6xl';
+      case '5xl':
+        return 'max-w-7xl';
+      case 'full':
+        return 'max-w-[95vw]';
+      default:
+        return 'max-w-lg';
+    }
+  })();
+
+  const handleInteractOutside = (e: Event) => {
+    if (!isDismissable) {
+      e.preventDefault();
     }
   };
 
@@ -126,7 +161,7 @@ const Dialog = observer(() => {
               <div className="flex flex-col justify-between items-center p-2 gap-2 w-full">
                 <div className="flex gap-2 w-full items-center">
                   <div className="text-lg font-semibold">{title ?? ''}</div>
-                  <Button isIconOnly variant="light" onPress={() => modal.close()} className="ml-auto">
+                  <Button size="icon-sm" variant="ghost" onClick={() => modal.close()} className="ml-auto">
                     <Icon icon="tabler:x" width="16" height="16" />
                   </Button>
                 </div>
@@ -158,15 +193,8 @@ const Dialog = observer(() => {
   }
   return (
     <>
-      <Modal
-        style={{ zIndex: 2000 }}
-        onClose={() => {
-          modal.close();
-        }}
-        backdrop='blur'
-        isOpen={isOpen}
-        size={size}
-        placement={placement}
+      <UIDialog
+        open={isOpen}
         onOpenChange={(open: boolean) => {
           if (open) {
             modal.preventClose = false
@@ -177,47 +205,35 @@ const Dialog = observer(() => {
             }
           }
         }}
-        hideCloseButton={(size === 'full' || onlyContent) ? true : false}
-        className={`${className} ${transparent ? 'bg-transparent' : ''}`}
-        classNames={classNames}
-        isDismissable={isDismissable}
-        motionProps={{
-          variants: {
-            enter: {
-              y: 0,
-              opacity: 1,
-              transition: { type: 'spring', bounce: 0.5, duration: 0.6, },
-            },
-            exit: {
-              y: -20,
-              opacity: 0,
-              transition: { type: 'spring', bounce: 0.5, duration: 0.3, },
-            },
-          }
-        }}
       >
         {
           onlyContent ?
-            <ModalContent className="max-h-screen overflow-visible relative modal-content" >
+            <DialogContent
+              style={{ zIndex: 2000 }}
+              className={cn("max-h-[85vh] overflow-y-auto overflow-visible relative modal-content", className, transparent && 'bg-transparent border-none shadow-none')}
+              onEscapeKeyDown={handleInteractOutside}
+              onPointerDownOutside={handleInteractOutside}
+            >
 
               {
                 showOnlyContentCloseButton &&
                 <CloseButton onClose={() => modal.close()} />
               }
               <Content />
-            </ModalContent> :
-            <ModalContent className="max-h-screen overflow-auto">
-              {() => (
-                <>
-                  {title && <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>}
-                  <ModalBody className={`${noPadding ? '' : 'p-2 md:p-4 '}`}>
-                    <Content />
-                  </ModalBody>
-                </>
-              )}
-            </ModalContent>
+            </DialogContent> :
+            <DialogContent
+              style={{ zIndex: 2000 }}
+              className={cn(dialogMaxWidth, "max-h-[85vh] overflow-y-auto", className, transparent && 'bg-transparent')}
+              onEscapeKeyDown={handleInteractOutside}
+              onPointerDownOutside={handleInteractOutside}
+            >
+              {title && <DialogHeader className="flex flex-col gap-1"><DialogTitle>{title}</DialogTitle></DialogHeader>}
+              <div className={`${noPadding ? '' : 'p-2 md:p-4 '}`}>
+                <Content />
+              </div>
+            </DialogContent>
         }
-      </Modal>
+      </UIDialog>
     </>
   );
 });

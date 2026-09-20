@@ -1,5 +1,8 @@
 import React, { useRef, useEffect } from 'react';
-import { Modal, ModalContent, ModalBody, Input, Button, Divider } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useTranslation } from 'react-i18next';
 import { RootStore } from '@/store';
@@ -317,83 +320,61 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
   );
 
   return (
-    <Modal
-      isOpen={isOpen}
+    <Dialog
+      open={isOpen}
       onOpenChange={onOpenChange}
-      placement="top"
-      motionProps={{
-        variants: {
-          enter: {
-            y: 0,
-            opacity: 1,
-            transition: { type: 'spring', bounce: 0.5, duration: 0.6, },
-          },
-          exit: {
-            y: -20,
-            opacity: 0,
-            transition: { type: 'spring', bounce: 0.5, duration: 0.3, },
-          },
-        }
-      }}
-      classNames={{
-        base: 'max-w-2xl mx-auto mt-10',
-      }}
     >
-      <ModalContent>
-        <ModalBody className="py-4">
+      <DialogContent className="max-w-2xl">
+        <div className="py-4">
           <div className="flex flex-col gap-3">
             {/* Search Input */}
-            <Input
-              ref={searchInputRef}
-              aria-label="global-search"
-              className={cn("mt-4", {
-                'input-highlight': store.isAiQuestion,
-              })}
-              placeholder={t('search-or-ask-ai')}
-              value={store.searchQuery}
-              onChange={(e) => {
-                const value = e.target.value;
-                store.setSearchQuery(value);
-              }}
-              autoFocus
-              onKeyDown={handleKeyDown}
-              startContent={
-                <Icon
-                  className=""
-                  icon={
-                    store.isAiQuestion
-                      ? 'hugeicons:ai-beautify'
-                      : 'lets-icons:search'
-                  }
-                  width="24"
-                  height="24"
-                />
-              }
-              endContent={
-                <div className="flex items-center gap-1">
-                  {store.searchQuery && (
-                    <Button
-                      isIconOnly
-                      variant="light"
-                      size="sm"
-                      onPress={() => store.setSearchQuery('')}
-                      className="hover:text-danger transition-colors"
-                    >
-                      <Icon icon="ph:x-bold" width="16" height="16" />
-                    </Button>
-                  )}
+            <div className="relative mt-4">
+              <Icon
+                className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                icon={
+                  store.isAiQuestion
+                    ? 'hugeicons:ai-beautify'
+                    : 'lets-icons:search'
+                }
+                width="24"
+                height="24"
+              />
+              <Input
+                ref={searchInputRef}
+                aria-label="global-search"
+                className={cn("pl-10 pr-20", {
+                  'input-highlight': store.isAiQuestion,
+                })}
+                placeholder={t('search-or-ask-ai')}
+                value={store.searchQuery}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  store.setSearchQuery(value);
+                }}
+                autoFocus
+                onKeyDown={handleKeyDown}
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {store.searchQuery && (
                   <Button
-                    isIconOnly
-                    variant="light"
-                    size="sm"
-                    onPress={() => store.toggleAiQuestion()}
-                    className={cn('hover:text-primary transition-colors', store.isAiQuestion && 'text-primary')}
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => store.setSearchQuery('')}
+                    className="hover:text-destructive transition-colors"
                   >
-                    <Icon icon={store.isAiQuestion ? 'lets-icons:search' : 'hugeicons:ai-beautify'} width="20" height="20" />
+                    <Icon icon="ph:x-bold" width="16" height="16" />
                   </Button>
-                </div>
-              }
-            />
+                )}
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={() => store.toggleAiQuestion()}
+                  className={cn('hover:text-primary transition-colors', store.isAiQuestion && 'text-primary')}
+                >
+                  <Icon icon={store.isAiQuestion ? 'lets-icons:search' : 'hugeicons:ai-beautify'} width="20" height="20" />
+                </Button>
+              </div>
+            </div>
 
             {/* Search Results */}
             {store.searchQuery && (
@@ -417,7 +398,7 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
                     {/* Resources section - only show if not in tag search mode */}
                     {store.searchResults.resources.length > 0 && (
                       <div className="flex flex-col gap-1">
-                        <Divider className="my-2" />
+                        <Separator className="my-2" />
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon icon="mingcute:folder-line" className="h-4 w-4 mr-2 text-success" />
@@ -431,7 +412,7 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
                     {/* Settings section - only show if not in tag search mode */}
                     {store.searchResults.settings.length > 0 && (
                       <div className="flex flex-col gap-1">
-                        <Divider className="my-2" />
+                        <Separator className="my-2" />
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon icon="tabler:settings" className="mr-2 text-warning" />
@@ -463,8 +444,8 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
               </div>
             </div>
           </div>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 });

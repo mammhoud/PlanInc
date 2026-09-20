@@ -2,7 +2,7 @@ import { PlanIncCard } from "@/components/PlanIncCard";
 import { ScrollArea } from "@/components/Common/ScrollArea";
 import { RootStore } from "@/store";
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -105,11 +105,10 @@ const Hub = observer(({ className }: { className?: string }) => {
             <div className="flex items-center gap-4 md:flex-row flex-col">
               {
                 user.isLogin && <Button
-                  onPress={() => {
+                  onClick={() => {
                     window.open("https://github.com/mammhoud/planinc-hub/new/main/sites?filename=my-site.yml&value=title%3A%20%22Your%20Site%20Name%22%0Aurl%3A%20%22https%3A%2F%2Fyour-site-domain%22%0Atags%3A%20%0A%20%20-%20english%20%20%20%20%23%20main%20language%0A%20%20-%20blog%20%20%20%20%20%20%20%23%20site%20type%0Acreated_at%3A%20%222024-01-14%22%20%20%23%20creation%20date")
                   }}
-                  size={isPc ? 'md' : 'sm'}
-                  radius="full"
+                  size={isPc ? 'default' : 'sm'}
                   className="px-4 py-2 rounded-full ">
                   {t('join-hub')}
                 </Button>
@@ -117,7 +116,7 @@ const Hub = observer(({ className }: { className?: string }) => {
               {user.isLogin &&
                 (
                   <Button
-                    onPress={() => {
+                    onClick={() => {
                       RootStore.Get(DialogStore).setData({
                         isOpen: true,
                         title: t('follow'),
@@ -127,8 +126,9 @@ const Hub = observer(({ className }: { className?: string }) => {
                         }} />,
                       })
                     }}
-                    size={isPc ? 'md' : 'sm'} color="primary" radius="full" startContent={<Icon icon="fluent:people-add-32-regular" className="w-4 h-4" />}
+                    size={isPc ? 'default' : 'sm'}
                     className="px-4 py-2 rounded-full ">
+                    <Icon icon="fluent:people-add-32-regular" className="w-4 h-4" />
                     {t('follow')}
                   </Button>
                 )
@@ -182,7 +182,7 @@ const Hub = observer(({ className }: { className?: string }) => {
             }}
           >
             <div className="flex items-center justify-end mb-4">
-              <Button variant="faded" color="primary" isIconOnly onPress={() => {
+              <Button variant="secondary" onClick={() => {
                 store.forceBlog.save(!store.forceBlog.value)
               }} className="shrink-0">
                 <Icon icon="fluent:arrow-expand-all-16-filled" width="20" height="20" className={`transition-transform duration-300 ${store.forceBlog.value ? "rotate-180" : ""}`} />

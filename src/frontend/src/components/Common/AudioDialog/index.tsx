@@ -4,7 +4,7 @@ import useAudioRecorder from "../AudioRecorder/hook";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { DialogStandaloneStore } from "@/store/module/DialogStandalone";
 import { requestMicrophonePermission, checkMicrophonePermission } from "@/lib/tauriHelper";
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
 interface MyAudioRecorderProps {
@@ -318,18 +318,17 @@ export const MyAudioRecorder = ({ onComplete }: MyAudioRecorderProps) => {
             </div>
 
             <Button
-              onPress={async () => {
+              onClick={async () => {
                 const granted = await requestMicrophonePermission();
                 if (granted) {
                   window.location.reload();
                 }
               }}
-              color="danger"
-              variant="shadow"
+              variant="destructive"
               size="lg"
-              startContent={<Icon icon="solar:shield-check-bold" />}
               className="w-full font-medium"
             >
+              <Icon icon="solar:shield-check-bold" />
               {t('grant-microphone-permission')}
             </Button>
           </div>

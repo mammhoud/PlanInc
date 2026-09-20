@@ -4,7 +4,7 @@ import { ScrollableTabs, TabItem } from '@/components/Common/ScrollableTabs';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useTranslation } from 'react-i18next';
 import { ReactNode } from 'react';
-import { Avatar } from '@heroui/react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useIsPhone } from '@/platform/PlatformProvider';
 
 interface ResponsiveTabsProps {
@@ -75,7 +75,10 @@ export const ResponsiveTabs = observer(({
                 >
                   {item.avatar ? (
                     <span className="flex-shrink-0 mr-2">
-                      <Avatar src={item.avatar} size="sm" className="w-[18px] h-[18px]" />
+                      <Avatar className="w-[18px] h-[18px]">
+                        <AvatarImage src={item.avatar} />
+                        <AvatarFallback className="text-[10px]" />
+                      </Avatar>
                     </span>
                   ) : item.icon ? (
                     <span className="flex-shrink-0 mr-2">

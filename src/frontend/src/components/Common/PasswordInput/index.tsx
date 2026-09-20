@@ -1,33 +1,41 @@
 import { observer } from "mobx-react-lite";
 
-import { Input } from "@heroui/react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Icon } from '@/components/Common/Iconify/icons';
-import { useTranslation } from "react-i18next";
 import { useState } from "react";
 
-export const PasswordInput = observer(({ 
-  value, 
-  onChange, 
+export const PasswordInput = observer(({
+  value,
+  onChange,
   onBlur,
-  label, 
-  placeholder, 
-  className 
-}: { 
-  value: string, 
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, 
+  label,
+  placeholder,
+  className
+}: {
+  value: string,
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void,
-  label?: string, 
-  placeholder?: string, 
-  className?: string 
+  label?: string,
+  placeholder?: string,
+  className?: string
 }) => {
-  const { t } = useTranslation()
   const [isConfirmVisible, setIsConfirmVisible] = useState(false)
   const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible)
-  return <Input
-    className={className}
-    isRequired
-    endContent={
-      <button type="button" onClick={toggleConfirmVisibility}>
+  return <div className={className}>
+    {label && <Label className="mb-1.5 block">{label} <span className="text-destructive">*</span></Label>}
+    <div className="relative">
+      <Input
+        name="confirmPassword"
+        placeholder={placeholder}
+        type={isConfirmVisible ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        required
+        className="pr-10"
+      />
+      <button type="button" onClick={toggleConfirmVisibility} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
         {isConfirmVisible ? (
           <Icon
             className="pointer-events-none text-2xl text-default-400"
@@ -40,15 +48,6 @@ export const PasswordInput = observer(({
           />
         )}
       </button>
-    }
-    label={label}
-    labelPlacement="outside"
-    name="confirmPassword"
-    placeholder={placeholder}
-    type={isConfirmVisible ? "text" : "password"}
-    variant="bordered"
-    value={value}
-    onChange={onChange}
-    onBlur={onBlur}
-  />
+    </div>
+  </div>
 })

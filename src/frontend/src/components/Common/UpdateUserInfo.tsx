@@ -3,7 +3,9 @@ import { RootStore } from "@/store";
 import { DialogStore } from "@/store/module/Dialog";
 import { PromiseCall } from "@/store/standard/PromiseState";
 import { UserStore } from "@/store/user";
-import { Button, Input } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { observer } from "mobx-react-lite";
 // import { signOut } from "next-auth/react";
 import { useNavigate } from "react-router-dom";
@@ -29,20 +31,20 @@ export const UpdateUserInfo = observer(() => {
   }, [user.name, user.nickname])
 
   return <>
-    <Input
-      label={t('username')}
-      labelPlacement="outside"
-      variant="bordered"
-      value={store.username}
-      onChange={e => { store.username = e.target.value }}
-    />
-    <Input
-      label={t('nickname')}
-      variant="bordered"
-      labelPlacement="outside"
-      value={store.nickname}
-      onChange={e => { store.nickname = e.target.value }}
-    />
+    <div className="space-y-1.5">
+      <Label>{t('username')}</Label>
+      <Input
+        value={store.username}
+        onChange={e => { store.username = e.target.value }}
+      />
+    </div>
+    <div className="space-y-1.5">
+      <Label>{t('nickname')}</Label>
+      <Input
+        value={store.nickname}
+        onChange={e => { store.nickname = e.target.value }}
+      />
+    </div>
     <PasswordInput
       label={t('original-password')}
       placeholder={t('enter-your-password')}
@@ -50,7 +52,7 @@ export const UpdateUserInfo = observer(() => {
       onChange={e => { store.originalPassword = e.target.value }}
     />
     <div className="flex w-full mt-2">
-      <Button className="ml-auto" color='primary' onPress={async e => {
+      <Button className="ml-auto" onClick={async e => {
         const updated = await PromiseCall(api.users.upsertUser.mutate({ id: Number(user.id), name: store.username, nickname: store.nickname, originalPassword: store.originalPassword }))
         if (!updated) return
         RootStore.Get(DialogStore).close()
@@ -102,7 +104,7 @@ export const UpdateUserPassword = observer(() => {
       <PasswordInput placeholder={t('enter-your-password')} label={t('password')} value={password} onChange={e => setPassword(e.target.value)} />
       <PasswordInput placeholder={t('enter-your-password')} label={t('confirm-password')} value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} />
       <div className="flex w-full justify-end">
-        <Button className="ml-auto" color='primary' isLoading={isSubmitting} type="submit">{t('save')}</Button>
+        <Button className="ml-auto" loading={isSubmitting} type="submit">{t('save')}</Button>
       </div>
     </form>
   </>

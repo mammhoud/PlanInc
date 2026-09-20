@@ -10,7 +10,7 @@
  * (PI-011 §6 P4) rather than growing this list further.
  */
 import { observer } from "mobx-react-lite";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 
 const colors = [
   { name: 'default', background: '', foreground: '' },
@@ -36,14 +36,15 @@ export const ThemeColor = observer(({ onChange, value = colors[0]?.background }:
       {colors.map((color) => (
         <Button
           key={color.name}
-          isIconOnly
+          size="icon"
+          variant="ghost"
           className={`w-8 h-8 min-w-8 rounded-full border-2 border-foreground`}
           style={{
             background: color.background || 'gray',
             backgroundImage: color.background.includes('gradient') ? color.background : 'none',
             border: value === color.background ? '2px solid var(--foreground)' : 'none'
           }}
-          onPress={() => onChange?.(color.background, color.foreground)}
+          onClick={() => onChange?.(color.background, color.foreground)}
         />
       ))}
     </div>

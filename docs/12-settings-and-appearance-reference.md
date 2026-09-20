@@ -60,6 +60,8 @@ Do not hand-edit this table; re-run the command.
 | `uiScale` | appearance / typography | slider | user | `100` | `85`–`125` |
 | `lineHeight` | appearance / typography | select | user | `normal` | `compact \| normal \| relaxed` |
 | `density` | appearance / layout | select | user | `comfortable` | `comfortable \| compact` |
+| `shadowStyle` | appearance / layout | select | user | `soft` | `flat \| soft \| strong` |
+| `cornerStyle` | appearance / layout | select | user | `rounded` | `sharp \| rounded` |
 | `customBackgroundUrl` | appearance / background | text | global | *(empty)* | string ≤ 2048 |
 | `isCloseBackgroundAnimation` | appearance / background | switch | global | `false` | boolean |
 | `textFoldLength` | content / cards | number | user | `500` | `50`–`100000` |
@@ -108,6 +110,8 @@ Appearance settings are **tokens plus `<html>` attributes**, not component props
 | `--pi-ui-scale` (inline) | `0.85`–`1.25` | `html { font-size: calc(1rem * var(--pi-ui-scale)) }` |
 | `data-line-height` | `compact` / `normal` / `relaxed` | sets `--pi-line-height` (1.4 / 1.55 / 1.8) on `body` |
 | `data-density` | `comfortable` / `compact` | compact tightens `--chip-font-size`, `--chip-radius`, `--contextmenu-item-radius` |
+| `data-shadow-style` | `flat` / `soft` / `strong` | overrides `--shadow` (flat removes it, strong deepens it per theme) |
+| `data-corner-style` | `sharp` / `rounded` | sharp collapses the component radii to a precise edge |
 | `data-contrast-boost` | `true` / `false` | overrides `--desc`, `--ignore`, `--border` per theme |
 | `data-reduce-motion` | `true` / `false` | sets `--motion-fast`/`--motion-base` to `1ms` |
 | `dir` + `data-direction` | `ltr` / `rtl` | resolved from `direction`, with `auto` using an RTL language list |
@@ -158,7 +162,7 @@ npm run check:contracts    # all of the above in one command
 
 ### Known gap: translations
 
-All 67 registry strings exist in `en`. The other 16 locales are reported as a
+All 76 registry strings exist in `en`. The other 16 locales are reported as a
 **warning** (48 keys each) because PI-009 owns locale parity — the checker names
 the gap rather than failing on it, so translation work can land independently.
 

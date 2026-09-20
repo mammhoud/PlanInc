@@ -2,8 +2,9 @@
  * Appearance state (PI-011 · P3).
  *
  * Appearance v2 settings are *tokens plus attributes*, not component props:
- * density, interface scale, line height, direction, reduced motion and contrast
- * boost are applied to `<html>` so every surface — including third-party ones
+ * density, interface scale, line height, direction, reduced motion, contrast
+ * boost, shadow style and corner style are applied to `<html>` so every
+ * surface — including third-party ones
  * (Vditor, ECharts, HeroUI) — picks them up without a prop being threaded
  * through the tree.
  *
@@ -20,6 +21,8 @@ export type AppearanceState = {
   direction: 'auto' | 'ltr' | 'rtl';
   reduceMotion: boolean;
   contrastBoost: boolean;
+  shadowStyle: 'flat' | 'soft' | 'strong';
+  cornerStyle: 'sharp' | 'rounded';
 };
 
 /** Languages written right-to-left, used when direction is 'auto'. */
@@ -41,6 +44,8 @@ export function readAppearance(config: Record<string, unknown> | undefined): App
     direction: read(config, 'direction'),
     reduceMotion: read(config, 'reduceMotion'),
     contrastBoost: read(config, 'contrastBoost'),
+    shadowStyle: read(config, 'shadowStyle'),
+    cornerStyle: read(config, 'cornerStyle'),
   };
 }
 
@@ -68,6 +73,8 @@ export function applyAppearance(state: AppearanceState, language?: string): void
   root.dataset.lineHeight = state.lineHeight;
   root.dataset.reduceMotion = state.reduceMotion ? 'true' : 'false';
   root.dataset.contrastBoost = state.contrastBoost ? 'true' : 'false';
+  root.dataset.shadowStyle = state.shadowStyle;
+  root.dataset.cornerStyle = state.cornerStyle;
   root.style.setProperty('--pi-ui-scale', String(state.uiScale / 100));
 
   const direction = resolveDirection(state.direction, language);

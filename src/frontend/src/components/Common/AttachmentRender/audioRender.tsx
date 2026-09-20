@@ -8,7 +8,7 @@ import { MusicManagerStore } from '@/store/musicManagerStore';
 import { UserStore } from '@/store/user';
 import { observer } from 'mobx-react-lite';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
 
@@ -612,9 +612,9 @@ export const AudioRender = observer(({ files, preview = false }: Props) => {
           className='w-full flex justify-center'
         >
           <Button
-            variant="light"
+            variant="ghost"
             className="mt-2 w-fit mx-auto"
-            onPress={() => setShowAll(!showAll)}
+            onClick={() => setShowAll(!showAll)}
           >
             <Icon
               icon={showAll ? "ph:caret-up" : "ph:caret-down"}

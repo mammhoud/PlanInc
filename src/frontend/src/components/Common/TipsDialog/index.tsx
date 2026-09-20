@@ -2,7 +2,8 @@ import { RootStore } from "@/store";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { observer } from "mobx-react-lite";
 import { useTranslation } from "react-i18next";
-import { Popover, PopoverTrigger, PopoverContent, Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { DialogStandaloneStore } from "@/store/module/DialogStandalone";
 
 const TipsDialog = observer(({ content, onConfirm, onCancel, buttonSlot }: any) => {
@@ -14,12 +15,12 @@ const TipsDialog = observer(({ content, onConfirm, onCancel, buttonSlot }: any) 
     <div className='flex my-4 gap-4'>
       {
         buttonSlot ? buttonSlot : <>
-          <Button className="ml-auto" color='default'
-            onPress={e => {
+          <Button className="ml-auto" variant="secondary"
+            onClick={e => {
               RootStore.Get(DialogStandaloneStore).close()
               onCancel?.()
             }}>{t('cancel')}</Button>
-          <Button color='danger' onPress={async e => {
+          <Button variant="destructive" onClick={async e => {
             onConfirm?.()
           }}>{t('confrim')}</Button>
         </>
@@ -41,8 +42,8 @@ export const showTipsDialog = async (props: { size?: 'sm' | 'md' | 'lg' | 'xl', 
 export const TipsPopover = observer((props: { children: React.ReactNode, content, onConfirm, onCancel?, isLoading?: boolean }) => {
   const { t } = useTranslation()
   const { isLoading = false } = props
-  return <Popover placement="bottom" showArrow={true}>
-    <PopoverTrigger>
+  return <Popover>
+    <PopoverTrigger asChild>
       {props.children}
     </PopoverTrigger>
     <PopoverContent>
@@ -51,13 +52,13 @@ export const TipsPopover = observer((props: { children: React.ReactNode, content
           <div className="font-bold mb-2">{props.content}</div>
         </div>
         <div className='flex my-1 gap-2'>
-          <Button startContent={<Icon icon="iconoir:cancel" width="20" height="20" />} variant="flat" size="sm" className="ml-auto" color='default' onPress={e => {
+          <Button variant="ghost" size="sm" className="ml-auto" onClick={e => {
             RootStore.Get(DialogStandaloneStore).close()
             props.onCancel?.()
-          }}>{t('cancel')}</Button>
-          <Button startContent={<Icon icon="cil:check-alt" width="20" height="20" />} isLoading={isLoading}  size="sm" color='danger' onPress={async e => {
+          }}><Icon icon="iconoir:cancel" width="20" height="20" />{t('cancel')}</Button>
+          <Button loading={isLoading} size="sm" variant="destructive" onClick={async e => {
             props.onConfirm?.()
-          }}>{t('confirm')}</Button>
+          }}><Icon icon="cil:check-alt" width="20" height="20" />{t('confirm')}</Button>
         </div>
       </div>
     </PopoverContent>

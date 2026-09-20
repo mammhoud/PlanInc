@@ -1,5 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Switch, Textarea } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/trpc';
 import { Icon } from '@/components/Common/Iconify/icons';
@@ -63,7 +81,6 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Custom field definitions are account-scoped and shared across create/edit.
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -131,78 +148,178 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
   const renderCustomField = (field: CustomField) => {
     const value = customValues[field.key];
     const helper = (
-      <span className="flex items-center gap-1 pl-1 text-tiny text-foreground-500">
+      <span className="flex items-center gap-1 pl-1 text-xs text-muted-foreground">
         {field.showInGraph && <Icon icon="hugeicons:share-05" width="12" height="12" />}
         {field.required ? t('required') : t('optional')}
       </span>
     );
     switch (field.fieldType) {
       case 'textarea':
-        return <Textarea key={field.id} label={field.label} description={helper} value={String(value ?? '')} onValueChange={(next) => setCustomValue(field.key, next)} isDisabled={isSaving} />;
+        return (
+          <div key={field.id} className="space-y-1">
+            <Label>{field.label}</Label>
+            <Textarea
+              value={String(value ?? '')}
+              onChange={(e) => setCustomValue(field.key, e.target.value)}
+              disabled={isSaving}
+            />
+            {helper}
+          </div>
+        );
       case 'number':
-        return <Input key={field.id} type="number" label={field.label} description={helper} value={String(value ?? '')} onValueChange={(next) => setCustomValue(field.key, next === '' ? '' : Number(next))} isDisabled={isSaving} />;
+        return (
+          <div key={field.id} className="space-y-1">
+            <Label>{field.label}</Label>
+            <Input
+              type="number"
+              value={String(value ?? '')}
+              onChange={(e) => setCustomValue(field.key, e.target.value === '' ? '' : Number(e.target.value))}
+              disabled={isSaving}
+            />
+            {helper}
+          </div>
+        );
       case 'date':
-        return <Input key={field.id} type="date" label={field.label} description={helper} value={String(value ?? '')} onValueChange={(next) => setCustomValue(field.key, next)} isDisabled={isSaving} />;
+        return (
+          <div key={field.id} className="space-y-1">
+            <Label>{field.label}</Label>
+            <Input
+              type="date"
+              value={String(value ?? '')}
+              onChange={(e) => setCustomValue(field.key, e.target.value)}
+              disabled={isSaving}
+            />
+            {helper}
+          </div>
+        );
       case 'url':
-        return <Input key={field.id} type="url" label={field.label} description={helper} value={String(value ?? '')} onValueChange={(next) => setCustomValue(field.key, next)} isDisabled={isSaving} />;
+        return (
+          <div key={field.id} className="space-y-1">
+            <Label>{field.label}</Label>
+            <Input
+              type="url"
+              value={String(value ?? '')}
+              onChange={(e) => setCustomValue(field.key, e.target.value)}
+              disabled={isSaving}
+            />
+            {helper}
+          </div>
+        );
       case 'select':
         return (
-          <Select
-            key={field.id}
-            label={field.label}
-            description={helper}
-            selectedKeys={value ? [String(value)] : []}
-            onSelectionChange={(keys) => setCustomValue(field.key, String(Array.from(keys)[0] ?? ''))}
-            isDisabled={isSaving}
-          >
-            {field.options.map((option) => <SelectItem key={option}>{option}</SelectItem>)}
-          </Select>
+          <div key={field.id} className="space-y-1">
+            <Label>{field.label}</Label>
+            <Select
+              value={String(value ?? '')}
+              onValueChange={(v) => setCustomValue(field.key, v)}
+              disabled={isSaving}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={field.label} />
+              </SelectTrigger>
+              <SelectContent>
+                {field.options.map((option) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {helper}
+          </div>
         );
       case 'toggle':
         return (
-          <div key={field.id} className="flex items-center justify-between rounded-xl bg-content2 px-3 py-2">
+          <div key={field.id} className="flex items-center justify-between rounded-xl bg-muted px-3 py-2">
             <div>
               <p className="text-sm font-medium">{field.label}</p>
-              <p className="text-tiny text-foreground-500">{field.required ? t('required') : t('optional')}</p>
+              <p className="text-xs text-muted-foreground">{field.required ? t('required') : t('optional')}</p>
             </div>
-            <Switch isSelected={value === true} onValueChange={(next) => setCustomValue(field.key, next)} isDisabled={isSaving} aria-label={field.label} />
+            <Switch
+              checked={value === true}
+              onCheckedChange={(next) => setCustomValue(field.key, next)}
+              disabled={isSaving}
+              aria-label={field.label}
+            />
           </div>
         );
       default:
-        return <Input key={field.id} label={field.label} description={helper} value={String(value ?? '')} onValueChange={(next) => setCustomValue(field.key, next)} isDisabled={isSaving} />;
+        return (
+          <div key={field.id} className="space-y-1">
+            <Label>{field.label}</Label>
+            <Input
+              value={String(value ?? '')}
+              onChange={(e) => setCustomValue(field.key, e.target.value)}
+              disabled={isSaving}
+            />
+            {helper}
+          </div>
+        );
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} isDismissable={!isSaving} scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader>{item ? t('edit') : kind === 'ticket' ? t('create-ticket') : t('add-study-item')}</ModalHeader>
-        <ModalBody className="gap-3">
-          <Input label={kind === 'ticket' ? t('title') : t('study-title')} value={title} onValueChange={setTitle} isDisabled={isSaving} />
+    <Dialog open={isOpen} onOpenChange={(o) => { if (!o) close(); }}>
+      <DialogContent className="max-w-xl" onPointerDownOutside={(e) => { if (isSaving) e.preventDefault(); }}>
+        <DialogHeader>
+          <DialogTitle>{item ? t('edit') : kind === 'ticket' ? t('create-ticket') : t('add-study-item')}</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3">
+          <div className="space-y-1">
+            <Label>{kind === 'ticket' ? t('title') : t('study-title')}</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSaving} />
+          </div>
           {kind === 'ticket' && (
-            <Select label={t('priority')} selectedKeys={[priority]} onSelectionChange={(keys) => setPriority(String(Array.from(keys)[0]))} isDisabled={isSaving}>
-              {priorities.map((value) => <SelectItem key={value}>{t(value)}</SelectItem>)}
-            </Select>
+            <div className="space-y-1">
+              <Label>{t('priority')}</Label>
+              <Select value={priority} onValueChange={(v) => setPriority(v)} disabled={isSaving}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorities.map((value) => (
+                    <SelectItem key={value} value={value}>{t(value)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
-          <Textarea label={t('description')} value={description} onValueChange={setDescription} isDisabled={isSaving} />
-          <Select label={t('status')} selectedKeys={[status]} onSelectionChange={(keys) => setStatus(String(Array.from(keys)[0]))} isDisabled={isSaving}>
-            {statuses.map((value) => <SelectItem key={value}>{t(value)}</SelectItem>)}
-          </Select>
-          <Input label={t('category')} placeholder={t('category-placeholder')} value={category} onValueChange={setCategory} isDisabled={isSaving} />
-          <Input label={t('tags')} placeholder={t('tags-placeholder')} value={tags} onValueChange={setTags} isDisabled={isSaving} />
+          <div className="space-y-1">
+            <Label>{t('description')}</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSaving} />
+          </div>
+          <div className="space-y-1">
+            <Label>{t('status')}</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v)} disabled={isSaving}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((value) => (
+                  <SelectItem key={value} value={value}>{t(value)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>{t('category')}</Label>
+            <Input placeholder={t('category-placeholder')} value={category} onChange={(e) => setCategory(e.target.value)} disabled={isSaving} />
+          </div>
+          <div className="space-y-1">
+            <Label>{t('tags')}</Label>
+            <Input placeholder={t('tags-placeholder')} value={tags} onChange={(e) => setTags(e.target.value)} disabled={isSaving} />
+          </div>
           {customFields.length > 0 && (
-            <div className="mt-1 flex flex-col gap-3 border-t border-divider pt-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-foreground-500">{t('custom-fields')}</p>
+            <div className="mt-1 flex flex-col gap-3 border-t border-border pt-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('custom-fields')}</p>
               {customFields.map(renderCustomField)}
             </div>
           )}
-          {error && <p className="rounded-xl bg-danger-50 p-3 text-danger" role="alert">{error}</p>}
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="flat" onPress={close} isDisabled={isSaving}>{t('cancel')}</Button>
-          <Button color="primary" onPress={save} isDisabled={!title.trim() || isSaving} isLoading={isSaving}>{item ? t('save') : kind === 'ticket' ? t('create-ticket') : t('add-study-item')}</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+          {error && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive" role="alert">{error}</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={close} disabled={isSaving}>{t('cancel')}</Button>
+          <Button onClick={save} disabled={!title.trim() || isSaving} loading={isSaving}>{item ? t('save') : kind === 'ticket' ? t('create-ticket') : t('add-study-item')}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

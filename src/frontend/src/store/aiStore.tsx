@@ -10,7 +10,6 @@ import { PlanIncStore } from './planincStore';
 import { eventBus } from '@/lib/event';
 import { PromiseCall, PromisePageState, PromiseState } from './standard/PromiseState';
 import { DialogStore } from './module/Dialog';
-import { Image } from '@heroui/react';
 import { AiTag } from '@/components/PlanIncAi/aiTag';
 import i18n from '@/lib/i18n';
 import { AiEmoji } from '@/components/PlanIncAi/aiEmoji';

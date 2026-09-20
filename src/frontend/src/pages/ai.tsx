@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 import { useRef, useState, useEffect } from 'react';
 import { AiInput } from '@/components/PlanIncAi/aiInput';
 import { Icon } from '@/components/Common/Iconify/icons';
@@ -139,18 +139,20 @@ const AIPage = observer(() => {
               <div className="flex gap-2 px-4 w-full items-center justify-center">
                 {buttons.map((button, index) => (
                   <Button
-                    onPress={() => {
+                    onClick={() => {
                       aiStore.newRoleChat(button.prompt)
                     }}
                     className='w-fit'
                     key={index}
-                    variant='light'
-                    startContent={<Icon className='min-w-[20px]' icon={button.icon} color={button.color} width="20" height="20" />}
+                    variant='secondary'
                   >
+                    <Icon className='min-w-[20px]' icon={button.icon} color={button.color} width="20" height="20" />
                     {button.label}
                   </Button>
                 ))}
-                <Button isIconOnly variant='light' startContent={<Icon icon="icon-park-outline:more" className='min-w-[20px]' width="20" height="20" />} />
+                <Button size="icon" variant='secondary' aria-label="more">
+                  <Icon icon="icon-park-outline:more" className='min-w-[20px]' width="20" height="20" />
+                </Button>
               </div>
             </motion.div>
           )}
@@ -169,14 +171,13 @@ const AIPage = observer(() => {
             >
               {suggestionActions.map((action, index) => (
                 <Button
-                  size={isPc ? 'md' : 'sm'}
-                  onPress={() => {
+                  size={isPc ? 'default' : 'sm'}
+                  onClick={() => {
                     aiStore.newChatWithSuggestion(t(action.prompt))
                   }}
-                  className='w-fit'
+                  className='w-fit rounded-full'
                   key={index}
-                  radius='full'
-                  variant='flat'
+                  variant='ghost'
                 >
                   {t(action.prompt)}
                 </Button>

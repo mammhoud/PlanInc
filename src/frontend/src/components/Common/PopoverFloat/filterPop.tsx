@@ -1,11 +1,12 @@
 import { Icon } from '@/components/Common/Iconify/icons';
-import { Popover, PopoverContent, PopoverTrigger, Select, SelectItem, Button, Radio, RadioGroup } from "@heroui/react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import { RootStore } from "@/store";
 import { PlanIncStore } from "@/store/planincStore";
 import { useState } from "react";
-import { RangeCalendar } from "@heroui/react";
-import { today, getLocalTimeZone } from "@internationalized/date";
 import dayjs from "@/lib/dayjs";
 import TagSelector from "@/components/Common/TagSelector";
 
@@ -15,13 +16,12 @@ export default function FilterPop() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [dateRange, setDateRange] = useState<{
-    start: any;
-    end: any;
+    start: string | null;
+    end: string | null;
   }>({
     start: null,
     end: null
   });
-  const [focusedValue, setFocusedValue] = useState(today(getLocalTimeZone()));
   const [tagStatus, setTagStatus] = useState<string>("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
@@ -73,26 +73,22 @@ export default function FilterPop() {
   };
 
   return (
-    <Popover placement="bottom-start" backdrop="blur" isOpen={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger>
-        <Button isIconOnly size="sm" variant="light">
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button size="icon-sm" variant="ghost">
           <Icon className="cursor-pointer text-default-600" icon="tabler:filter-bolt" width="24" height="24" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent side="bottom" align="start">
         <div className="p-4 flex flex-col gap-4 min-w-[300px]">
           <div className="flex flex-col gap-2">
             <div className="text-sm font-medium flex items-center gap-2">
               <Icon icon="solar:sort-by-time-broken" width="24" height="24" />
               {t('time-range')}
             </div>
-            <Popover placement="bottom" classNames={{
-              content: [
-                "p-0 bg-transparent border-none shadow-none",
-              ],
-            }}>
-              <PopoverTrigger>
-                <div className="flex items-center gap-2 bg-default-100 rounded-lg p-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="flex items-center gap-2 bg-default-100 rounded-lg p-3 cursor-pointer">
                   <Icon icon="solar:calendar-bold" className="text-default-500" width="20" height="20" />
                   <div className="flex items-center gap-2">
                     <span className="text-sm">
@@ -105,14 +101,19 @@ export default function FilterPop() {
                   </div>
                 </div>
               </PopoverTrigger>
-              <PopoverContent>
-                <div className="flex flex-col gap-2">
-                  <RangeCalendar
-                    className="bg-background"
-                    value={dateRange.start && dateRange.end ? dateRange : undefined}
-                    onChange={setDateRange}
-                    focusedValue={focusedValue}
-                    onFocusChange={setFocusedValue}
+              <PopoverContent side="bottom" align="start" className="p-0 bg-transparent border-none shadow-none w-auto">
+                <div className="flex flex-col gap-2 bg-background border rounded-md shadow-md p-3">
+                  <Input
+                    type="date"
+                    aria-label={t('start-date')}
+                    value={dateRange.start ?? ''}
+                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value || null })}
+                  />
+                  <Input
+                    type="date"
+                    aria-label={t('end-date')}
+                    value={dateRange.end ?? ''}
+                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value || null })}
                   />
                 </div>
               </PopoverContent>
@@ -126,48 +127,25 @@ export default function FilterPop() {
             </div>
             <Select
               value={tagStatus}
-              onChange={(e) => setTagStatus(e.target.value)}
-              className="w-full"
-              defaultSelectedKeys={['all']}
-              classNames={{
-                trigger: "h-12",
-              }}
-              labelPlacement="outside"
-              placeholder={t('select-tag-status')}
-              renderValue={(items) => {
-                const item = items[0];
-                const getIcon = (value: string) => {
-                  switch (value) {
-                    case 'all':
-                      return <Icon icon="solar:notes-bold" width="20" height="20" />;
-                    case 'with':
-                      return <Icon icon="lucide:tags" width="20" height="20" />;
-                    case 'without':
-                      return <Icon icon="majesticons:tag-off-line" width="20" height="20" />;
-                    default:
-                      return null;
-                  }
-                };
-                return (
-                  <div className="flex items-center gap-2">
-                    {getIcon(item?.key as string)}
-                    <span>{item?.textValue}</span>
-                  </div>
-                );
-              }}
+              onValueChange={setTagStatus}
             >
-              {[
-                { key: 'all', label: t('all'), icon: <Icon icon="solar:notes-bold" width="20" height="20" /> },
-                { key: 'with', label: t('with-tags'), icon: <Icon icon="lucide:tags" width="20" height="20" /> },
-                { key: 'without', label: t('without-tags'), icon: <Icon icon="majesticons:tag-off-line" width="20" height="20" /> }
-              ].map((item) => (
-                <SelectItem key={item.key} textValue={item.label}>
-                  <div className="flex gap-2 items-center">
-                    {item.icon}
-                    <span className="text-small">{item.label}</span>
-                  </div>
-                </SelectItem>
-              ))}
+              <SelectTrigger className="w-full h-12">
+                <SelectValue placeholder={t('select-tag-status')} />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  { key: 'all', label: t('all'), icon: <Icon icon="solar:notes-bold" width="20" height="20" /> },
+                  { key: 'with', label: t('with-tags'), icon: <Icon icon="lucide:tags" width="20" height="20" /> },
+                  { key: 'without', label: t('without-tags'), icon: <Icon icon="majesticons:tag-off-line" width="20" height="20" /> }
+                ].map((item) => (
+                  <SelectItem key={item.key} value={item.key}>
+                    <div className="flex gap-2 items-center">
+                      {item.icon}
+                      <span className="text-small">{item.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -190,34 +168,48 @@ export default function FilterPop() {
               <Icon icon="material-symbols:conditions" width="20" height="20" />
               {t('additional-conditions')}
             </div>
-            <RadioGroup
-              value={selectedCondition || ""}
-              onValueChange={setSelectedCondition}
-            >
-              <Radio value="">{t('no-condition')}</Radio>
+            <div className="flex flex-col gap-2" role="radiogroup">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="radio"
+                  name="filter-condition"
+                  value=""
+                  checked={(selectedCondition || "") === ""}
+                  onChange={(e) => setSelectedCondition(e.target.value)}
+                  className="h-4 w-4"
+                />
+                {t('no-condition')}
+              </label>
               {conditions.map(condition => (
-                <Radio key={condition.value} value={condition.value}>
+                <label key={condition.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="radio"
+                    name="filter-condition"
+                    value={condition.value}
+                    checked={selectedCondition === condition.value}
+                    onChange={(e) => setSelectedCondition(e.target.value)}
+                    className="h-4 w-4"
+                  />
                   {condition.label}
-                </Radio>
+                </label>
               ))}
-            </RadioGroup>
+            </div>
           </div>
 
           <div className="flex gap-2">
             <Button
-              color="primary"
               onClick={handleApplyFilter}
               className="flex-1"
-              startContent={<Icon icon="solar:filter-bold" width="20" height="20" />}
             >
+              <Icon icon="solar:filter-bold" width="20" height="20" />
               {t('apply-filter')}
             </Button>
             <Button
-              variant="flat"
+              variant="ghost"
               onClick={handleReset}
               className="flex-1"
-              startContent={<Icon icon="fluent:arrow-reset-20-filled" width="20" height="20" />}
             >
+              <Icon icon="fluent:arrow-reset-20-filled" width="20" height="20" />
               {t('reset')}
             </Button>
           </div>

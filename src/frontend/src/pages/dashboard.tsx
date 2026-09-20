@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, CardBody, Chip } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { api } from '@/lib/trpc';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { ScrollArea } from '@/components/Common/ScrollArea';
-import { PlanningStats } from '@/components/PlanincAnalytics/PlanningStats';
+import { PlanningStats } from '@/components/PlanIncAnalytics/PlanningStats';
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
 
 type Ticket = { id: number; title: string; status: 'open' | 'in_progress' | 'blocked' | 'done'; priority: 'low' | 'medium' | 'high' | 'critical'; updatedAt: string };

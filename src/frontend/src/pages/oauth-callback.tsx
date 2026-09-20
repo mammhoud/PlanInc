@@ -9,7 +9,7 @@ import { LoadingPage } from '@/components/Common/LoadingPage';
 import { signIn, getTokenData } from '@/components/Auth/auth-client';
 import { eventBus } from '@/lib/event';
 import { UserStore } from '@/store/user';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
@@ -184,8 +184,7 @@ export default function OAuthCallback() {
         <h1 className="text-xl font-bold mb-2">{t('login-failed')}</h1>
         <p className="text-sm text-red-500 mb-6">{error}</p>
         <Button 
-          color="primary" 
-          onPress={handleReturnToLogin}
+          onClick={handleReturnToLogin}
           className="px-6 py-2"
         >
           {t('sign-in')}

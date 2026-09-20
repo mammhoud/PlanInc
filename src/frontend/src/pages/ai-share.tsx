@@ -1,4 +1,5 @@
-import { Avatar, Card, CardBody } from "@heroui/react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
@@ -93,11 +94,11 @@ const AiSharePage = observer(() => {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <Card className="max-w-md mx-auto">
-                    <CardBody className="text-center">
+                    <CardContent className="text-center pt-6">
                         <Icon icon="hugeicons:alert-circle" width="48" height="48" className="text-red-500 mx-auto mb-4" />
                         <h2 className="text-lg font-semibold mb-2">{i18n.t('load-failed')}</h2>
                         <p className="text-desc">{error}</p>
-                    </CardBody>
+                    </CardContent>
                 </Card>
             </div>
         );
@@ -112,7 +113,10 @@ const AiSharePage = observer(() => {
                         <div className="flex items-center gap-3">
                             {
                                 conversation?.account?.image ?
-                                    <Avatar className="w-10 h-10" src={getPlanIncEndpoint(conversation?.account?.image)} />
+                                    <Avatar className="w-10 h-10">
+                                        <AvatarImage src={getPlanIncEndpoint(conversation?.account?.image)} alt={conversation?.account?.nickname || conversation?.account?.name} />
+                                        <AvatarFallback>{(conversation?.account?.nickname || conversation?.account?.name || '?').slice(0, 1)}</AvatarFallback>
+                                    </Avatar>
                                     :
                                     <Icon icon="eos-icons:three-dots-loading" width="40" height="40" className="text-desc" />
                             }

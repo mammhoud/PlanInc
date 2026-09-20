@@ -1,5 +1,7 @@
 import React from "react";
-import { Button, Input } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { RootStore } from "@/store/root";
 import { ToastPlugin } from "@/store/module/Toast/Toast";
@@ -22,7 +24,7 @@ export default function Component() {
   return (
     <GradientBackground>
       <div className="flex h-full w-screen items-center justify-center p-2 sm:p-4 lg:p-8">
-        <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-large">
+        <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-card px-8 pb-10 pt-6 shadow-large">
           <p className="pb-4 text-left text-3xl font-semibold">
             {t('sign-up')}
             <span aria-label="emoji" className="ml-2" role="img">
@@ -30,70 +32,61 @@ export default function Component() {
             </span>
           </p>
           <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
-            <Input
-              isRequired
-              label={t('username')}
-              labelPlacement="outside"
-              name="username"
-              placeholder={t('enter-your-username')}
-              type="text"
-              variant="bordered"
-              value={user}
-              onChange={e => setUser(e.target.value)}
-            />
-            <Input
-              isRequired
-              endContent={
-                <button type="button" onClick={toggleVisibility}>
+            <div className="space-y-1">
+              <Label htmlFor="username">{t('username')}</Label>
+              <Input
+                required
+                id="username"
+                name="username"
+                placeholder={t('enter-your-username')}
+                type="text"
+                value={user}
+                onChange={e => setUser(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="password">{t('password')}</Label>
+              <div className="relative">
+                <Input
+                  required
+                  id="password"
+                  name="password"
+                  placeholder={t('enter-your-password')}
+                  type={isVisible ? "text" : "password"}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+                <button type="button" onClick={toggleVisibility} className="absolute right-3 top-1/2 -translate-y-1/2">
                   {isVisible ? (
-                    <Icon
-                      className="pointer-events-none text-2xl text-default-400"
-                      icon="solar:eye-closed-linear"
-                    />
+                    <Icon className="pointer-events-none text-2xl text-muted-foreground" icon="solar:eye-closed-linear" />
                   ) : (
-                    <Icon
-                      className="pointer-events-none text-2xl text-default-400"
-                      icon="solar:eye-bold"
-                    />
+                    <Icon className="pointer-events-none text-2xl text-muted-foreground" icon="solar:eye-bold" />
                   )}
                 </button>
-              }
-              label={t('password')}
-              labelPlacement="outside"
-              name="password"
-              placeholder={t('enter-your-password')}
-              type={isVisible ? "text" : "password"}
-              variant="bordered"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-            <Input
-              isRequired
-              endContent={
-                <button type="button" onClick={toggleConfirmVisibility}>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="confirmPassword">{t('confirm-password')}</Label>
+              <div className="relative">
+                <Input
+                  required
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  placeholder={t('confirm-your-password')}
+                  type={isConfirmVisible ? "text" : "password"}
+                  value={password2}
+                  onChange={e => setPassword2(e.target.value)}
+                />
+                <button type="button" onClick={toggleConfirmVisibility} className="absolute right-3 top-1/2 -translate-y-1/2">
                   {isConfirmVisible ? (
-                    <Icon
-                      className="pointer-events-none text-2xl text-default-400"
-                      icon="solar:eye-closed-linear"
-                    />
+                    <Icon className="pointer-events-none text-2xl text-muted-foreground" icon="solar:eye-closed-linear" />
                   ) : (
-                    <Icon
-                      className="pointer-events-none text-2xl text-default-400"
-                      icon="solar:eye-bold"
-                    />
+                    <Icon className="pointer-events-none text-2xl text-muted-foreground" icon="solar:eye-bold" />
                   )}
                 </button>
-              }
-              label={t('confirm-password')}
-              labelPlacement="outside"
-              name="confirmPassword"
-              placeholder={t('confirm-your-password')}
-              type={isConfirmVisible ? "text" : "password"}
-              variant="bordered"
-              value={password2}
-              onChange={e => setPassword2(e.target.value)}
-            />
-            <Button color="primary" type="submit" onPress={async e => {
+              </div>
+            </div>
+            <Button type="submit" onClick={async e => {
               if (!user || !password || !password2) {
                 return RootStore.Get(ToastPlugin).error(t('required-items-cannot-be-empty'))
               }

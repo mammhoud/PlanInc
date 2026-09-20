@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, CardBody, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Switch } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/trpc';
 import { ScrollArea } from '@/components/Common/ScrollArea';
@@ -195,34 +202,39 @@ export default function TicketsPage() {
     <ScrollArea fixMobileTopBar className="mx-auto w-full max-w-5xl space-y-4 px-3 pb-24 md:px-6">
       <div className="flex items-center gap-2 pt-2"><Icon icon="tabler:list-check" width="24" height="24" /><h1 className="text-xl font-bold">{t('tickets')}</h1></div>
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label={t('filter-by-tag')}>
-        <Button size="sm" variant={selectedTag ? 'flat' : 'solid'} onPress={() => setSelectedTag('')}>{t('all')}</Button>
-        {availableTags.map((tag) => <Button key={tag} size="sm" variant={selectedTag === tag ? 'solid' : 'flat'} onPress={() => setSelectedTag(tag)}>#{tag}</Button>)}
+        <Button size="sm" variant={selectedTag ? 'secondary' : 'default'} onClick={() => setSelectedTag('')}>{t('all')}</Button>
+        {availableTags.map((tag) => <Button key={tag} size="sm" variant={selectedTag === tag ? 'default' : 'secondary'} onClick={() => setSelectedTag(tag)}>#{tag}</Button>)}
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label={t('filter-by-category')}>
-        <Button size="sm" variant={selectedCategory ? 'flat' : 'solid'} onPress={() => setSelectedCategory('')}>{t('all-categories')}</Button>
-        {availableCategories.map((categoryName) => <Button key={categoryName} size="sm" variant={selectedCategory === categoryName ? 'solid' : 'flat'} onPress={() => setSelectedCategory(categoryName)}>{categoryName}</Button>)}
+        <Button size="sm" variant={selectedCategory ? 'secondary' : 'default'} onClick={() => setSelectedCategory('')}>{t('all-categories')}</Button>
+        {availableCategories.map((categoryName) => <Button key={categoryName} size="sm" variant={selectedCategory === categoryName ? 'default' : 'secondary'} onClick={() => setSelectedCategory(categoryName)}>{categoryName}</Button>)}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <PlanningViewSwitch value={viewMode} onChange={setViewMode} ariaLabel={t('ticket-view')} />
-        <Button color="primary" onPress={() => { setEditingItem(null); setIsCrudOpen(true); }} startContent={<Icon icon="material-symbols:add" width="16" height="16" />}>{t('create-ticket')}</Button>
+        <Button onClick={() => { setEditingItem(null); setIsCrudOpen(true); }}><Icon icon="material-symbols:add" width="16" height="16" />{t('create-ticket')}</Button>
       </div>
-      {error && <p className="rounded-xl bg-danger-50 p-3 text-danger">{error}</p>}
-      {isLoading && <p className="py-8 text-center text-foreground-500">{t('in-progress')}</p>}
+      {error && <p className="rounded-xl bg-destructive/10 p-3 text-destructive">{error}</p>}
+      {isLoading && <p className="py-8 text-center text-muted-foreground">{t('in-progress')}</p>}
       <div className={planningViewGridClass(viewMode)}>
-        {!isLoading && pagedTickets.map((ticket) => <Card key={ticket.id}><CardBody className="gap-3">
-          <div className="flex items-start justify-between gap-2"><div><h2 className="font-semibold">{ticket.title}</h2><p className="text-sm text-foreground-500">{ticket.description}</p><p className="mt-1 text-xs text-foreground-400">{ticket.category || t('uncategorized')}</p></div><Chip size="sm" color={ticket.priority === 'critical' ? 'danger' : 'default'}>{t(ticket.priority)}</Chip></div>
+        {!isLoading && pagedTickets.map((ticket) => <Card key={ticket.id}><CardContent className="gap-3">
+          <div className="flex items-start justify-between gap-2"><div><h2 className="font-semibold">{ticket.title}</h2><p className="text-sm text-muted-foreground">{ticket.description}</p><p className="mt-1 text-xs text-muted-foreground">{ticket.category || t('uncategorized')}</p></div><Badge variant={ticket.priority === 'critical' ? 'destructive' : 'default'}>{t(ticket.priority)}</Badge></div>
           <div className="flex flex-wrap items-end gap-2">
-            <div className="flex w-full gap-1 overflow-x-auto">{(ticket.tags ?? []).map((tag) => <Chip key={tag} size="sm" variant="flat">#{tag}</Chip>)}</div>
-            <Select className="flex-1" size="sm" label={t('status')} selectedKeys={[ticket.status]} onSelectionChange={(keys) => api.tickets.update.mutate({ id: ticket.id, status: String(Array.from(keys)[0]) as (typeof statuses)[number] }).then(load)}>
-              {statuses.map((item) => <SelectItem key={item}>{t(item)}</SelectItem>)}
+            <div className="flex w-full gap-1 overflow-x-auto">{(ticket.tags ?? []).map((tag) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}</div>
+            <Select value={ticket.status} onValueChange={(value) => api.tickets.update.mutate({ id: ticket.id, status: value as (typeof statuses)[number] }).then(load)}>
+              <SelectTrigger className="flex-1 h-9">
+                <SelectValue placeholder={t('status')} />
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((item) => <SelectItem key={item} value={item}>{t(item)}</SelectItem>)}
+              </SelectContent>
             </Select>
-            <Button size="sm" variant="flat" onPress={() => openLinks(ticket)}>{t('related-items')}</Button>
-            <Button isIconOnly variant="flat" aria-label={t('edit')} onPress={() => { setEditingItem(ticket); setIsCrudOpen(true); }}><Icon icon="hugeicons:edit-02" width="18" height="18" /></Button>
-            <Button isIconOnly variant="flat" color="danger" aria-label={t('delete')} onPress={() => remove(ticket)}><Icon icon="hugeicons:delete-02" width="18" height="18" /></Button>
+            <Button size="sm" variant="ghost" onClick={() => openLinks(ticket)}>{t('related-items')}</Button>
+            <Button size="icon" variant="ghost" aria-label={t('edit')} onClick={() => { setEditingItem(ticket); setIsCrudOpen(true); }}><Icon icon="hugeicons:edit-02" width="18" height="18" /></Button>
+            <Button size="icon" variant="ghost" aria-label={t('delete')} onClick={() => remove(ticket)}><Icon icon="hugeicons:delete-02" width="18" height="18" /></Button>
           </div>
-        </CardBody></Card>)}
+        </CardContent></Card>)}
       </div>
-      {!isLoading && !visibleTickets.length && <p className="py-10 text-center text-foreground-500">{t('no-tickets')}</p>}
+      {!isLoading && !visibleTickets.length && <p className="py-10 text-center text-muted-foreground">{t('no-tickets')}</p>}
       {!isLoading && visibleTickets.length > 0 && (
         <PlanningPagination page={page} pageSize={pageSize} total={visibleTickets.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       )}

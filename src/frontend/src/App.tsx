@@ -2,7 +2,6 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ThemeProvider } from 'next-themes';
 import { Inspector, InspectParams } from 'react-dev-inspector';
-import { HeroUIProvider } from '@heroui/react';
 import './styles/github-markdown.css';
 import 'react-photo-view/dist/react-photo-view.css';
 import '@/lib/i18n';
@@ -285,17 +284,15 @@ function App() {
         }}
       />
       <BrowserRouter>
-        <HeroUIProvider>
-          <ThemeProvider attribute="class" enableSystem={false}>
-            <AppProvider />
-            <CommonLayout>
-              <div className="app-content">
-                <AppRoutes />
-                <PlanIncMultiSelectPop />
-              </div>
-            </CommonLayout>
-          </ThemeProvider>
-        </HeroUIProvider>
+        <ThemeProvider attribute="class" enableSystem={false}>
+          <AppProvider />
+          <CommonLayout>
+            <div className="app-content">
+              <AppRoutes />
+              <PlanIncMultiSelectPop />
+            </div>
+          </CommonLayout>
+        </ThemeProvider>
         <PlanIncMusicPlayer />
       </BrowserRouter>
     </>

@@ -1,4 +1,6 @@
-import { Button, InputOtp } from "@heroui/react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { RootStore } from "@/store";
@@ -19,6 +21,7 @@ interface TwoFactorModalProps {
 export function Gen2FATokenModal({ qrCodeUrl, totpSecret }: TwoFactorModalProps) {
   const { t } = useTranslation();
   const planinc = RootStore.Get(PlanIncStore)
+  const [code, setCode] = useState("");
   const store = RootStore.Local(() => ({
     totpToken: '',
     showToken: false,
@@ -60,6 +63,19 @@ export function Gen2FATokenModal({ qrCodeUrl, totpSecret }: TwoFactorModalProps)
     }
   }))
 
+  const handleComplete = (value: string) => {
+    store.totpToken = value
+    store.verify()
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.value.replace(/[^0-9]/g, "").slice(0, 6);
+    setCode(next);
+    if (next.length === 6) {
+      handleComplete(next);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 items-center">
       <Icon icon="hugeicons:authorized" width="30" height="30" />
@@ -68,18 +84,18 @@ export function Gen2FATokenModal({ qrCodeUrl, totpSecret }: TwoFactorModalProps)
         <QRCodeSVG value={qrCodeUrl} size={200} />
       </div>
       <div className="text-desc text-xs text-center">{t('or-enter-this-code-manually')} {totpSecret}</div>
-      <InputOtp
-        className="mt-2"
-        length={6} radius="lg" size='lg'
-        onComplete={e => {
-          store.totpToken = e
-          store.verify()
-        }} />
+      <Input
+        className="mt-2 text-center text-lg tracking-[0.5em]"
+        maxLength={6}
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        placeholder="······"
+        value={code}
+        onChange={handleChange} />
 
       <Button
         className="mt-2"
-        color="primary"
-        onPress={async () => {
+        onClick={async () => {
           await store.verify()
         }}
       >
@@ -97,4 +113,3 @@ export const ShowGen2FATokenModal = (props: TwoFactorModalProps) => {
     content: <Gen2FATokenModal {...props} />
   })
 }
-
