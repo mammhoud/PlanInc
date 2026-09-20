@@ -20,6 +20,10 @@
 | PI-008 | [`docs/07-testing.md`](./07-testing.md) | The three Playwright configs and what each proves | ✅ Exists |
 | PI-009 | [`docs/08-i18n.md`](./08-i18n.md) | Locales, parity rules, adding a language | ✅ Exists |
 | PI-010 | [`docs/09-troubleshooting.md`](./09-troubleshooting.md) | Symptom → cause → fix entries | ✅ Exists |
+| PI-011 | [`docs/10-blinko-parity-and-design-plan.md`](./10-blinko-parity-and-design-plan.md) | Blinko analysis, design-system base (HeroUI/shadcn/FlyonUI), skill + content map, UX/integration backlog, ordered P0–P11 programme, phase log (P1/P2/P3 shipped) | ✅ Exists |
+| PI-012 | [`docs/11-parity-matrix.md`](./11-parity-matrix.md) | P0 parity matrix — one row per backlog item with Blinko evidence, file-verified PlanInc status, gap type and owning phase | ✅ Exists |
+| PI-013 | [`docs/12-settings-and-appearance-reference.md`](./12-settings-and-appearance-reference.md) | Settings registry reference (generated table), appearance v2 attributes/tokens, verification commands | ✅ Exists |
+| PI-014 | [`docs/13-single-frontend-platforms.md`](./13-single-frontend-platforms.md) | Single frontend directory for every platform/OS: platform model, capabilities, `useSideNav`/`useIsPhone`, responsive tiers, `<html>` attribute contract, what the shell actually consumes, `check:platform` (12 groups), `runtime/` migration note | ✅ Exists |
 
 ## Per-directory documentation
 

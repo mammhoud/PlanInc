@@ -19,9 +19,9 @@ PlanInc is an open-source, self-hosted note-taking application with AI-powered f
 
 ```
 planinc/
-├── app/                    # Frontend React application
-│   ├── src/               # React source code
-│   ├── src-tauri/         # Tauri desktop app configuration
+├── frontend/               # THE single frontend: web, PWA, Tauri desktop + mobile
+│   ├── src/               # React source code (platform/, components/, pages/, store/)
+│   ├── src-tauri/         # Tauri desktop + Android/iOS app configuration
 │   └── tauri-plugin-planinc/ # Custom Tauri plugin
 ├── server/                 # Backend Node.js server
 │   ├── aiServer/          # AI integration services
@@ -46,10 +46,15 @@ bun run dev:frontend       # Run frontend only
 ```
 
 ### Building
+
+Every target is built from the same `frontend/` directory; the output is
+`dist/public`, which both the web image and the Tauri bundles consume.
+
 ```bash
-bun run build:web          # Build web application
-bun run tauri:desktop:build # Build desktop application
-bun run tauri:android:build # Build Android application
+bun run build:web           # Web + PWA bundle → dist/public
+bun run tauri:desktop:build # Desktop: Windows / macOS / Linux
+bun run tauri:android:build # Android
+bun run tauri:ios:build     # iOS
 ```
 
 ### Database
@@ -60,12 +65,14 @@ bun run seed               # Bootstrap schema + seed the SurrealDB store
 ### Testing & Linting
 ```bash
 bun run test               # Run tests (if configured)
+cd frontend && bun run check:contracts  # token contract + settings registry + platform matrix
 ```
 
 ## Architecture & Key Components
 
 ### Frontend Architecture
-- **State Management**: MobX with custom stores in `/app/src/store/`
+- **State Management**: MobX with custom stores in `/frontend/src/store/`
+- **Platform adaptation**: `platform/PlatformProvider.tsx` mirrors the detected platform/OS/form factor onto `<html>` as `data-*`; `styles/platform.css` styles off those attributes. Capabilities (share sheet, native back, safe areas, offline shell) are read via `useCapability()` rather than branching on `isMobile`.
 - **Routing**: React Router v7
 - **UI Components**: Custom components with HeroUI (@heroui/react)
 - **Editor**: Vditor for markdown editing

@@ -16,6 +16,10 @@ Long-form documentation, indexed by [`INDEX.md`](./INDEX.md). Start there for th
 - `07-testing.md`
 - `08-i18n.md`
 - `09-troubleshooting.md`
+- `10-blinko-parity-and-design-plan.md`
+- `11-parity-matrix.md`
+- `12-settings-and-appearance-reference.md`
+- `13-single-frontend-platforms.md`
 - `INDEX.md`
 
 ## Public API

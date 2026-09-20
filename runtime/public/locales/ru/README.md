@@ -15,7 +15,7 @@ Translation bundle for the `ru` locale. Keys are looked up by the runtime i18n l
 ## Usage
 
 ```ts
-import i18n from "@/lib/i18n";   // src/app/src/lib/i18n.ts
+import i18n from "@/lib/i18n";   // src/frontend/src/lib/i18n.ts
 
 i18n.t("some.key", { lng: "ru" });
 ```

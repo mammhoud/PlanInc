@@ -17,11 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "typeRoots": ["./node_modules/@types", "./server/types"],
     "paths": {
-      "@/*": ["./app/src/*"],
+      "@/*": ["./frontend/src/*"],
       "@/routerTrpc/*": ["./server/routerTrpc/*"],
       "@/routerExpress/*": ["./server/routerExpress/*"]
     }
   },
-  "include": ["app/src", "server"],
+  "include": ["frontend/src", "server"],
   "references": [{ "path": "./tsconfig.node.json" }]
 } 

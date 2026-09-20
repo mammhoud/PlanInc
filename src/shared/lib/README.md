@@ -14,6 +14,7 @@ Isomorphic helpers: cache, dates, lodash subset, schemas and constants.
 - `modelTemplates.ts` - Model capabilities interface (duplicated here to avoid circular dependencies)
 - `pathConstant.ts`
 - `recordSchemas.ts` - Zod schemas for the data records (validation + tRPC input/output types).
+- `settingsRegistry.ts` - Settings registry (PI-011 · P2).
 - `sharedConstant.ts`
 - `types.ts`
 

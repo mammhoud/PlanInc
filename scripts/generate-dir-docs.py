@@ -115,26 +115,26 @@ PURPOSE: dict[str, str] = {
         "Desktop/web client. React + Vite, shipped both as a web bundle and as a "
         "Tauri desktop app."
     ),
-    "src/app/public": "Static assets copied verbatim into the Vite build.",
-    "src/app/src": "Client source tree.",
-    "src/app/src/assets": "Bundled static assets imported by components.",
-    "src/app/src/components": (
+    "src/frontend/public": "Static assets copied verbatim into the Vite build.",
+    "src/frontend/src": "Client source tree.",
+    "src/frontend/src/assets": "Bundled static assets imported by components.",
+    "src/frontend/src/components": (
         "React component library. Grouped as `Common/` (reusable primitives), "
         "`Layout/`, and feature components named `Planinc*`."
     ),
-    "src/app/src/hooks": "Reusable React hooks.",
-    "src/app/src/lib": "Client-side library code: API clients, storage, i18n and helpers.",
-    "src/app/src/pages": "Route-level page components.",
-    "src/app/src/store": (
+    "src/frontend/src/hooks": "Reusable React hooks.",
+    "src/frontend/src/lib": "Client-side library code: API clients, storage, i18n and helpers.",
+    "src/frontend/src/pages": "Route-level page components.",
+    "src/frontend/src/store": (
         "State management, built on a custom store base with per-domain stores "
         "plus pluggable `module/` and `standard/` primitives."
     ),
-    "src/app/src/styles": "Global stylesheets and vendor style overrides.",
-    "src/app/src-tauri": (
+    "src/frontend/src/styles": "Global stylesheets and vendor style overrides.",
+    "src/frontend/src-tauri": (
         "Tauri desktop shell: Rust host, capabilities and per-platform generated "
         "projects."
     ),
-    "src/app/tauri-plugin-planinc": "Tauri plugin exposing native PlanInc capabilities to the web layer.",
+    "src/frontend/tauri-plugin-planinc": "Tauri plugin exposing native PlanInc capabilities to the web layer.",
     "src/helm": "Helm chart for Kubernetes deployment of PlanInc.",
     "src/planinc-types": "Published type package consumed by the client and server.",
     "src/server": (
@@ -164,33 +164,33 @@ PURPOSE: dict[str, str] = {
     "src/.github/workflows": "CI workflow definitions (build, test, release).",
     "src/.github/ISSUE_TEMPLATE": "Issue report templates.",
     "src/.github/changelog": "Changelog fragments consumed by the release workflow.",
-    "src/app/src/lib/utils": "Small focused utility modules shared across the client.",
-    "src/app/src/store/module": (
+    "src/frontend/src/lib/utils": "Small focused utility modules shared across the client.",
+    "src/frontend/src/store/module": (
         "Reusable state modules: `Dialog`, `DialogStandalone` and `Toast` providers "
         "plus the app-level `AppProvider`."
     ),
-    "src/app/src/store/module/Dialog": "Modal dialog state module.",
-    "src/app/src/store/module/DialogStandalone": (
+    "src/frontend/src/store/module/Dialog": "Modal dialog state module.",
+    "src/frontend/src/store/module/DialogStandalone": (
         "Imperative dialogs rendered outside the React tree."
     ),
-    "src/app/src/store/module/Toast": "Toast notification state module.",
-    "src/app/src/store/standard": (
+    "src/frontend/src/store/module/Toast": "Toast notification state module.",
+    "src/frontend/src/store/standard": (
         "Store primitives: `base`, promise/async state, object pooling and "
         "persisted list state that the per-domain stores build on."
     ),
-    "src/app/src/store/plugin": (
+    "src/frontend/src/store/plugin": (
         "Plugin runtime: registry, manager, render pipeline and the API surface "
         "exposed to plugins."
     ),
-    "src/app/src/components/Common": (
+    "src/frontend/src/components/Common": (
         "Reusable UI primitives shared across features - editors, markdown "
         "rendering, dialogs, pickers and layout helpers."
     ),
-    "src/app/src-tauri/capabilities": (
+    "src/frontend/src-tauri/capabilities": (
         "Tauri v2 capability grants: which native commands the web layer may call."
     ),
-    "src/app/src-tauri/src": "Rust host for the Tauri desktop shell.",
-    "src/app/src-tauri/src/desktop": "Desktop-specific Rust commands and window wiring.",
+    "src/frontend/src-tauri/src": "Rust host for the Tauri desktop shell.",
+    "src/frontend/src-tauri/src/desktop": "Desktop-specific Rust commands and window wiring.",
     "src/test-docker/mock-openai": (
         "Mock OpenAI-compatible endpoint used by containerised tests to exercise "
         "AI paths without spending quota."
@@ -419,7 +419,7 @@ def usage_block(rel: str, kind: str, symbols: list[str]) -> str:
     if kind == "locale":
         return (
             "```ts\n"
-            'import i18n from "@/lib/i18n";   // src/app/src/lib/i18n.ts\n\n'
+            'import i18n from "@/lib/i18n";   // src/frontend/src/lib/i18n.ts\n\n'
             f'i18n.t("some.key", {{ lng: "{rel.split("/")[-1]}" }});\n'
             "```"
         )

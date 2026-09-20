@@ -6,7 +6,7 @@ Code shared by client and server (Bun workspace `@planinc/shared`).
 
 ## Contents
 
-- `lib/` - 10 files
+- `lib/` - 11 files
 - `index.ts`
 - `package.json` - package/tooling manifest
 - `tsconfig.json` - package/tooling manifest

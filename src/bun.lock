@@ -22,7 +22,7 @@
         "workbox-window": "^7.3.0",
       },
     },
-    "app": {
+    "frontend": {
       "name": "@planinc/frontend",
       "version": "0.0.0",
       "dependencies": {
@@ -599,7 +599,7 @@
 
     "@planinc/backend": ["@planinc/backend@workspace:server"],
 
-    "@planinc/frontend": ["@planinc/frontend@workspace:app"],
+    "@planinc/frontend": ["@planinc/frontend@workspace:frontend"],
 
     "@planinc/shared": ["@planinc/shared@workspace:shared"],
 
@@ -4939,7 +4939,7 @@
 
     "@babel/preset-env/semver": ["semver@6.3.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA=="],
 
-    "@planinc/frontend/tauri-plugin-planinc-api": ["tauri-plugin-planinc-api@file:app/tauri-plugin-planinc", { "dependencies": { "@tauri-apps/api": ">=2.0.0-beta.6" }, "devDependencies": { "@rollup/plugin-typescript": "^11.1.6", "rollup": "^4.9.6", "tslib": "^2.6.2", "typescript": "^5.3.3" } }],
+    "@planinc/frontend/tauri-plugin-planinc-api": ["tauri-plugin-planinc-api@file:frontend/tauri-plugin-planinc", { "dependencies": { "@tauri-apps/api": ">=2.0.0-beta.6" }, "devDependencies": { "@rollup/plugin-typescript": "^11.1.6", "rollup": "^4.9.6", "tslib": "^2.6.2", "typescript": "^5.3.3" } }],
 
     "@planinc/frontend/typescript": ["typescript@5.6.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="],
 

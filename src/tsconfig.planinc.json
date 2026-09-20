@@ -9,7 +9,7 @@
         "baseUrl": ".",
         "paths": {
             "@/*": [
-                "./app/src/*"
+                "./frontend/src/*"
             ],
             "@server/*": [
                 "./server/*"
@@ -20,7 +20,7 @@
         },
     },
     "include": [
-        "./app/src/store/plugin/index.ts",
+        "./frontend/src/store/plugin/index.ts",
     ],
     "exclude": [
         "node_modules"

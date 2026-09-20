@@ -56,6 +56,14 @@ export const ZUserPerferConfigKey = z.union([
   z.literal('defaultHomePage'),
   z.literal('desktopHotkeys'),
   z.literal('systemTray'),
+  // appearance v2 (PI-011 · P3) — declared in `shared/lib/settingsRegistry.ts`
+  z.literal('density'),
+  z.literal('uiScale'),
+  z.literal('lineHeight'),
+  z.literal('direction'),
+  z.literal('reduceMotion'),
+  z.literal('contrastBoost'),
+  z.literal('pageSize'),
 ]);
 
 export const ZConfigKey = z.union([
