@@ -10,10 +10,13 @@ import { defineConfig, devices } from '@playwright/test';
 // SurrealDB namespace pair. Runs sequentially via `npm test`; ports/names are
 // distinct so even parallel invocations cannot collide.
 const port = 1114;
-const enginePort = 8003;
 process.env.PLANING_PW_RUN ||= `${Date.now()}-appearance-${process.pid}`;
 const testNamespace = `planing_test_${process.env.PLANING_PW_RUN}`;
-const engineFile = `/tmp/planing_pw_engine_appearance_${process.env.PLANING_PW_RUN}.db`;
+// Embedded surrealkv store, disposable per run (see playwright.config.mjs): the
+// runtime opens the file itself, so this config needs no engine container and
+// must never point at the deployment volume.
+const embeddedDir = path.join(os.tmpdir(), `planing_pw_embedded_${process.env.PLANING_PW_RUN}`);
+const embeddedFile = path.join(embeddedDir, 'planinc.db');
 // Same disposable context fixtures as the main config, under this run's id.
 const contextFixture = path.join(os.tmpdir(), `planing_pw_context_${process.env.PLANING_PW_RUN}`);
 const fixtureDirs = {
@@ -34,16 +37,6 @@ export default defineConfig({
   use: { baseURL: `http://127.0.0.1:${port}`, ...devices['Desktop Chrome'] },
   webServer: [
     {
-      // Reusable on purpose: teardown may SIGKILL the wrapper shell (skipping
-      // any trap) and a surviving engine would block later runs. Data is still
-      // isolated per run via PLANING_PW_RUN namespaces. Dedicated container
-      // name + ports keep this suite independent of the main config's engine.
-      command: `sh -c 'trap "docker rm -f planing-pw-engine-appearance 2>/dev/null" TERM INT EXIT; docker rm -f planing-pw-engine-appearance 2>/dev/null; rm -f /tmp/planing_pw_engine_appearance_*.db*; docker run --rm --name planing-pw-engine-appearance -p 127.0.0.1:${enginePort}:8000 surrealdb/surrealdb:v1.5.6 start --auth --user root --pass playwright-engine-pass rocksdb:${engineFile}'`,
-      url: `http://127.0.0.1:${enginePort}/health`,
-      reuseExistingServer: true,
-      timeout: 45_000,
-    },
-    {
       command: 'node server.mjs',
       url: `http://127.0.0.1:${port}/health`,
       reuseExistingServer: false,
@@ -52,12 +45,11 @@ export default defineConfig({
       stderr: 'pipe',
       env: {
         PLANING_PORT: String(port),
-        SURREALDB_URL: `http://127.0.0.1:${enginePort}/rpc`,
-        SURREALDB_USER: 'root',
-        SURREALDB_PASS: 'playwright-engine-pass',
+        SURREALDB_FILE: embeddedFile,
         SURREALDB_NS: testNamespace,
         SURREALDB_DB: 'auth',
         NEXTAUTH_SECRET: 'playwright-secret',
+        UPLOAD_DIR: path.join(embeddedDir, 'uploads'),
         PLANING_CONTEXT_PROJECT_DIR: fixtureDirs.project,
         PLANING_CONTEXT_DOCUMENTS_DIR: fixtureDirs.documents,
         PLANING_CONTEXT_NOTES_DIR: fixtureDirs.notes,

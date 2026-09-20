@@ -75,13 +75,15 @@ PlanInc serves as an incubation platform for innovative ideas and projects.
 
 ```
 PlanInc/
-├── src/               # PlanInc application source (frontend, server, shared)
-├── runtime/           # Isolated browser-test fixtures and compatibility runtime
-├── src/               # Canonical Bun + React + Tauri application
-│   ├── app/            # React/Vite/Tauri frontend
-│   ├── server/         # Bun/Express/TRPC backend
-│   └── shared/         # Shared schemas and types
-└── docker-compose.yml  # Canonical source-based deployment
+├── runtime/            # Deployed server: Express + embedded SurrealDB (surrealkv)
+│   ├── server.mjs       # All HTTP routes, schema bootstrap, AI jobs, jobs worker
+│   ├── public/          # Server-rendered SPA shell, htmx fragments, locales
+│   └── tests/           # Playwright suite (hermetic + deployed smoke)
+├── src/                # Source monorepo (Bun + React/Vite/Tauri + tRPC)
+│   ├── app/             # React/Vite/Tauri frontend
+│   ├── server/          # Bun/Express/tRPC backend
+│   └── shared/          # Shared schemas and types
+└── docker-compose.yml  # Canonical deployment (builds ./runtime)
 ```
 
 ## 🚦 Quick Start
@@ -100,8 +102,13 @@ PlanInc/
 
 3. **Start services**
    ```bash
-   make up
+   make up        # start (image must be built)
+   make deploy    # build + start
+   make run       # run natively without a docker build (uses ./runtime/data)
    ```
+
+   Set `PLANINC_SUPERUSER_NAME` and `PLANINC_SUPERUSER_PASSWORD` in `.env` to
+   have the first admin account created automatically on first boot.
 
 4. **Access the application**
    - Main Interface: `http://localhost:1111`
@@ -147,8 +154,13 @@ bun run dev:backend
 cd src
 bun run dev
 
-# Run tests
+# Run the runtime test suite (hermetic — spins up its own server and a
+# disposable embedded SurrealDB store, never the deployment database)
 make test
+
+# Smoke a running deployment over HTTP (defaults to http://127.0.0.1:1111;
+# set PLANINC_TEST_URL to point somewhere else)
+make test-canonical
 
 # Create or update a local superuser (never commit these credentials)
 PLANINC_SUPERUSER_NAME=admin \

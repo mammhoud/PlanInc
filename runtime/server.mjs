@@ -74,12 +74,8 @@ if (process.env.DATABASE_URL || process.env.POSTGRES_HOST || process.env.PGHOST)
   throw new Error('PostgreSQL configuration is forbidden in the SurrealDB-only Planing runtime');
 }
 
-// Edge writes on this stack: `RELATE` cannot take bound or function-valued
-// endpoints through the HTTP driver (v1.5.6 parses `type::thing(...)` in a
-// RELATE path as a syntax error and binding a RecordId yields `in = NONE`), and
-// `CREATE`/`INSERT` on a RELATION table are rejected. What does work is
-// upserting the edge by a deterministic id with explicit `in`/`out` fields,
-// which produces exactly the record shape RELATE would have.
+// RELATE paths need plain record literals: bound endpoints are rejected by the
+// engine (`in` ends up NONE), so record ids are inlined rather than bound.
 const recordLiteral = (table, id) => {
   const value = String(id);
   return /^[A-Za-z0-9_]+$/.test(value) ? `${table}:${value}` : `${table}:⟨${value}⟩`;
@@ -91,6 +87,17 @@ const recordLiteral = (table, id) => {
 function inlineValue(value) {
   if (value === null || value === undefined) return 'NONE';
   if (value instanceof Date) return `d${JSON.stringify(value.toISOString())}`;
+  // Driver RecordIds must be handled before the duck-typed `{ tb, id }` check
+  // below: surrealdb 2.x keeps the table in a private field (only `id` is
+  // exposed), so `'tb' in value` is false and the object branch would serialise
+  // the record link as an empty `{ }` literal — which the schema then rejects
+  // (note tags, audit actors and every other inline record link).
+  if (value instanceof RecordId || value instanceof StringRecordId) {
+    const asString = String(value).replace(/⟨|⟩/g, '');
+    const separator = asString.indexOf(':');
+    if (separator === -1) return JSON.stringify(asString);
+    return recordLiteral(asString.slice(0, separator), asString.slice(separator + 1));
+  }
   if (Array.isArray(value)) {
     const items = value.filter((entry) => entry !== null && entry !== undefined).map(inlineValue);
     return `[${items.join(', ')}]`;
@@ -126,17 +133,32 @@ const edgeId = (...parts) => parts
   .join('__')
   .slice(0, 150);
 
+// Edge writes on the embedded engine: `UPDATE` follows SurrealDB 2.x semantics
+// and only touches records that already exist, so a bare UPDATE silently
+// no-ops when the edge is missing — which is how membership, invite and
+// relation edges used to be created. `UPSERT` cannot stand in either: setting
+// an explicit `in`/`out` pair on a RELATION table is rejected. `RELATE` does
+// work, but it takes no bound endpoints and mints a random id per call, which
+// collides with the unique (in, out) indexes on the second run. So update the
+// deterministic edge id first and fall back to an explicit-id RELATE, which is
+// both idempotent and safe to re-run.
 async function upsertEdge(edgeTable, fromTable, fromId, toTable, toId, data = {}, extraKey = '') {
   const id = edgeId(fromTable, fromId, toTable, toId, extraKey);
-  const assignments = [`in = ${recordLiteral(fromTable, fromId)}`, `out = ${recordLiteral(toTable, toId)}`];
+  const from = recordLiteral(fromTable, fromId);
+  const to = recordLiteral(toTable, toId);
   const vars = {};
+  const dataAssignments = [];
   Object.entries(data).forEach(([key, value], index) => {
     // option<...> fields reject explicit nulls in schemafull mode.
     if (value === null || value === undefined || !/^[a-z_][a-z0-9_]*$/i.test(key)) return;
     vars[`v${index}`] = value;
-    assignments.push(`${key} = $v${index}`);
+    dataAssignments.push(`${key} = $v${index}`);
   });
-  return q(`UPDATE ${edgeTable}:⟨${id}⟩ SET ${assignments.join(', ')};`, vars);
+  const target = `${edgeTable}:⟨${id}⟩`;
+  const tail = dataAssignments.length ? `, ${dataAssignments.join(', ')}` : '';
+  const updated = await q(`UPDATE ${target} SET in = ${from}, out = ${to}${tail};`, vars);
+  if (updated.length) return updated;
+  return q(`RELATE ${from}->${target}->${to}${dataAssignments.length ? ` SET ${dataAssignments.join(', ')}` : ''};`, vars);
 }
 
 // Consolidated schema version. The incremental "workspace-vN" steps (v1..v13)
@@ -234,6 +256,16 @@ async function q(sql, vars = {}) {
   return unwrapResult(await db.query(sql, vars));
 }
 
+// The embedded engine (surrealdb-node 2.x) rejects re-DEFINE of an existing
+// field/index/analyzer, which crashed every boot after the first on the
+// persisted KV file. Bootstrap batches are rewritten so every statement is
+// idempotent: fields converge via OVERWRITE, indexes/analyzers skip when they
+// already exist (IF NOT EXISTS).
+const idempotentDefine = (sql) => sql
+  .replace(/DEFINE FIELD /g, 'DEFINE FIELD OVERWRITE ')
+  .replace(/DEFINE INDEX (?!IF NOT EXISTS)/g, 'DEFINE INDEX IF NOT EXISTS ')
+  .replace(/DEFINE ANALYZER (?!IF NOT EXISTS)/g, 'DEFINE ANALYZER IF NOT EXISTS ');
+
 async function connectSurreal() {
   // Ensure the data directory exists before opening the embedded file.
   fs.mkdirSync(path.dirname(surrealFile), { recursive: true });
@@ -279,7 +311,11 @@ async function connectSurreal() {
   `);
   // ── Schema bootstrap pass 2: define all fields and indexes now that every
   // ── table exists, so TYPE record<other_table> references always resolve.
-  await q(`
+  // ── A concrete array element type is mandatory here: the embedded engine
+  // ── coerces a bare `array` / `option<array>` field that has no typed `.*`
+  // ── child (the way notes.tags does) to [] on every write, silently dropping
+  // ── the value.
+  await q(idempotentDefine(`
     DEFINE FIELD name ON workspace TYPE option<string> DEFAULT 'Planing workspace';
     DEFINE FIELD description ON workspace TYPE option<string> DEFAULT 'A shared stream for people and agents.';
     DEFINE FIELD default_category ON workspace TYPE option<string> DEFAULT 'notes';
@@ -296,13 +332,13 @@ async function connectSurreal() {
     DEFINE FIELD shadow_depth ON workspace TYPE option<string> DEFAULT 'default';
     DEFINE FIELD density ON workspace TYPE option<string> DEFAULT 'cozy';
     DEFINE FIELD slug ON workspace TYPE option<string>;
-    DEFINE FIELD context_roots ON workspace TYPE option<array> DEFAULT [];
+    DEFINE FIELD context_roots ON workspace TYPE option<array<string>> DEFAULT [];
     DEFINE FIELD created_by ON workspace TYPE option<record<account>>;
     DEFINE FIELD created_at ON workspace TYPE option<datetime> DEFAULT time::now();
     DEFINE FIELD updated_at ON workspace TYPE option<datetime> DEFAULT time::now();
     DEFINE FIELD retention_days ON workspace TYPE option<number>;
     DEFINE FIELD purge_after_days ON workspace TYPE option<number>;
-    DEFINE FIELD ai_allowed_providers ON workspace TYPE option<array> DEFAULT [];
+    DEFINE FIELD ai_allowed_providers ON workspace TYPE option<array<string>> DEFAULT [];
     DEFINE FIELD ai_default_provider ON workspace TYPE option<string>;
     DEFINE FIELD ai_run_cap ON workspace TYPE option<number>;
     DEFINE FIELD ai_monthly_budget_micros ON workspace TYPE option<number>;
@@ -511,7 +547,7 @@ async function connectSurreal() {
     DEFINE FIELD title ON chat_session TYPE string;
     DEFINE FIELD provider ON chat_session TYPE option<record<ai_provider>>;
     DEFINE FIELD prompt_id ON chat_session TYPE option<string>;
-    DEFINE FIELD context_files ON chat_session TYPE option<array> DEFAULT [];
+    DEFINE FIELD context_files ON chat_session TYPE option<array<string>> DEFAULT [];
     DEFINE FIELD created_by ON chat_session TYPE record<account>;
     DEFINE FIELD workspace ON chat_session TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD created_at ON chat_session TYPE option<datetime> DEFAULT time::now();
@@ -605,7 +641,7 @@ async function connectSurreal() {
 
     DEFINE FIELD label ON ticket_field TYPE string;
     DEFINE FIELD type ON ticket_field TYPE string;
-    DEFINE FIELD options ON ticket_field TYPE option<array> DEFAULT [];
+    DEFINE FIELD options ON ticket_field TYPE option<array<string>> DEFAULT [];
     DEFINE FIELD required ON ticket_field TYPE option<bool> DEFAULT false;
     DEFINE FIELD sort_order ON ticket_field TYPE option<number> DEFAULT 0;
     DEFINE FIELD workspace ON ticket_field TYPE option<record<workspace>> DEFAULT workspace:default;
@@ -631,7 +667,7 @@ async function connectSurreal() {
     DEFINE FIELD workspace ON ticket_reply TYPE option<record<workspace>> DEFAULT workspace:default;
     DEFINE FIELD created_at ON ticket_reply TYPE option<datetime> DEFAULT time::now();
     DEFINE INDEX ticket_reply_ticket ON ticket_reply FIELDS ticket, created_at;
-  `);
+  `));
   const workspaceRows = await q('SELECT * FROM workspace:default LIMIT 1;');
   if (!workspaceRows[0]) await q('CREATE workspace:default CONTENT $workspace;', { workspace: defaultWorkspace });
   for (const prompt of defaultPrompts) {
@@ -694,13 +730,13 @@ async function connectSurreal() {
     // 'running' when the process died goes back to the queue.
     UPDATE ai_job SET status = 'queued', updated_at = time::now() WHERE status = 'running';
   `);
-  await q('DEFINE INDEX notes_updated ON notes FIELDS updated_at;');
+  await q(idempotentDefine('DEFINE INDEX notes_updated ON notes FIELDS updated_at;'));
   // Full-text search: the ngram analyzer indexes existing rows on DEFINE INDEX,
   // matches substrings and multi-word queries, and re-definition is idempotent.
-  await q(`
+  await q(idempotentDefine(`
     DEFINE ANALYZER note_search_an TOKENIZERS blank FILTERS lowercase, ngram(1,32);
     DEFINE INDEX note_search ON notes FIELDS content SEARCH ANALYZER note_search_an BM25;
-  `);
+  `));
   for (const category of defaultCategories) {
     const existing = await q('SELECT * FROM type::thing("category", $slug) LIMIT 1;', { slug: category.slug });
     if (existing[0]) await q('UPDATE type::thing("category", $slug) MERGE $category;', { slug: category.slug, category });
@@ -898,6 +934,33 @@ async function accountNames(ids) {
   if (!unique.length) return new Map();
   const rows = await q(`SELECT id, name FROM account WHERE id IN [${unique.map((id) => recordLiteral('account', id)).join(', ')}];`);
   return new Map(rows.map((row) => [recordId(row.id), row.name]));
+}
+
+// Env-driven bootstrap superuser: deployments can pre-provision the first
+// account (role superadmin) from PLANINC_SUPERUSER_NAME / PLANINC_SUPERUSER_PASSWORD
+// instead of racing the first-registration window. Idempotent — an existing
+// account with that name is left untouched, so restarts never overwrite a
+// rotated password. Password requirement mirrors /api/auth/register (8+ chars);
+// an invalid or unset value simply skips bootstrap.
+async function ensureEnvSuperuser() {
+  const name = String(process.env.PLANINC_SUPERUSER_NAME || '').trim();
+  const password = String(process.env.PLANINC_SUPERUSER_PASSWORD || '');
+  if (!name || !password) return null;
+  if (name.length < 3 || password.length < 8) {
+    console.error('[superuser] PLANINC_SUPERUSER_NAME must be 3+ chars and PLANINC_SUPERUSER_PASSWORD 8+ chars — skipping bootstrap superuser');
+    return null;
+  }
+  const existing = await findAccount(name);
+  if (existing) return existing;
+  const account = await ensureAccount(name, password, 'superadmin', 'default');
+  try {
+    await upsertEdge('workspace_member', 'account', recordId(account.id), 'workspace', 'default', {
+      role: 'superadmin', created_at: new Date(),
+    });
+  } catch { /* unique race — membership already present */ }
+  await recordAudit('account.create', recordId(account.id), { role: 'superadmin', via: 'env-bootstrap' });
+  console.log(`[superuser] Bootstrapped superuser '${name}' from environment`);
+  return account;
 }
 
 async function recordAudit(action, actorId, detail = {}, target = null, workspaceId = 'default') {
@@ -6168,6 +6231,7 @@ app.post('/api/chat/rooms/:id/messages', auth, requirePermission('notes:read'), 
 app.use((req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 await connectSurreal();
+await ensureEnvSuperuser();
 // Phase 4: telemetry ledger + retention sweeps start with the server; the
 // first flush piggybacks on the hourly sweep so steady-state write volume is
 // one batched transaction per hour, not one row per query.

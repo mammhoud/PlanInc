@@ -13,6 +13,30 @@ const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'),
 
 const attributeNames = ['data-i18n', 'data-i18n-title', 'data-i18n-placeholder', 'data-i18n-content', 'data-i18n-aria-label'];
 
+test('no locale declares the same key twice', () => {
+  // A duplicate key in the catalogue silently overrides the value declared
+  // earlier in the same object literal — which is how the recycle-bin label was
+  // lost, with the live-filter group redefining `viewRecycle` as 'Bin' after the
+  // toolbar had named it 'Recycle bin'. `Object.keys()` cannot see that, so the
+  // source is scanned instead, with string values stripped so only keys remain.
+  const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'i18n.mjs'), 'utf8');
+  const duplicates = [];
+  let locale = null;
+  const seen = new Set();
+  for (const line of source.split('\n')) {
+    const start = line.match(/^  ([A-Za-z][\w-]*): \{\s*$/);
+    if (start) { locale = start[1]; seen.clear(); continue; }
+    if (/^  \},?\s*$/.test(line)) { locale = null; continue; }
+    if (!locale) continue;
+    const withoutValues = line.replace(/'(?:[^'\\]|\\.)*'/g, 'STR');
+    for (const match of withoutValues.matchAll(/(?:^|[,{\s])([A-Za-z_][A-Za-z0-9_]*):\s/g)) {
+      if (seen.has(match[1])) duplicates.push(`${locale}.${match[1]}`);
+      seen.add(match[1]);
+    }
+  }
+  expect(duplicates).toEqual([]);
+});
+
 test('every locale carries the same translation keys', () => {
   const reference = Object.keys(translations.en).sort();
   for (const locale of locales) {

@@ -5,14 +5,18 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
 const port = 1112;
-const enginePort = 8001;
 // One id per run, shared by the config and the specs. Playwright re-evaluates
 // this module inside worker processes (and after a test failure), so the id
 // must be inherited rather than recomputed, otherwise the test namespace and
 // the seeded admin account would diverge mid-run.
 process.env.PLANING_PW_RUN ||= `${Date.now()}-${process.pid}`;
 const testNamespace = `planing_test_${process.env.PLANING_PW_RUN}`;
-const engineFile = `/tmp/planing_pw_engine_${process.env.PLANING_PW_RUN}.db`;
+// The runtime opens SurrealDB embedded (`surrealkv://`) and no longer reads
+// SURREALDB_URL, so there is no engine container to start: isolation comes from
+// pointing SURREALDB_FILE (and UPLOAD_DIR) at a disposable directory instead of
+// the deployment store at runtime/data, which the served instance has locked.
+const embeddedDir = path.join(os.tmpdir(), `planing_pw_embedded_${process.env.PLANING_PW_RUN}`);
+const embeddedFile = path.join(embeddedDir, 'planinc.db');
 // Chat context roots point at disposable fixtures so the suite never reads the
 // deployed project tree or writes into real documents.
 const contextFixture = path.join(os.tmpdir(), `planing_pw_context_${process.env.PLANING_PW_RUN}`);
@@ -37,25 +41,18 @@ export default defineConfig({
   testMatch: '**/*.spec.mjs',
   // Suites that seed their own bootstrap admin (appearance/graph) or register
   // via the API (tickets) run under playwright.extra.config.mjs with their own
-  // server + engine — they share no "first admin" premise with this config.
-  testIgnore: '**/{appearance-and-graph,tickets}.spec.mjs',
+  // server + store — they share no "first admin" premise with this config.
+  // canonical-planinc targets an already-deployed instance on :1111, so it runs
+  // under playwright.canonical.config.mjs and is excluded here to keep this
+  // config hermetic.
+  testIgnore: '**/{appearance-and-graph,tickets,canonical-planinc}.spec.mjs',
   timeout: 30_000,
   workers: 1,
   use: { baseURL: `http://127.0.0.1:${port}`, ...devices['Desktop Chrome'] },
   // Web servers launch in array order and each must be ready before the next
-  // starts: the disposable SurrealDB engine boots first, then the API server
-  // connects to it. Tests must never share an engine with the deployed instance.
+  // starts. Tests must never touch the deployed store: the embedded file lives
+  // under the run's own temp directory.
   webServer: [
-    {
-      // Reusable on purpose: teardown may SIGKILL the wrapper shell (skipping
-      // any trap) and a surviving engine would block later runs. Data is still
-      // isolated per run via PLANING_PW_RUN namespaces, so a leftover engine is
-      // always safe to reuse. Fresh starts clear all stale engine files.
-      command: `sh -c 'trap "docker rm -f planing-pw-engine 2>/dev/null" TERM INT EXIT; docker rm -f planing-pw-engine 2>/dev/null; rm -f /tmp/planing_pw_engine_*.db*; docker run --rm --name planing-pw-engine -p 127.0.0.1:${enginePort}:8000 surrealdb/surrealdb:v1.5.6 start --auth --user root --pass playwright-engine-pass rocksdb:${engineFile}'`,
-      url: `http://127.0.0.1:${enginePort}/health`,
-      reuseExistingServer: true,
-      timeout: 45_000,
-    },
     {
       command: 'node tests/mock-llm.mjs',
       port: 11434,
@@ -71,12 +68,11 @@ export default defineConfig({
       stderr: 'pipe',
       env: {
         PLANING_PORT: String(port),
-        SURREALDB_URL: `http://127.0.0.1:${enginePort}/rpc`,
-        SURREALDB_USER: 'root',
-        SURREALDB_PASS: 'playwright-engine-pass',
+        SURREALDB_FILE: embeddedFile,
         SURREALDB_NS: testNamespace,
         SURREALDB_DB: 'auth',
         NEXTAUTH_SECRET: 'playwright-secret',
+        UPLOAD_DIR: path.join(embeddedDir, 'uploads'),
         PLANING_CONTEXT_PROJECT_DIR: fixtureDirs.project,
         PLANING_CONTEXT_DOCUMENTS_DIR: fixtureDirs.documents,
         PLANING_CONTEXT_NOTES_DIR: fixtureDirs.notes,

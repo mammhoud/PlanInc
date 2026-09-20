@@ -5,12 +5,20 @@ COMPOSE_FILE := docker-compose.yml
 # to the shared tools env, then the repo-root env for existing deployments.
 ENV_FILE     ?= $(if $(wildcard .env),.env,$(if $(wildcard ../.env),../.env,../../../.env))
 
-.PHONY: help up down deploy build restart logs status ps setup verify-surrealdb clean clean-unused
+PLANINC_PORT ?= 1111
+
+# Exported so `PLANINC_SUPERUSER_NAME=... make run` reaches the server process.
+export PLANINC_SUPERUSER_NAME PLANINC_SUPERUSER_PASSWORD
+
+.PHONY: help up down deploy build restart logs status ps setup verify-surrealdb run install test test-canonical clean clean-unused
 
 help: ## Show this help menu
-	@echo 'Planing commands: make up | down | deploy | build | restart | logs | status | setup'
+	@echo 'PlanInc commands: make up | down | deploy | build | restart | logs | status | setup | run | test'
 	@echo '  setup     - Create .env from .env.example if missing'
-	@echo '  up        - Start Planing (tools.structa.cloud/planing/)'
+	@echo '  run       - Run the server natively (no docker build) at http://localhost:$(PLANINC_PORT)'
+	@echo '  test      - Run the hermetic runtime test suite (Playwright)'
+	@echo '  test-canonical - Smoke a running deployment (PLANINC_TEST_URL, default :$(PLANINC_PORT))'
+	@echo '  up        - Start PlanInc (notes.structa.cloud)'
 	@echo '  deploy    - Build + start Planing'
 	@echo '  build     - Build the Planing image'
 	@echo '  down      - Stop Planing'
@@ -36,6 +44,25 @@ deploy: build up
 
 build: verify-surrealdb
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) build
+
+install: ## Install runtime/ npm dependencies for `make run`
+	@cd runtime && npm install --no-audit --no-fund
+
+test: install ## Run the hermetic runtime test suite (Playwright, disposable embedded store)
+	@cd runtime && npm test
+
+test-canonical: ## Smoke a running deployment over HTTP (set PLANINC_TEST_URL to override :$(PLANINC_PORT))
+	@cd runtime && npx playwright test --config playwright.canonical.config.mjs
+
+run: install ## Run the server natively without a docker build
+	@node --check runtime/server.mjs
+	@# Uses the same SurrealDB file as the Docker deployment (./runtime/data) —
+	@# stop one before starting the other or the KV file will be locked.
+	@# Loads $(ENV_FILE) (superuser creds etc.), then explicit vars win.
+	@SAVED_PATH="$$PATH"; \
+		if [ -f $(ENV_FILE) ]; then set -a; . $(ENV_FILE); set +a; fi; \
+		export PATH="$$SAVED_PATH"; \
+		cd runtime && SURREALDB_FILE=./data/planinc.db PLANING_PORT=$(PLANINC_PORT) node server.mjs
 
 down:
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) down
