@@ -110,6 +110,15 @@ const Home = observer(() => {
     setPage((current) => Math.min(current, Math.max(1, Math.ceil(filteredNotes.length / pageSize))));
   }, [filteredNotes.length, pageSize]);
 
+  useEffect(() => {
+    const noteId = searchParams.get('noteId');
+    if (noteId) {
+      planinc.scrollToNote(Number(noteId));
+      const timer = setTimeout(() => planinc.clearScrollToNote(), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
+
   const changePage = (next: number) => {
     setPage(next);
     if (scrollAreaRef.current) scrollAreaRef.current.scrollTop = 0;

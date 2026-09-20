@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./planinc-palette.css";
 /* Design token contract (PI-011 · P1). Tier 1 global → 2 alias → 3 channel → 4 component.
  * Both @import rules must precede every other at-rule, so this sits before @config. */
 @import "./tokens.css";
@@ -357,5 +358,15 @@ html[data-reduce-motion="true"] {
 }
 
 .group[data-focus-visible="true"] .group-data-\[focus-visible\=true\]\:ring-2 {
-  --tw-ring-shadow: 0 !important;
+   --tw-ring-shadow: 0 !important;
+}
+
+.note-card--highlight {
+  animation: highlight-pulse 2s ease-out forwards;
+}
+
+@keyframes highlight-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--planinc-accent-20, rgba(245, 158, 11, 0.2)); }
+  30%  { box-shadow: 0 0 0 8px var(--planinc-accent-40, rgba(245, 158, 11, 0.4)); }
+  100% { box-shadow: 0 0 0 0 transparent; }
 }

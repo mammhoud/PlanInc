@@ -94,19 +94,21 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
+      "../../brandkit/icons/32x32.png",
+      "../../brandkit/icons/128x128.png",
+      "../../brandkit/icons/128x128@2x.png",
+      "../../brandkit/icons/icon.icns",
+      "../../brandkit/icons/icon.ico"
     ]
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENBNzZBMzZDRTUxQUM4RjcKUldUM3lCcmxiS04yeXYyOGZ0RVVBbE42WDMxUXFiQTI0R3RqT0ZBbkZEcFFRNlZTWVhwZzlwRmkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENBNzZBMzZDRTUxQUM4RjcKUldUM3lCcmxiS04yeXYyOGZ0RVVBbE42WDMxUXFiQTI0R3RqT0ZBbkZEcFFRNlZTWVhwZjlwRmkK",
       "endpoints": [
         "https://github.com/mammhoud/planinc/releases/latest/download/latest.json"
       ]
     }
+  }
+}
   }
 }

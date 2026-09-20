@@ -5,12 +5,7 @@ description = "A PlanInc App"
 authors = ["mammhoud"]
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
@@ -29,6 +24,9 @@ tauri-plugin-http = "2"
 tauri-plugin-upload = "2"
 tauri-plugin-planinc = { path = "../tauri-plugin-planinc/" }
 tauri-plugin-process = "2"
+surrealdb = { version = "2", features = ["kv-surrealkv"] }
+thiserror = "1"
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "sync", "macros"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
@@ -42,12 +40,8 @@ enigo = "0.3"
 rdev = "0.3"
 sys-locale = "0.3"
 
- 
-
 [target.'cfg(target_os = "windows")'.dependencies]
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "sync"] }
-
-
 
 [target.'cfg(target_os = "macos")'.dependencies]
 macos-accessibility-client = "0.0.1"

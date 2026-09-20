@@ -85,6 +85,12 @@ export const CardHeader = observer(({ planincItem, planinc, isShareMode, isExpan
           <UserAvatar account={account} planincItem={planincItem} />
         )}
 
+        {!isShareMode && planincItem.created_by && (
+          <span className="text-desc text-xs ml-1" title={t('created-by')}>
+            {t('by')} {planincItem.created_by}
+          </span>
+        )}
+
         {planincItem.type === NoteType.TODO && (
           <Tooltip content={planincItem.isArchived ? t('restore') : t('complete')} delay={1000}>
             <div

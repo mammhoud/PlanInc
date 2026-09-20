@@ -2,7 +2,13 @@
 mod desktop;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use desktop::*;
-use tauri::Manager;
+mod commands;
+mod db;
+mod models;
+mod error;
+
+pub use models::*;
+pub use error::{Error, Result};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -20,26 +26,17 @@ pub fn run() {
     {
         builder = builder
             .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-                // Called when a second instance tries to start
                 println!("Second instance detected with args: {:?} and cwd: {:?}", args, cwd);
-
-                // Show and focus the existing window
                 if let Some(window) = app.get_webview_window("main") {
-                    // Show window if it's hidden
                     if let Err(e) = window.show() {
                         eprintln!("Failed to show window: {}", e);
                     }
-
-                    // Unminimize if minimized
                     if let Err(e) = window.unminimize() {
                         eprintln!("Failed to unminimize window: {}", e);
                     }
-
-                    // Bring to front and focus
                     if let Err(e) = window.set_focus() {
                         eprintln!("Failed to focus window: {}", e);
                     }
-
                     println!("Focused existing PlanInc window");
                 }
             }))
@@ -48,58 +45,52 @@ pub fn run() {
                 tauri_plugin_global_shortcut::Builder::new()
                     .with_handler(create_global_shortcut_handler())
                     .build()
-            );
-    }
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    {
-        builder
+            )
             .invoke_handler(tauri::generate_handler![
                 toggle_editor_window,
                 register_hotkey,
                 unregister_hotkey,
-                get_registered_shortcuts,
-                toggle_quicknote_window,
-                resize_quicknote_window,
-                toggle_quickai_window,
-                resize_quickai_window,
-                navigate_main_to_ai_with_prompt,
-                toggle_quicktool_window,
-                hide_quicktool_window,
-                setup_text_selection_monitoring,
-                copy_to_clipboard,
-                test_text_selection,
-                check_accessibility_permissions,
-                show_quicktool,
-                set_desktop_theme,
-                set_desktop_colors
+                query_hyperlinks,
+                get_selected_text,
+                open_app_settings,
+                setcolor,
+                notes::create_note,
+                notes::list_notes,
+                notes::update_note,
+                notes::delete_note,
+                notes::search_notes,
+                notes::list_tags,
+                notes::ping_db,
             ])
-            .setup(|app| {
-                #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            .setup(|app, api| {
+                #[cfg(desktop)]
                 {
-                    use tauri_plugin_autostart::MacosLauncher;
-
-                    let _ = app.handle().plugin(tauri_plugin_autostart::init(
-                        MacosLauncher::LaunchAgent,
-                        Some(vec!["--autostart"]),
-                    ));
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let db = rt.block_on(db::init_db(app));
+                    match db {
+                        Ok(d) => { app.manage(d); }
+                        Err(e) => { eprintln!("Failed to initialize database: {}", e); }
+                    }
                 }
-
-                setup_app(app)?;
+                #[cfg(mobile)]
+                {
+                    let planinc = mobile::init(app, api)?;
+                    app.manage(planinc);
+                }
                 Ok(())
-            })
-            .run(tauri::generate_context!())
-            .expect("error while running tauri application");
+            });
     }
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
-        builder
+        builder = builder
             .invoke_handler(tauri::generate_handler![])
-            .setup(|_app| {
+            .setup(|app, api| {
+                let planinc = mobile::init(app, api)?;
+                app.manage(planinc);
                 Ok(())
-            })
-            .run(tauri::generate_context!())
-            .expect("error while running tauri application");
+            });
     }
+
+    builder.build()
 }

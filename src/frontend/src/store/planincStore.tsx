@@ -86,6 +86,19 @@ export class PlanIncStore implements Store {
   isMultiSelectMode: boolean = false;
   fullscreenEditorNoteId: number | null = null;
   forceQuery: number = 0;
+  scrollToNoteId: number | null = null;
+
+  scrollToNote(id: number) {
+    this.scrollToNoteId = id;
+    if (!this.noteList.value?.find(n => n.id === id)) {
+      this.noteList.resetAndCall({ targetNoteId: id });
+    }
+  }
+
+  clearScrollToNote() {
+    this.scrollToNoteId = null;
+  }
+
   allTagRouter = {
     title: 'total',
     href: '/?path=all',

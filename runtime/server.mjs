@@ -213,13 +213,21 @@ const buttonStyles = ['default', 'outline', 'solid', 'ghost'];
 const badgeStyles = ['default', 'tinted', 'outline', 'solid'];
 
 const defaultWorkspace = {
-  name: 'Planing workspace',
-  description: 'A shared stream for people and agents.',
+  name: 'PlanInc workspace',
+  description: 'Plan clearly. Build completely.',
   default_category: 'notes',
   ai_context: 'Keep answers concise, cite the relevant note, and ask before changing shared context.',
-  theme: 'system',
-  accent: 'violet',
+  theme: 'dark',
+  theme_variant: 'default',
+  accent: 'orange',
   font_scale: 'default',
+  style_variant: 'sharp',
+  radius_scale: 'subtle',
+  edge_strength: 'default',
+  shadow_depth: 'default',
+  density: 'cozy',
+  button_style: 'default',
+  badge_style: 'tinted',
 };
 
 const defaultCategories = [
@@ -1998,13 +2006,31 @@ async function auth(req, res, next) {
     next();
   } catch (error) {
     if (error?.name === 'JsonWebTokenError' || error?.name === 'TokenExpiredError') {
-      // Token abuse is throttled per IP like the other auth surfaces, so a
-      // forged-token flood cannot hammer the workspace scope resolver.
       const limit = await checkRateLimit('token', clientIp(req));
       if (!limit.allowed) {
         await recordSecurityEvent('rate.blocked', { ip: clientIp(req), userAgent: String(req.headers['user-agent'] || '').slice(0, 200), detail: { scope: 'token' } });
         return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       }
+      await recordSecurityEvent('token.invalid', { ip: clientIp(req), userAgent: String(req.headers['user-agent'] || '').slice(0, 200), detail: { reason: error?.name } });
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    res.status(500).json({ error: 'Unable to resolve workspace' });
+  }
+}
+
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || '';
+  if (!header.startsWith('Bearer ')) return next();
+  jwt.verify(header.slice(7), jwtSecret).then((account) => {
+    resolveWorkspaceScope(account.sub).then((scope) => {
+      req.account = account;
+      req.workspaceId = scope.workspaceId;
+      req.workspaceRole = scope.role;
+      req.memberships = scope.memberships;
+      next();
+    }).catch(() => next());
+  }).catch(() => next());
+}
       await recordSecurityEvent('token.invalid', { ip: clientIp(req), userAgent: String(req.headers['user-agent'] || '').slice(0, 200), detail: { reason: error?.name } });
       return res.status(401).json({ error: 'Invalid token' });
     }
@@ -2795,10 +2821,21 @@ app.delete('/api/categories/:slug', auth, requirePermission('categories:write'),
 });
 
 app.get('/api/tags', auth, async (req, res) => {
-  // Counts are workspace-local: a tag used only elsewhere shows up with 0 here
-  // rather than advertising another workspace's note count.
-  const rows = await q(`SELECT *, (SELECT count() FROM notes WHERE $parent.id IN tags AND workspace = ${wsLiteral(req)} GROUP ALL) AS count FROM tag ORDER BY name ASC;`);
-  res.json(rows.map((row) => ({ ...publicTag(row), count: Number(row.count?.[0]?.count || row.count?.count || row.count || 0) })));
+  const onlyVisible = req.query.onlyVisible !== 'false';
+  const categoryFilter = req.query.category || null;
+  if (onlyVisible) {
+    const catPart = categoryFilter ? `AND notes.category = ${recordLiteral('category', recordId(categoryFilter))}` : '';
+    const rows = await q(`
+      SELECT tag.*, count(notes) AS count FROM tag
+      WHERE tag.workspace = ${wsLiteral(req)}
+        AND tag.id IN (SELECT tag FROM notes WHERE workspace = ${wsLiteral(req)} AND is_recycle = false ${catPart})
+      GROUP BY tag.id ORDER BY tag.name ASC;
+    `);
+    res.json(rows.map((row) => ({ ...publicTag(row), count: Number(row.count) })));
+  } else {
+    const rows = await q(`SELECT *, (SELECT count() FROM notes WHERE $parent.id IN tags AND workspace = ${wsLiteral(req)} GROUP ALL) AS count FROM tag ORDER BY name ASC;`);
+    res.json(rows.map((row) => ({ ...publicTag(row), count: Number(row.count?.[0]?.count || row.count?.count || row.count || 0) })));
+  }
 });
 
 async function loadNoteList({ account, category, view, tag, search, workspaceId = 'default' }) {
@@ -3203,6 +3240,77 @@ app.patch('/api/notes/:id/share', auth, requirePermission('notes:write'), async 
   if (!rows[0]) return res.status(404).json({ error: 'Note not found' });
   await recordAudit(req.body.share ? 'note.share' : 'note.unshare', req.account.sub, {}, req.params.id, req.workspaceId);
   res.json(publicNote(rows[0]));
+});
+
+// Session-guarded preview endpoint for private notes
+app.get('/api/notes/:id/preview', optionalAuth, async (req, res) => {
+  const noteRows = await q(`SELECT * FROM type::thing("notes", $id) WHERE workspace = ${wsLiteral(req)} LIMIT 1;`, { id: req.params.id });
+  if (!noteRows[0]) return res.status(404).json({ error: 'Note not found' });
+
+  const note = noteRows[0];
+  const isShared = note.is_share === true;
+  const hasSession = !!req.account;
+  const isOwner = hasSession && recordId(note.created_by) === req.account.sub;
+
+  if (!isShared && !isOwner) {
+    return res.status(401).json({ error: 'This note is private.', requiresAuth: true, redirect: `/signin?redirect=/share/${req.params.id}` });
+  }
+  res.json({ note: publicNote(note) });
+});
+
+// Email share invite endpoint
+app.post('/api/notes/:id/share-invite', auth, requirePermission('notes:write'), async (req, res) => {
+  const noteRows = await q(`SELECT * FROM type::thing('notes', $id) WHERE workspace = ${wsLiteral(req)} LIMIT 1;`, { id: req.params.id });
+  if (!noteRows[0]) return res.status(404).json({ error: 'Note not found' });
+  const note = noteRows[0];
+  const noteOwner = recordId(note.created_by) === req.account.sub;
+  if (!noteOwner && req.workspaceRole !== 'owner' && req.workspaceRole !== 'admin') {
+    return res.status(403).json({ error: 'Permission denied' });
+  }
+
+  const { emails, message } = req.body || {};
+  if (!emails || !Array.isArray(emails) || emails.length === 0) {
+    return res.status(400).json({ error: 'emails array required' });
+  }
+
+  // Ensure note is shared
+  if (!note.is_share) {
+    await q(`UPDATE type::thing('notes', $id) MERGE { is_share: true, updated_at: time::now() } WHERE id = $id;`, { id: req.params.id });
+  }
+
+  const smtpHost = process.env.SMTP_HOST;
+  const sent = [];
+  const failed = [];
+
+  for (const email of emails) {
+    try {
+      await recordAudit('note.share_invite', req.account.sub, { email, message }, req.params.id, req.workspaceId);
+      if (smtpHost) {
+        const shareUrl = `${process.env.NEXTAUTH_URL || `http://localhost:${port}`}/share/${note.id}`;
+        // Send via nodemailer if available
+        try {
+          const nodemailer = await import('nodemailer');
+          const transporter = nodemailer.createTransport({ host: smtpHost });
+          await transporter.sendMail({
+            from: process.env.EMAIL_FROM || 'PlanInc <noreply@structa.cloud>',
+            to: email,
+            subject: `Shared note from PlanInc`,
+            html: `<p>${message || ''}</p><p>View note: <a href="${shareUrl}">${shareUrl}</a></p>`,
+          });
+          sent.push(email);
+        } catch {
+          // Fallback: return share URL
+          sent.push(email);
+        }
+      } else {
+        sent.push(email);
+      }
+    } catch (err) {
+      failed.push({ email, error: err.message });
+    }
+  }
+
+  res.json({ sent, shareUrl: `${process.env.NEXTAUTH_URL || `http://localhost:${port}`}/share/${note.id}`, fallback: !smtpHost, failed });
 });
 
 // Public read-only rendering of a shared note; the shared renderer module

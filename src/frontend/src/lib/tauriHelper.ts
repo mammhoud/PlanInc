@@ -137,6 +137,42 @@ export async function setTauriTheme(theme: any) {
     }
 }
 
+export async function tauriCreateNote(content: string, tags: string[]) {
+    try {
+        return await invoke<{ id?: string; content: string; is_share: boolean }>('create_note', { content, tags });
+    } catch (error) {
+        console.error('Failed to create note via Tauri:', error);
+        throw error;
+    }
+}
+
+export async function tauriListNotes(filter?: string, page?: number, size?: number) {
+    try {
+        return await invoke<Array<{ id?: string; content: string; is_share: boolean }>>('list_notes', { filter, page, size });
+    } catch (error) {
+        console.error('Failed to list notes via Tauri:', error);
+        throw error;
+    }
+}
+
+export async function tauriSearchNotes(query: string) {
+    try {
+        return await invoke<Array<{ id?: string; content: string }>>('search_notes', { query });
+    } catch (error) {
+        console.error('Failed to search notes via Tauri:', error);
+        throw error;
+    }
+}
+
+export async function tauriListTags() {
+    try {
+        return await invoke<Array<{ id?: string; name: string; note_count?: number }>>('list_tags');
+    } catch (error) {
+        console.error('Failed to list tags via Tauri:', error);
+        throw error;
+    }
+}
+
 
 
 

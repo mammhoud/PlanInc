@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 48" width="248" height="48">
+  <path d="M12 4 L12 44 M12 18 Q28 18 28 30 Q28 40 12 40" fill="none" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+  <text x="40" y="36" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="36" fill="#f59e0b">PlanInc</text>
+</svg>

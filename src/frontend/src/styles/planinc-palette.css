@@ -1,0 +1,15 @@
+:root {
+  --planinc-bg:           #0d0d0f;
+  --planinc-surface:      #1e1f26;
+  --planinc-border:       #2d2f3d;
+  --planinc-accent:       #f59e0b;
+  --planinc-accent-hover: #fbbf24;
+  --planinc-text:         #f8fafc;
+  --planinc-text-muted:   #94a3b8;
+  --planinc-ghost:        #334155;
+  --planinc-accent-20:    rgba(245, 158, 11, 0.2);
+  --planinc-accent-40:    rgba(245, 158, 11, 0.4);
+  --accent-h: 38;
+  --accent-s: 92%;
+  --accent-l: 50%;
+}
