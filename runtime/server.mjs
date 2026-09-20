@@ -2031,12 +2031,6 @@ function optionalAuth(req, res, next) {
     }).catch(() => next());
   }).catch(() => next());
 }
-      await recordSecurityEvent('token.invalid', { ip: clientIp(req), userAgent: String(req.headers['user-agent'] || '').slice(0, 200), detail: { reason: error?.name } });
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    res.status(500).json({ error: 'Unable to resolve workspace' });
-  }
-}
 
 function authQueryToken(req, res, next) {
   try {
