@@ -6,15 +6,16 @@
 # No surrealdb image, no port 8000.
 # Served at its own domain, notes.structa.cloud, by a dedicated Traefik vhost
 # (proxy/configs/traefik/dynamic/notes.yml). Deploy with
-# PLANINC_EXTERNAL_NETWORK=common PLANINC_NETWORK_NAME=common so Traefik can
-# resolve the container as planinc:1111 on the shared `common` network.
+# PLANINC_EXTERNAL_NETWORK=true PLANINC_NETWORK_NAME=common so Traefik can
+# resolve the container as planinc:1111 on the shared `common` network (create
+# it once with `docker network create common`).
 # =============================================================================
 
 networks:
   # Local deployments create a project-scoped network automatically. Behind the
-  # proxy stack set BOTH PLANINC_EXTERNAL_NETWORK=common and
-  # PLANINC_NETWORK_NAME=common to attach to the pre-existing external network —
-  # the name is what makes the existing network resolvable as external.
+  # proxy stack set PLANINC_EXTERNAL_NETWORK=true and PLANINC_NETWORK_NAME=common
+  # to attach to the pre-existing external network: `external` is a boolean
+  # toggle, and the name selects which existing network it attaches to.
   default:
     name: ${PLANINC_NETWORK_NAME:-planinc-network}
     external: ${PLANINC_EXTERNAL_NETWORK:-false}

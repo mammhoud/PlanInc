@@ -7,8 +7,17 @@ ENV_FILE     ?= $(if $(wildcard .env),.env,$(if $(wildcard ../.env),../.env,../.
 
 PLANINC_PORT ?= 1111
 
-# Exported so `PLANINC_SUPERUSER_NAME=... make run` reaches the server process.
-export PLANINC_SUPERUSER_NAME PLANINC_SUPERUSER_PASSWORD
+# Exported so `PLANINC_SUPERUSER_NAME=... make run` reaches the server process,
+# but ONLY when the caller actually supplies a value. Exporting an unset variable
+# pushes an EMPTY value into the child environment, and an empty environment
+# variable takes precedence over .env during compose interpolation — which
+# silently left the container without a bootstrap superuser.
+ifneq ($(origin PLANINC_SUPERUSER_NAME),undefined)
+export PLANINC_SUPERUSER_NAME
+endif
+ifneq ($(origin PLANINC_SUPERUSER_PASSWORD),undefined)
+export PLANINC_SUPERUSER_PASSWORD
+endif
 
 .PHONY: help up down deploy build restart logs status ps setup verify-surrealdb run install test test-canonical clean clean-unused
 
