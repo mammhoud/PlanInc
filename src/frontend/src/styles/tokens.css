@@ -654,6 +654,37 @@
     --hero-base: var(--pi-color-neutral-925);
     --swiper-3d-shadow: color-mix(in oklab, var(--pi-color-neutral-100) 15%, transparent);
     --shadow: 0 0 1px 1px var(--pi-color-neutral-750);
+
+    /* Dark mode remaps for responsive component radii (same values as light,
+     * since radius is a spatial metric, not a colour metric) */
+    --card-radius: var(--pi-radius-md);
+    --surface-radius: var(--pi-radius-sm);
+    --modal-radius: var(--pi-radius-lg);
+    --sheet-radius: var(--pi-radius-xl);
+    --avatar-radius: var(--pi-radius-sm);
+    --image-radius: var(--pi-radius-md);
+    --input-radius: var(--pi-radius-sm);
+    --button-radius: var(--pi-radius-sm);
+    --tag-radius: var(--chip-radius);
+    --tooltip-radius: var(--pi-radius-md);
+    --dropdown-radius: var(--pi-radius-lg);
+    --progress-radius: var(--pi-radius-sm);
+    --skeleton-radius: var(--pi-radius-sm);
+    --scrollbar-radius: 2px;
+    --chip-radius: 4px;
+    --contextmenu-radius: 10px;
+    --contextmenu-item-radius: 6px;
+
+    /* Dark mode motion curves (same as light - motion is theme-invariant) */
+    --motion-fast: 150ms;
+    --motion-base: 250ms;
+    --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --curve-enter: var(--curve-smooth);
+    --curve-exit: var(--curve-sharp);
   }
 
   /* ======================================================================

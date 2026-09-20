@@ -1,378 +1,443 @@
 @import "tailwindcss";
-@plugin "flyonui";
-@import "flyonui/variants.css";
-@import "./planinc-palette.css";
-/* Design token contract (PI-011 · P1). Tier 1 global → 2 alias → 3 channel → 4 component.
- * Both @import rules must precede every other at-rule, so this sits before @config. */
 @import "./tokens.css";
-/* Platform/OS adaptation layer (PI-014). Reads the data-* attributes that
- * src/platform/PlatformProvider.tsx mirrors onto <html>, so one stylesheet
- * serves web, PWA, and the Tauri desktop/mobile shells. Colour-free by rule. */
 @import "./platform.css";
-@config "../../tailwind.config.js";
 
-/* --------------------------------------------------------------------------
- * Tokens → Tailwind v4 theme namespace.
- * This is the shadcn-style contract: semantic CSS variables exposed as
- * utilities (`bg-background`, `text-desc`, `border-border`, `ring-ring`, …).
- * `inline` keeps the resolution at the utility site so the `.dark` remap in
- * tokens.css flows through without a `dark:` branch anywhere.
- * ------------------------------------------------------------------------ */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-secondbackground: var(--secondbackground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-destructive-soft: var(--destructive-soft);
-  --color-destructive-soft-foreground: var(--destructive-soft-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-success-soft: var(--success-soft);
-  --color-success-soft-foreground: var(--success-soft-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-warning-soft: var(--warning-soft);
-  --color-warning-soft-foreground: var(--warning-soft-foreground);
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-  --color-info-soft: var(--info-soft);
-  --color-info-soft-foreground: var(--info-soft-foreground);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-chart-6: var(--chart-6);
-  --color-progress-from: var(--progress-from);
-  --color-progress-to: var(--progress-to);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-header: var(--header);
-  --color-hover: var(--hover);
-  --color-desc: var(--desc);
-  --color-ignore: var(--ignore);
-  --color-tag: var(--tag);
-  --color-tag-foreground: var(--tag-foreground);
-
-  --radius-sm: var(--pi-radius-sm);
-  --radius-md: var(--pi-radius-md);
-  --radius-lg: var(--pi-radius-lg);
-  --radius-xl: var(--pi-radius-xl);
-  --radius-2xl: var(--pi-radius-2xl);
-}
-
-.bm-burger-button {
-  display: none;
-}
-
-.bm-menu-wrap {
-  width: fit-content;
-  height: 100%;
-  overflow: hidden !important;
-}
-
-.bm-menu {
-  overflow: hidden !important;
-}
-
-::selection {
-  background-color: var(--selection-bg);
-  color: var(--selection-fg);
-}
-
-::marker {
-  color: var(--desc) !important;
-}
-
-.card-masonry-grid {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  margin-left: -10px;
-  width: auto;
-}
-
-.card-masonry-grid_column {
-  padding-left: 10px;
-  background-clip: padding-box;
-}
-
-/* Style your items */
-.card-masonry-grid_column>div {
-  margin-bottom: 10px;
-}
-
-
-.blog-masonry-grid {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  margin-left: -20px;
-  width: auto;
-}
-
-.blog-masonry-grid_column {
-  padding-left: 20px;
-  background-clip: padding-box;
-}
-
-/* Style your items */
-.blog-masonry-grid_column>div {
-  margin-bottom: 20px;
-}
-
-/* Fix card height  */
-.layout-container>div {
-  height: 100%;
-  z-index: 10;
-}
-
-html,
-body {
-  scroll-behavior: smooth;
-  overflow-y: hidden!important;
-  height: var(--doc-height);
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  background-color: var(--secondbackground);
-  font-family: var(--font-family);
-}
-
-/* --------------------------------------------------------------------------
- * Appearance v2 (PI-011 · P3).
- * `lib/appearance.ts` puts the user's choices on <html> as `data-*` attributes
- * plus `--pi-ui-scale`; these rules turn them into token overrides, so density /
- * type scale / direction / motion / contrast reach every surface — including the
- * third-party ones (Vditor, ECharts, HeroUI) — without a prop being threaded
- * through the component tree. Every value below references a token; no literal
- * is introduced here.
- * ------------------------------------------------------------------------ */
-
-/* `1rem` resolves against the initial font size, so this scales the whole UI. */
-html {
-  font-size: calc(1rem * var(--pi-ui-scale));
-}
-
-body {
-  line-height: var(--pi-line-height);
-}
-
-html[data-line-height="compact"] {
-  --pi-line-height: 1.4;
-}
-
-html[data-line-height="relaxed"] {
-  --pi-line-height: 1.8;
-}
-
-/* Compact trades breathing room for cards per screen (chips are the densest
- * repeated element in the card layout). */
-html[data-density="compact"] {
-  --chip-font-size: 12px;
-  --chip-radius: 5px;
-  --contextmenu-item-radius: 9px;
-}
-
-html[data-contrast-boost="true"]:not(.dark) {
-  --desc: var(--pi-color-neutral-800);
-  --ignore: var(--pi-color-neutral-600);
-  --border: var(--pi-color-neutral-300);
-}
-
-html[data-contrast-boost="true"].dark {
-  --desc: var(--pi-color-neutral-225);
-  --ignore: var(--pi-color-neutral-500);
-  --border: var(--pi-color-neutral-800);
-}
-
-/* The user-facing motion switch, symmetric with the
- * `prefers-reduced-motion` block in tokens.css. */
-html[data-reduce-motion="true"] {
-  --motion-fast: 1ms;
-  --motion-base: 1ms;
-}
-
-/* The dark variant is a token remap (`--hero-glow` / `--hero-base`), not a
- * `.dark` component branch — see tokens.css tier 4. */
-.dashboard-hero {
-  background:
-    radial-gradient(circle at 90% 10%, var(--hero-glow), transparent 34%),
-    linear-gradient(135deg, var(--hero-base), var(--background));
-}
-
-.h-mobile-full {
-  height: var(--doc-height);
-}
-
-/* menu  tree list  */
-.tree ul {
-  list-style: none !important;
-}
-
-/* menu  tree list  */
-.tree li {
-  list-style: none !important;
-}
-
-.planinc-tag {
-   margin-right: 4px;
-   margin-left: 4px;
-   color: var(--primary) !important;
-   background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-   border-radius: var(--tag-radius);
-   font-size: var(--chip-font-size);
-   padding: 3px;
-   text-decoration: none !important;
-}
-
-.planinc-reference {
-   border: 2px solid color-mix(in srgb, var(--primary) 20%, transparent);
-   background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-   border-radius: var(--tag-radius);
-   font-size: var(--chip-font-size);
-   padding: 4px;
-   cursor: pointer;
-   transition: all var(--motion-base) var(--motion-ease);
-}
-
-.planinc-reference:hover {
-   background-color: color-mix(in srgb, var(--primary) 20%, transparent);
-}
-
-
-.contextmenu {
-   padding: 2px !important;
-   padding-top: 6px !important;
-   padding-bottom: 6px !important;
-   box-shadow: var(--shadow) !important;
-   border-radius: var(--contextmenu-radius) !important;
-   border: 2px solid var(--desc) !important;
-   background-color: var(--background) !important;
-   transition: all var(--motion-base) var(--curve-enter);
-}
-
-.contextmenu .contextmenu__item {
-   border-radius: var(--contextmenu-item-radius);
-   margin-left: 3px;
-   margin-right: 3px;
-   transition: all var(--motion-fast) var(--curve-exit);
-}
-
-.contextmenu .contextmenu__item:hover {
-   background-color: var(--secondbackground) !important;
-}
-
-.PhotoView-Portal {
-  z-index: 10000;
-}
-
-.swiper-3d .swiper-slide-shadow {
-  background: var(--swiper-3d-shadow) !important;
-}
-
-.ͼo.cm-focused .cm-matchingBracket {
-  color: var(--desc);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@layer base {
+  :root {
+    /* shadcn/ui theme variables */
+    --background: 0 0% 100%;
+    --background-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 76% 46%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+    --info: 212 91% 60%;
+    --info-foreground: 222.2 47.4% 11.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.25rem;
   }
 
-  to {
-    opacity: 1;
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --background-foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 60.9%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 222.2 47.4% 11.2%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+    --info: 212 91% 60%;
+    --info-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+
+    /* Dark mode remaps for responsive component radii */
+    --card-radius: var(--pi-radius-md);
+    --surface-radius: var(--pi-radius-md);
+    --modal-radius: var(--pi-radius-2xl);
+    --sheet-radius: var(--pi-radius-3xl);
+    --avatar-radius: 9999px;
+    --image-radius: var(--pi-radius-lg);
+    --input-radius: var(--pi-radius-md);
+    --button-radius: var(--pi-radius-md);
+    --tag-radius: var(--pi-radius-sm);
+    --tooltip-radius: var(--pi-radius-md);
+    --dropdown-radius: var(--pi-radius-lg);
+    --skeleton-radius: var(--pi-radius-md);
+    --scrollbar-radius: 2px;
+
+    /* Dark mode remaps for motion curves */
+    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  /* Focus visible */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-/* The `:root` / `.dark` token declarations that used to live here moved to
- * `./tokens.css` as tiers 1–4 of the design token contract (PI-011 · P1).
- * Nothing in this file declares a colour literal any more. */
+@layer components {
+  /* Container utility */
+  .container-custom {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 
-.glass-effect {
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:scale-[1.01];
+  }
+
+  /* Input focus ring */
+  .input-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Button press effect */
+  .button-press {
+    @apply active:scale-[0.98] transition-all duration-150;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Truncate */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
+/* Responsive design tokens - 8-tier system */
+@layer base {
+  /* Base tier (mobile first) */
+  html {
+    font-size: 16px;
+    line-height: 1.5;
+  }
 
+  /* Responsive border-radius scale */
+  html[data-tier="xs"] {
+    --radius: 0.375rem;
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 6px;
+    --radius-xl: 8px;
+    --radius-2xl: 12px;
+    --radius-3xl: 16px;
+  }
 
-::-webkit-scrollbar {
-  background: transparent;
-  width: 8px;
-  height: 6px;
+  html[data-tier="sm"] {
+    --radius: 0.4rem;
+    --radius-sm: 3px;
+    --radius-md: 5px;
+    --radius-lg: 7px;
+    --radius-xl: 9px;
+    --radius-2xl: 13px;
+    --radius-3xl: 17px;
+  }
+
+  html[data-tier="md"] {
+    --radius: 0.45rem;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
+    --radius-2xl: 14px;
+    --radius-3xl: 18px;
+  }
+
+  html[data-tier="lg"] {
+    --radius: 0.5rem;
+    --radius-sm: 5px;
+    --radius-md: 7px;
+    --radius-lg: 9px;
+    --radius-xl: 12px;
+    --radius-2xl: 16px;
+    --radius-3xl: 20px;
+  }
+
+  html[data-tier="xl"] {
+    --radius: 0.55rem;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 14px;
+    --radius-2xl: 18px;
+    --radius-3xl: 22px;
+  }
+
+  html[data-tier="2xl"] {
+    --radius: 0.625rem;
+    --radius-sm: 7px;
+    --radius-md: 9px;
+    --radius-lg: 11px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-3xl: 24px;
+  }
+
+  html[data-tier="3xl"],
+  html[data-tier="4xl"] {
+    --radius: 0.7rem;
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 18px;
+    --radius-2xl: 22px;
+    --radius-3xl: 26px;
+  }
+
+  /* Tier 4xl extra large */
+  html[data-tier="4xl"] {
+    --radius: 0.8rem;
+    --radius-sm: 9px;
+    --radius-md: 12px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-3xl: 28px;
+  }
+
+  /* Responsive component edge attributes */
+  html[data-tier="xs"] {
+    --card-radius: var(--radius-md);
+    --modal-radius: var(--radius-lg);
+    --sheet-radius: var(--radius-xl);
+    --button-radius: var(--radius-sm);
+    --input-radius: var(--radius-sm);
+    --chip-radius: 4px;
+    --contextmenu-radius: 10px;
+    --contextmenu-item-radius: 6px;
+    --surface-radius: var(--radius-sm);
+    --avatar-radius: 9999px;
+    --image-radius: var(--radius-md);
+    --dropdown-radius: var(--radius-md);
+    --tooltip-radius: var(--radius-sm);
+    --progress-radius: 9999px;
+    --skeleton-radius: var(--radius-sm);
+    --scrollbar-radius: 2px;
+  }
+
+  html[data-tier="md"] {
+    --card-radius: var(--radius-lg);
+    --modal-radius: var(--radius-2xl);
+    --sheet-radius: var(--radius-3xl);
+    --button-radius: var(--radius-md);
+    --input-radius: var(--radius-md);
+    --chip-radius: 6px;
+    --contextmenu-radius: 14px;
+    --contextmenu-item-radius: 10px;
+    --surface-radius: var(--radius-md);
+    --avatar-radius: 9999px;
+    --image-radius: var(--radius-lg);
+    --dropdown-radius: var(--radius-lg);
+    --tooltip-radius: var(--radius-md);
+    --progress-radius: 9999px;
+    --skeleton-radius: var(--radius-md);
+    --scrollbar-radius: 2px;
+  }
+
+  html[data-tier="lg"] {
+    --card-radius: var(--radius-xl);
+    --modal-radius: var(--radius-3xl);
+    --sheet-radius: var(--radius-3xl);
+    --button-radius: var(--radius-md);
+    --input-radius: var(--radius-md);
+    --chip-radius: 7px;
+    --contextmenu-radius: 16px;
+    --contextmenu-item-radius: 12px;
+    --surface-radius: var(--radius-lg);
+    --avatar-radius: 9999px;
+    --image-radius: var(--radius-xl);
+    --dropdown-radius: var(--radius-xl);
+    --tooltip-radius: var(--radius-md);
+    --progress-radius: 9999px;
+    --skeleton-radius: var(--radius-md);
+    --scrollbar-radius: 2px;
+  }
+
+  html[data-tier="4xl"] {
+    --card-radius: var(--radius-3xl);
+    --modal-radius: calc(var(--radius-3xl) * 1.6);
+    --sheet-radius: calc(var(--radius-3xl) * 1.6);
+    --button-radius: var(--radius-lg);
+    --input-radius: var(--radius-md);
+    --chip-radius: 12px;
+    --contextmenu-radius: 24px;
+    --contextmenu-item-radius: 20px;
+    --surface-radius: var(--radius-3xl);
+    --avatar-radius: 9999px;
+    --image-radius: var(--radius-3xl);
+    --dropdown-radius: var(--radius-3xl);
+    --tooltip-radius: var(--radius-md);
+    --progress-radius: 9999px;
+    --skeleton-radius: var(--radius-md);
+    --scrollbar-radius: 2px;
+  }
+
+  /* Responsive motion curves */
+  html[data-tier="xs"] {
+    --motion-fast: 150ms;
+    --motion-base: 250ms;
+    --motion-slow: 350ms;
+    --curve-enter: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  html[data-tier="sm"],
+  html[data-tier="md"] {
+    --motion-fast: 150ms;
+    --motion-base: 300ms;
+    --motion-slow: 400ms;
+    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  html[data-tier="lg"],
+  html[data-tier="xl"] {
+    --motion-fast: 200ms;
+    --motion-base: 400ms;
+    --motion-slow: 500ms;
+    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  html[data-tier="2xl"],
+  html[data-tier="3xl"],
+  html[data-tier="4xl"] {
+    --motion-fast: 250ms;
+    --motion-base: 500ms;
+    --motion-slow: 600ms;
+    --curve-enter: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-exit: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-sharp: cubic-bezier(0.4, 0, 0.2, 1);
+    --curve-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --curve-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-  transition: all 1s;
-}
+/* Hover-only reveals - pointer aware */
+@layer utilities {
+  .hover-only-on-fine {
+    @apply opacity-0 group-hover/sidebar:opacity-100;
+  }
 
-::-webkit-scrollbar-thumb {
-   background: var(--primary);
-   border-radius: var(--scrollbar-radius);
-   transition: all var(--motion-fast) var(--curve-exit);
-}
+  @media (pointer: fine) {
+    .hover-only-on-fine {
+      @apply opacity-100;
+    }
+  }
 
-::-webkit-scrollbar-thumb:hover {
-   background: color-mix(in srgb, var(--primary) 80%, transparent);
-}
-
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.mermaid-wrapper {
-   display: flex;
-   justify-content: center;
-   margin: 1rem 0;
-   padding: 1rem;
-   border-radius: var(--card-radius);
-   transition: all var(--motion-base) var(--curve-enter);
-}
-
-.markmap-foreign {
-   color: var(--foreground);
-}
-
-.echarts-wrapper {
-   display: flex;
-   justify-content: center;
-   margin: 1rem 0;
-   padding: 1rem;
-   border-radius: var(--card-radius);
-   background: var(--secondbackground);
-   transition: all var(--motion-base) var(--curve-enter);
-}
-
-.group[data-focus-visible="true"] .group-data-\[focus-visible\=true\]\:ring-2 {
-   --tw-ring-shadow: 0 !important;
-}
-
-.note-card--highlight {
-  animation: highlight-pulse 2s ease-out forwards;
-}
-
-@keyframes highlight-pulse {
-  0%   { box-shadow: 0 0 0 0 var(--planinc-accent-20, rgba(245, 158, 11, 0.2)); }
-  30%  { box-shadow: 0 0 0 8px var(--planinc-accent-40, rgba(245, 158, 11, 0.4)); }
-  100% { box-shadow: 0 0 0 0 transparent; }
+  /* Data-safe-area for mobile */
+  .data-safe-area {
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
 }
