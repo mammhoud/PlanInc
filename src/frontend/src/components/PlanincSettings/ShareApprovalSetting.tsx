@@ -44,7 +44,7 @@ const scopeIcon: Record<ShareScope, string> = {
  */
 export const ShareApprovalSetting = observer(() => {
   const { t } = useTranslation();
-  const [policy, setPolicy] = useState({ requireShareApproval: false, isAdmin: false });
+  const [policy, setPolicyState] = useState({ requireShareApproval: false, isAdmin: false });
   const [inbox, setInbox] = useState<ShareApproval[]>([]);
   const [outgoing, setOutgoing] = useState<ShareApproval[]>([]);
   const [adminQueue, setAdminQueue] = useState<ShareApproval[]>([]);
@@ -56,7 +56,7 @@ export const ShareApprovalSetting = observer(() => {
     setIsLoading(true);
     try {
       const nextPolicy = await api.shareApprovals.policy.query();
-      setPolicy(nextPolicy);
+      setPolicyState(nextPolicy);
 
       const [nextInbox, nextOutgoing] = await Promise.all([
         api.shareApprovals.inbox.query(),
@@ -101,7 +101,7 @@ export const ShareApprovalSetting = observer(() => {
   };
 
   const setPolicy = async (requireShareApproval: boolean) => {
-    setPolicy((current) => ({ ...current, requireShareApproval }));
+    setPolicyState((current) => ({ ...current, requireShareApproval }));
     await PromiseCall(api.shareApprovals.setPolicy.mutate({ requireShareApproval }), { autoAlert: false });
   };
 

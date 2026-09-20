@@ -9,8 +9,9 @@ import { Icon } from '@/components/Common/Iconify/icons';
 import { PlanningViewSwitch } from '@/components/PlanincPlanning/PlanningViewSwitch';
 import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPagination';
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
+import { PlanincGraph } from '@/components/PlanincGraph/PlanincGraph';
 
-type GraphKind = 'root' | 'note' | 'ticket' | 'study' | 'resource' | 'agent';
+export type GraphKind = 'root' | 'note' | 'ticket' | 'study' | 'resource' | 'agent';
 
 type GraphCustomField = {
   id: number;
@@ -21,7 +22,7 @@ type GraphCustomField = {
   showInGraph: boolean;
 };
 
-type GraphNode = {
+export type GraphNode = {
   id: string;
   label: string;
   kind: GraphKind;
@@ -36,7 +37,7 @@ type GraphNode = {
   href?: string;
 };
 
-type GraphRelation = {
+export type GraphRelation = {
   id: number;
   sourceType: string;
   targetType: string;
@@ -465,53 +466,17 @@ export default function GraphPage() {
     {isLoading && <p className="py-8 text-center text-foreground-500">{t('in-progress')}</p>}
 
     {!isLoading && viewMode === 'cards' && (
-      <Card><CardBody><div className="overflow-x-auto rounded-2xl bg-content2 p-2"><svg viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} className="min-w-[640px] w-full" role="img" aria-label={t('graph-description')}>
-        {graphEdges.map((edge) => {
-          const from = positions.get(edge.source.id);
-          const to = positions.get(edge.target.id);
-          if (!from || !to) return null;
-          return <line key={`edge-${edge.id}`} x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="currentColor" strokeOpacity="0.35" strokeWidth="2" strokeDasharray={edge.source.id === 'root' || edge.target.id === 'root' ? '4 4' : undefined} />;
-        })}
-        {visibleNodes.filter((node) => node.kind !== 'root' && !linkedNodeIds.has(node.id)).map((node) => {
-          const from = positions.get('root')!;
-          const to = positions.get(node.id)!;
-          return <line key={`spoke-${node.id}`} x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="currentColor" strokeOpacity="0.12" strokeWidth="2" />;
-        })}
-        {visibleNodes.map((node) => {
-          const point = positions.get(node.id)!;
-          const isRoot = node.kind === 'root';
-          const relations = relationCount.get(node.id) ?? 0;
-          return <g
-            key={node.id}
-            role={isRoot ? undefined : 'button'}
-            tabIndex={isRoot ? undefined : 0}
-            aria-label={`${t(KIND_LABELS[node.kind])}: ${node.label}`}
-            onClick={() => { if (!isRoot) focusNode(node); }}
-            onMouseEnter={() => setHoveredNode(node)}
-            onMouseLeave={() => setHoveredNode((current) => (current?.id === node.id ? null : current))}
-            onFocus={() => setHoveredNode(node)}
-            onBlur={() => setHoveredNode((current) => (current?.id === node.id ? null : current))}
-            onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && !isRoot) { event.preventDefault(); focusNode(node); } }}
-            className={`${KIND_COLORS[node.kind]} ${isRoot ? '' : 'cursor-pointer'}`}
-          >
-            <title>{nodeTooltip(node)}</title>
-            {selectedNode?.id === node.id && (
-              <>
-                <circle cx={point.x} cy={point.y} r={isRoot ? 44 : 38} className="fill-none stroke-current" strokeWidth="3" opacity="0.5" />
-                <circle cx={point.x} cy={point.y} r={isRoot ? 40 : 34} className="fill-none stroke-current" strokeWidth="2">
-                  <animate attributeName="r" values={`${isRoot ? 40 : 34};${isRoot ? 56 : 50};${isRoot ? 40 : 34}`} dur="1.6s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0.9;0;0.9" dur="1.6s" repeatCount="indefinite" />
-                </circle>
-              </>
-            )}
-            {hoveredNode?.id === node.id && selectedNode?.id !== node.id && <circle cx={point.x} cy={point.y} r={isRoot ? 44 : 38} className="fill-current opacity-10" />}
-            <circle cx={point.x} cy={point.y} r={isRoot ? 34 : relations ? 30 : 26} className="fill-current stroke-background" strokeWidth={selectedNode?.id === node.id ? 5 : 3} />
-            {relations > 0 && <text x={point.x + (isRoot ? 24 : 21)} y={point.y - (isRoot ? 24 : 21)} textAnchor="middle" className="fill-foreground-500 text-[10px] font-semibold">{relations}</text>}
-            <text x={point.x} y={point.y - 4} textAnchor="middle" className="fill-background text-[11px] font-semibold">{t(KIND_LABELS[node.kind])}</text>
-            <text x={point.x} y={point.y + 12} textAnchor="middle" className="fill-background text-[9px]">{node.label.slice(0, 18)}</text>
-          </g>;
-        })}
-      </svg></div>
+      <Card><CardBody><PlanincGraph
+        nodes={visibleNodes}
+        edges={graphEdges}
+        selectedNode={selectedNode}
+        hoveredNode={hoveredNode}
+        labels={KIND_LABELS}
+        relationCount={relationCount}
+        onSelect={(node) => { if (node.kind !== 'root') focusNode(node); }}
+        onHover={setHoveredNode}
+        ariaLabel={t('graph-description')}
+      />
         {hoveredNode && (
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-content2 p-3 text-sm">
             <Chip size="sm" variant="flat">{t(KIND_LABELS[hoveredNode.kind])}</Chip>
@@ -554,6 +519,17 @@ export default function GraphPage() {
       <ModalContent>
         <ModalHeader>{selectedNode?.label}</ModalHeader>
         <ModalBody className="gap-3">
+          <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-sky-950 p-5 text-sky-50">
+            <div className="absolute inset-0 scale-110 bg-[url('/planinc-logo-light.jpg')] bg-cover bg-center opacity-20 blur-2xl" aria-hidden="true" />
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-500/45 via-sky-950/75 to-slate-950/90" aria-hidden="true" />
+            <div className="relative flex flex-wrap items-center gap-2">
+              <img src="/planinc-logo-square.jpg" alt="" className="h-16 w-16 rounded-xl object-cover ring-2 ring-sky-200/70" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-sky-200">{selectedNode ? t(KIND_LABELS[selectedNode.kind]) : ''}</p>
+                <h2 className="text-lg font-semibold">{selectedNode?.label}</h2>
+              </div>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Chip size="sm" variant="flat">{selectedNode ? t(KIND_LABELS[selectedNode.kind]) : ''}</Chip>
             {selectedNode?.status && <Chip size="sm" variant="flat">{t(selectedNode.status)}</Chip>}
