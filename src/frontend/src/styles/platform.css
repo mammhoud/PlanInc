@@ -82,14 +82,15 @@ html[data-form-factor="phone"] .h-mobile-full {
  * `getFixedHeaderBackground()`; the surface is now the `--pi-chrome-blur` token
  * so it follows the theme, and the top inset keeps it clear of the notch. */
 html[data-form-factor="phone"] .pi-mobile-header {
-  position: fixed;
-  top: 0;
-  z-index: 11;
-  width: 100%;
-  background: var(--pi-chrome-blur);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 0 0 var(--pi-radius-md) var(--pi-radius-md);
+   position: fixed;
+   top: 0;
+   z-index: 11;
+   width: 100%;
+   background: var(--pi-chrome-blur);
+   backdrop-filter: blur(10px);
+   -webkit-backdrop-filter: blur(10px);
+   border-radius: 0 0 var(--card-radius) var(--card-radius);
+   transition: border-radius var(--motion-base) var(--curve-enter);
 }
 
 /* Top inset, gated on the *capability* rather than the form factor — a desktop

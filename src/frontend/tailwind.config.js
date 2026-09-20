@@ -1,10 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 const { heroui } = require('@heroui/react');
+const flyonui = require('flyonui/plugin');
 module.exports = {
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
     '../node_modules/@tremor/**/*.{js,ts,jsx,tsx}',
-    '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}', // NextUI theme
+    '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
+    '../node_modules/flyonui/dist/**/*.{js,ts,jsx,tsx}',
+  ],
+  plugins: [
+    flyonui,
   ],
   darkMode: 'class',
   theme: {
@@ -78,9 +83,10 @@ module.exports = {
       spacing: {
         '90': '90px',
       },
-      // Radius comes from the token contract (tokens.css tier 4). The derived
-      // values are identical to the previous calc() expressions, so this is a
-      // single-source change, not a visual one.
+      // Radius comes from the token contract (tokens.css tier 4).
+      // The derived values are identical to the previous calc() expressions,
+      // so this is a single-source change, not a visual one.
+      // All radii scale responsively via html[data-tier="..."] in tokens.css.
       borderRadius: {
         lg: 'var(--pi-radius-lg)',
         md: 'var(--pi-radius-md)',
@@ -88,6 +94,10 @@ module.exports = {
         xl: 'var(--pi-radius-xl)',
         '2xl': 'var(--pi-radius-2xl)',
       },
+      // Responsive border-radius utility variants
+      // These allow `radius-sm`, `radius-md`, `radius-lg` etc.
+      // to respond to the tier attribute without media queries.
+      // HeroUI layout radii are also responsive via the same tokens.
       // fontFamily: {
       //   sans: ['Inter', 'var(--font-sans)', ...fontFamily.sans],
       // },
