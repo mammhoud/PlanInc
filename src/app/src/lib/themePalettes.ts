@@ -22,6 +22,14 @@ export type ThemePalette = {
 
 export const THEME_PALETTES: ThemePalette[] = [
   {
+    key: 'sky',
+    label: 'palette-sky',
+    background: '#0EA5E9',
+    foreground: '#082F49',
+    accent: '#38BDF8',
+    surface: '#F0F9FF',
+  },
+  {
     key: 'preplixity',
     label: 'palette-preplixity',
     background: '#20808D',

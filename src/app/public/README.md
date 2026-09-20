@@ -18,6 +18,10 @@ Static assets copied verbatim into the Vite build.
 - `logo-dark-title.png`
 - `logo-light-title.png`
 - `logo.png`
+- `planinc-logo-source.jpg` - Read-only source reference copied from the supplied PlanInc mark.
+- `planinc-logo-light.jpg` - Cropped and resized light-surface wordmark.
+- `planinc-logo-dark.jpg` - Dark-surface application variant.
+- `planinc-logo-square.jpg` - Square application asset for compact surfaces.
 - `manifest.json`
 - `run-on-pikapods.svg`
 
