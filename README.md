@@ -4,6 +4,22 @@
 
 PlanInc is a self-hosted planning and project incubation platform for modern teams and organisations. It provides tools for project management, structured note-taking, team collaboration, and strategic planning — all running locally with no SaaS dependency.
 
+## 📚 Documentation
+
+Long-form documentation lives in [`docs/`](./docs/INDEX.md), indexed with stable
+`PI-NNN` IDs. If you are new here, start with the
+[package guide](./docs/00-package-guide.md) — it explains the distinction that
+costs everyone time first: the **deployed** application is `runtime/`, while
+`src/` is the upstream monorepo it was extracted from.
+
+Every directory in this repository also carries a `README.md` describing its role,
+contents and public API. Those files are generated and enforced:
+
+```bash
+python3 scripts/generate-dir-docs.py          # write/refresh
+python3 scripts/generate-dir-docs.py --check  # exit 1 if any directory is undocumented
+```
+
 ## 🚀 Features
 
 - **Project Planning**: Advanced project planning and tracking capabilities
@@ -201,18 +217,26 @@ graph, which previews every node type with tooltips and related-item details.
   printed by the provisioning command. Restart a running development server
   after provisioning so its account lookup cache is refreshed.
 
-## 📖 Documentation
+## 📖 Documentation Index
 
-Comprehensive documentation lives in `docs/`:
+The full map is [`docs/INDEX.md`](./docs/INDEX.md). The pages most often needed:
 
-- [Architecture Guide](./docs/architecture.md)
-- [API Reference](./docs/api.md)
-- [Deployment Guide](./docs/deployment.md)
-- [Contributing Guidelines](./docs/contributing.md)
+- [Architecture](./docs/02-architecture.md)
+- [Runtime HTTP API](./docs/03-runtime-http-api.md)
+- [Database and schema](./docs/04-database-and-schema.md)
+- [Deployment](./docs/05-deployment.md)
+- [Testing](./docs/07-testing.md)
+- [Troubleshooting](./docs/09-troubleshooting.md)
 
 ## 🤝 Contributing
 
-We welcome contributions. Please see [Contributing Guidelines](./docs/contributing.md) for details.
+Contributions are welcome. Read the [package guide](./docs/00-package-guide.md)
+first — it explains which of the two codebases a change belongs in — then run the
+suite before opening a pull request:
+
+```bash
+make test
+```
 
 ## 📄 License
 
