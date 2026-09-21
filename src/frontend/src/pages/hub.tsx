@@ -17,13 +17,15 @@ import { HubStore } from "@/store/hubStore";
 import { LoadingAndEmpty } from "@/components/Common/LoadingAndEmpty";
 import { _ } from "@/lib/lodash";
 import { ResponsiveTabs } from "@/components/Common/ResponsiveTabs";
-import { useSideNav } from '@/platform/PlatformProvider';
+import { usePlatform, useSideNav } from '@/platform/PlatformProvider';
+import { cardColumnsFor, preferredCardColumns } from '@/platform/responsive';
 
 const Hub = observer(({ className }: { className?: string }) => {
   const { t } = useTranslation()
   const planinc = RootStore.Get(PlanIncStore)
   const user = RootStore.Get(UserStore)
   const isPc = useSideNav()
+  const { tier, viewportWidth } = usePlatform()
   const store = RootStore.Get(HubStore)
   const debounceLoadData = _.debounce(() => {
     store.loadAllData()
@@ -194,10 +196,19 @@ const Hub = observer(({ className }: { className?: string }) => {
               isEmpty={store.shareNoteList.isEmpty}
             />
             <Masonry
-              breakpointCols={{
-                default: 3,
-                500: 1
-              }}
+              // The feed used its own "3 columns, or 1 below 500px" pair, which
+              // ignored the tier system and the user's card-column preferences
+              // entirely. It now derives from the same tier the rest of the app
+              // uses, so a wide window and a phone each get a sensible count and
+              // the responsive override applies here too.
+              breakpointCols={cardColumnsFor(
+                viewportWidth,
+                preferredCardColumns(tier.name, {
+                  small: Number(planinc.config.value?.smallDeviceCardColumns ?? 1),
+                  medium: Number(planinc.config.value?.mediumDeviceCardColumns ?? 2),
+                  large: Number(planinc.config.value?.largeDeviceCardColumns ?? 4),
+                }),
+              )}
               className="blog-masonry-grid"
               columnClassName="blog-masonry-grid_column">
               {

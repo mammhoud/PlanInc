@@ -66,6 +66,10 @@ export const ZUserPerferConfigKey = z.union([
   z.literal('shadowStyle'),
   z.literal('cornerStyle'),
   z.literal('pageSize'),
+  // responsive overrides (PI-014) — declared in `shared/lib/settingsRegistry.ts`
+  z.literal('responsiveLayout'),
+  z.literal('sideNavMode'),
+  z.literal('touchTargets'),
 ]);
 
 export const ZConfigKey = z.union([

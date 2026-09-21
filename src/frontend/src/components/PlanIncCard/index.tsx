@@ -19,6 +19,7 @@ import { PluginRender } from "@/store/plugin/pluginRender";
 import { useLocation } from "react-router-dom";
 import { SwipeableCard } from "./SwipeableCard";
 import { api } from "@/lib/trpc";
+import { trashNotesWithUndo } from '@/lib/trashWithUndo';
 import { FullscreenEditor } from "./FullscreenEditor";
 import { useSideNav } from '@/platform/PlatformProvider';
 
@@ -93,9 +94,7 @@ export const PlanIncCard = observer(({ planincItem, account, isShareMode = false
   };
 
   const handleSwipeDelete = () => {
-    api.notes.trashMany.mutate({ ids: [planincItem.id!] }).then(() => {
-      planinc.updateTicker++;
-    });
+    void trashNotesWithUndo([planincItem.id]);
   };
 
   return (

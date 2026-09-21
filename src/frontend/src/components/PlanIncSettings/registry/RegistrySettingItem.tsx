@@ -12,6 +12,24 @@ import { api } from '@/lib/trpc';
 import { Item, ItemWithTooltip, SelectDropdown } from '../Item';
 import { coerceSettingValue, type SettingDefinition } from '@shared/lib/settingsRegistry';
 import { applyAppearance, readAppearance } from '@/lib/appearance';
+import { applyResponsiveOverrides } from '@/platform/overrides';
+
+/**
+ * Settings whose effect is a `<html>` attribute rather than a stored value, and
+ * so need applying optimistically while the config round-trips. Split by the
+ * module that owns the attribute: appearance tokens vs the responsive overrides.
+ */
+const APPEARANCE_SETTING_IDS = [
+  'density',
+  'uiScale',
+  'lineHeight',
+  'direction',
+  'reduceMotion',
+  'contrastBoost',
+  'shadowStyle',
+  'cornerStyle',
+];
+const RESPONSIVE_SETTING_IDS = ['responsiveLayout', 'sideNavMode', 'touchTargets'];
 
 /**
  * Render one registry setting (PI-011 · P2).
@@ -48,14 +66,19 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
     // Refresh the local config so every read site (and the reactive
     // appearance sync in UserStore.use) sees the new value immediately —
     // previously the UI stayed stale until a full reload.
-    const next = await planinc.config.call().catch(() => undefined);
+    const refreshedConfig = await planinc.config.call().catch(() => undefined);
     // Optimistic appearance apply for instant feedback while the list
     // round-trips (uiScale/density/line-height/motion/contrast/direction).
     try {
-      const cfg = (next ?? planinc.config.value) as Record<string, unknown> | undefined;
-      if (cfg && ['density', 'uiScale', 'lineHeight', 'direction', 'reduceMotion', 'contrastBoost', 'shadowStyle', 'cornerStyle'].includes(setting.id)) {
-        const merged = { ...(cfg as Record<string, unknown>), [setting.id]: safe };
-        applyAppearance(readAppearance(merged), merged.language as string | undefined);
+      const cfg = (refreshedConfig ?? planinc.config.value) as Record<string, unknown> | undefined;
+      if (cfg) {
+        const merged = { ...cfg, [setting.id]: safe };
+        if (APPEARANCE_SETTING_IDS.includes(setting.id)) {
+          applyAppearance(readAppearance(merged), merged.language as string | undefined);
+        }
+        if (RESPONSIVE_SETTING_IDS.includes(setting.id)) {
+          applyResponsiveOverrides(merged);
+        }
       }
     } catch {
       /* a partially-loaded config simply skips; the sync effect retries */

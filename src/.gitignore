@@ -1,4 +1,7 @@
 node_modules
+
+# Playwright e2e artifacts (screenshots, traces) — see playwright.config.mjs
+e2e/.artifacts
 .idea
 .DS_Store
 dist-ssr

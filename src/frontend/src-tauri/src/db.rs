@@ -1,12 +1,16 @@
-use std::path::PathBuf;
-use surrealdb::{Surreal, engine::local::SurrealKv};
+use surrealdb::{engine::local::{Db as SurrealDb, SurrealKv}, Surreal};
 use tauri::Manager;
 
-pub struct Db(pub Surreal<SurrealKv>);
+pub struct Db(pub Surreal<SurrealDb>);
 
-pub async fn init_db(app: &tauri::App) -> surrealdb::Result<Surreal<SurrealKv>> {
-    let data_dir = app.path().app_data_dir()?.join("planinc.db");
-    let db = Surreal::new::<SurrealKv>(data_dir).await?;
+pub async fn init_db(app: &tauri::App) -> crate::Result<Surreal<SurrealDb>> {
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|error| crate::Error::Internal(error.to_string()))?;
+    std::fs::create_dir_all(&data_dir)
+        .map_err(|error| crate::Error::Internal(error.to_string()))?;
+    let db = Surreal::<SurrealDb>::new::<SurrealKv>(data_dir.join("planinc.db")).await?;
     db.use_ns("planinc").use_db("planinc").await?;
     Ok(db)
 }

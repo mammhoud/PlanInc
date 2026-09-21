@@ -103,7 +103,9 @@ const App = observer(() => {
             effect={"cards"}
             grabCursor={true}
             modules={[EffectCards, Virtual]}
-            className="mt-5 md:mt-4 w-[300px] h-[calc(100vh_-_300px)] md:w-[550px] "
+            // A fixed 300px card overflowed a 320px viewport; the width is now
+            // capped by the viewport below the md tier and fixed above it.
+            className="mt-5 md:mt-4 w-[min(300px,90vw)] h-[calc(100vh_-_300px)] md:w-[550px] "
             allowSlideNext={true}
             allowSlidePrev={true}
             touchRatio={1}

@@ -14,6 +14,31 @@ import { cache } from '@shared/lib/cache';
 import { AiModelFactory } from '@server/aiServer/aiModelFactory';
 import { authProcedure, demoAuthMiddleware, publicProcedure, router } from '@server/middleware';
 
+/**
+ * Snapshot retention for note history.
+ *
+ * A history row is written on every save that changes content (see the upsert handler below),
+ * so without a bound the table grows with ordinary typing. Keep the newest
+ * NOTE_HISTORY_RETENTION versions per note and drop the older ones.
+ *
+ * Pruning cannot strand a user: restoring an old version goes through the same upsert path,
+ * which snapshots the current content first, so the pre-restore state stays recoverable.
+ */
+const NOTE_HISTORY_RETENTION = 50;
+
+async function pruneNoteHistory(noteId: number): Promise<void> {
+  const stale = await db.noteHistory.findMany({
+    where: { noteId },
+    orderBy: { version: 'desc' },
+    skip: NOTE_HISTORY_RETENTION,
+    select: { id: true },
+  });
+
+  if (stale.length === 0) return;
+
+  await db.noteHistory.deleteMany({ where: { id: { in: stale.map(row => row.id) } } });
+}
+
 const extractHashtags = (input: string): string[] => {
   const withoutCodeBlocks = input.replace(/```[\s\S]*?```/g, '');
   const hashtagRegex = /(?<!:\/\/)(?<=\s|^)#[^\s#]+(?=\s|$)/g;
@@ -995,6 +1020,8 @@ export const noteRouter = router({
               },
             },
           });
+
+          await pruneNoteHistory(id);
         }
 
         // For shared editors, we need to use a different where clause

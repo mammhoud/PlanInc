@@ -62,6 +62,9 @@ Do not hand-edit this table; re-run the command.
 | `density` | appearance / layout | select | user | `comfortable` | `comfortable \| compact` |
 | `shadowStyle` | appearance / layout | select | user | `soft` | `flat \| soft \| strong` |
 | `cornerStyle` | appearance / layout | select | user | `rounded` | `sharp \| rounded` |
+| `responsiveLayout` | appearance / layout | select | user | `auto` | `auto \| compact \| comfortable` |
+| `sideNavMode` | appearance / layout | select | user | `auto` | `auto \| pinned \| drawer` |
+| `touchTargets` | appearance / layout | select | user | `auto` | `auto \| coarse \| fine` |
 | `customBackgroundUrl` | appearance / background | text | global | *(empty)* | string ≤ 2048 |
 | `isCloseBackgroundAnimation` | appearance / background | switch | global | `false` | boolean |
 | `textFoldLength` | content / cards | number | user | `500` | `50`–`100000` |

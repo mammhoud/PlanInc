@@ -23,6 +23,7 @@ import { DialogStandaloneStore } from '@/store/module/DialogStandalone';
 import { ToastPlugin } from '@/store/module/Toast/Toast';
 import { BarSearchInput } from './BarSearchInput';
 import { PlanIncNotification } from '@/components/PlanIncNotification';
+import { CommandPalette, OPEN_COMMAND_PALETTE_EVENT } from './CommandPalette';
 import { AiStore } from '@/store/aiStore';
 import { useLocation, useSearchParams, Link } from 'react-router-dom';
 
@@ -31,6 +32,7 @@ export const SideBarItem = 'p-2 flex flex-row items-center cursor-pointer gap-2 
 export const CommonLayout = observer(({ children, header }: { children?: React.ReactNode; header?: React.ReactNode }) => {
   const [isClient, setClient] = useState(false);
   const [isOpen, setisOpen] = useState(false);
+  const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   // Whether the persistent side navigation fits is a property of the active
   // responsive tier, not a second copy of the 768px breakpoint. This replaces a
@@ -54,6 +56,27 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
   useEffect(() => {
     if (isPc) setisOpen(false);
   }, [isPc]);
+
+  // Cmd/Ctrl+K owns the command palette. The search box (BarSearchInput) used to
+  // bind this same chord; it now listens for the palette's OPEN_GLOBAL_SEARCH_EVENT
+  // instead, so one chord has one entry point and the palette can offer search among
+  // its actions.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(open => !open);
+      }
+    };
+    const openPalette = () => setCommandPaletteOpen(true);
+
+    window.addEventListener('keydown', handleKeyDown);
+    eventBus.on(OPEN_COMMAND_PALETTE_EVENT, openPalette);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      eventBus.off(OPEN_COMMAND_PALETTE_EVENT, openPalette);
+    };
+  }, []);
 
   useEffect(() => {
     setClient(true);
@@ -212,6 +235,7 @@ export const CommonLayout = observer(({ children, header }: { children?: React.R
 
         <MobileNavBar onItemClick={() => setisOpen(false)} />
         <PlanIncRightClickMenu />
+        <CommandPalette isOpen={isCommandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       </main>
     </div>
   );

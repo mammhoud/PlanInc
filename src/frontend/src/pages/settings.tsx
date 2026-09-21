@@ -209,8 +209,17 @@ const Page = observer(() => {
   const user = RootStore.Get(UserStore);
   const planincStore = RootStore.Get(PlanIncStore);
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<string>('basic');
+  const [searchParams] = useSearchParams();
+  const [selected, setSelected] = useState<string>(() => searchParams.get('section') || 'basic');
   const isMobile = useIsPhone();
+
+  // Deep links such as /settings?section=ai are how the command palette and the global
+  // search jump straight to a panel; before this the param was written but never read.
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section && section !== selected) setSelected(section);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const groupLabels: Record<SettingGroup, string> = {
     general: 'General',
     workspace: 'Workspace',

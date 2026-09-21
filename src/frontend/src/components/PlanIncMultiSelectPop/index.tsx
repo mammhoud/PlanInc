@@ -8,6 +8,7 @@ import { PlanIncStore } from '@/store/planincStore';
 import { api } from '@/lib/trpc';
 import { DialogStandaloneStore } from '@/store/module/DialogStandalone';
 import { MultiSelectToolbar } from '../Common/MultiSelectToolbar';
+import { trashNotesWithUndo } from '@/lib/trashWithUndo';
 
 export const PlanIncMultiSelectPop = observer(() => {
   const { t } = useTranslation();
@@ -46,6 +47,15 @@ export const PlanIncMultiSelectPop = observer(() => {
             planinc.onMultiSelectRest();
           }
         });
+      }
+    },
+    {
+      icon: "solar:trash-bin-trash-outline",
+      text: t('trash'),
+      onClick: () => {
+        // Reversible, so it needs no confirm — the toast carries the Undo.
+        void trashNotesWithUndo(planinc.curMultiSelectIds);
+        planinc.onMultiSelectRest();
       }
     },
     {

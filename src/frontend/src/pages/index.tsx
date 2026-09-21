@@ -19,7 +19,8 @@ import { PlanningViewSwitch, usePlanningView } from '@/components/PlanincPlannin
 import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPagination';
 import { Button, Chip, Select, SelectItem } from '@heroui/react';
 import { api } from '@/lib/trpc';
-import { useSideNav } from '@/platform/PlatformProvider';
+import { usePlatform, useSideNav } from '@/platform/PlatformProvider';
+import { cardColumnsFor, preferredCardColumns } from '@/platform/responsive';
 
 interface TodoGroup {
   displayDate: string;
@@ -37,6 +38,7 @@ const readStoredPageSize = () => {
 const Home = observer(() => {
   const { t } = useTranslation();
   const isPc = useSideNav()
+  const { tier, viewportWidth } = usePlatform()
   const planinc = RootStore.Get(PlanIncStore)
   planinc.use()
   planinc.useQuery();
@@ -437,11 +439,21 @@ const Home = observer(() => {
               onDragEnd={handleDragEnd}
             >
               <Masonry
-                breakpointCols={{
-                  default: planinc.config?.value?.largeDeviceCardColumns ? Number(planinc.config?.value?.largeDeviceCardColumns) : 2,
-                  1280: planinc.config?.value?.mediumDeviceCardColumns ? Number(planinc.config?.value?.mediumDeviceCardColumns) : 2,
-                  768: planinc.config?.value?.smallDeviceCardColumns ? Number(planinc.config?.value?.smallDeviceCardColumns) : 1
-                }}
+                // One column count for the active tier, from the same registry
+                // settings the settings panel writes. The previous three-point
+                // object carried its own 768/1280 pair and its own fall-backs
+                // (1/2/2), which disagreed with the registry defaults (1/2/4)
+                // and ignored the other five tiers — so an ultrawide window kept
+                // the 1280px count. `cardColumnsFor` also clamps a preference to
+                // the tier, and the responsive override selects the tier.
+                breakpointCols={cardColumnsFor(
+                  viewportWidth,
+                  preferredCardColumns(tier.name, {
+                    small: Number(planinc.config.value?.smallDeviceCardColumns ?? 1),
+                    medium: Number(planinc.config.value?.mediumDeviceCardColumns ?? 2),
+                    large: Number(planinc.config.value?.largeDeviceCardColumns ?? 4),
+                  }),
+                )}
                 className="card-masonry-grid"
                 columnClassName="card-masonry-grid_column">
                 {

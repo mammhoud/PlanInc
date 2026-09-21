@@ -66,6 +66,30 @@ export function formFactorFor(width: number): FormFactor {
   return 'desktop';
 }
 
+/** The three per-device-class card-column preferences (registry setting ids). */
+export type CardColumnPreferences = {
+  /** xs/sm — phone-class widths. */
+  small: number;
+  /** md/lg — tablet-class widths. */
+  medium: number;
+  /** xl and above — desktop-class widths. */
+  large: number;
+};
+
+/**
+ * Which preference applies at a tier, by device class.
+ *
+ * Screen-level layouts (the note masonry, the hub feed) ask this instead of
+ * carrying their own breakpoints: both had grown their own hard-coded pair
+ * (768/1280) plus their own fall-backs, which disagreed with the registry's
+ * defaults and ignored the other five tiers entirely.
+ */
+export function preferredCardColumns(tier: TierName, preferences: CardColumnPreferences): number {
+  if (tier === 'xs' || tier === 'sm') return preferences.small;
+  if (tier === 'md' || tier === 'lg') return preferences.medium;
+  return preferences.large;
+}
+
 /** Card columns clamped to the user's preference for the active tier. */
 export function cardColumnsFor(width: number, preferred?: number): number {
   const tierColumns = tierFor(width).cardColumns;

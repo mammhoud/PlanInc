@@ -89,7 +89,9 @@ export default function DashboardPage() {
                   <Chip color={completionRate >= 70 ? 'success' : 'warning'} variant="flat">{completionRate}%</Chip>
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-content2"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${completionRate}%` }} /></div>
-                <div className="grid grid-cols-3 gap-3 text-sm">
+                {/* Three stats side by side is a desktop reading; at phone widths
+                    the labels wrap into each other, so they stack until sm. */}
+                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
                   <div><p className="text-foreground-500">{t('total-items')}</p><strong>{totalTasks}</strong></div>
                   <div><p className="text-foreground-500">{t('blocked')}</p><strong>{blockedWork}</strong></div>
                   <div><p className="text-foreground-500">{t('words-this-month')}</p><strong>{noteStats.totalWords ?? 0}</strong></div>

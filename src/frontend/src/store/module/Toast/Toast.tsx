@@ -121,6 +121,33 @@ export class ToastPlugin implements Store {
     };
   }
 
+  /**
+   * Destructive-action toast carrying an inline undo affordance.
+   *
+   * The Recycle Bin flow already changed state by the time this shows, so the toast offers the
+   * way back rather than asking first. Callers own the reversal; this only renders the control.
+   */
+  undo(message: string, options: { label: string; onUndo: () => void | Promise<void> }) {
+    return toast.custom(
+      (toastItem) => (
+        <div className="flex items-center gap-3 bg-background rounded-2xl px-4 py-3 shadow-md">
+          <span className="text-sm text-foreground">{message}</span>
+          <button
+            type="button"
+            className="text-sm font-medium text-primary hover:underline cursor-pointer"
+            onClick={async () => {
+              toast.dismiss(toastItem.id);
+              await options.onUndo();
+            }}
+          >
+            {options.label}
+          </button>
+        </div>
+      ),
+      { duration: 6000 },
+    );
+  }
+
   success(str: string) {
     toast.success(str, { icon: '👏' })
   };

@@ -20,6 +20,7 @@ import { StorageState } from './standard/StorageState';
 import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
 import { DEFAULT_THEME_PALETTE, applyThemePalette } from '@/lib/themePalettes';
 import { applyAppearance, readAppearance } from '@/lib/appearance';
+import { applyResponsiveOverrides } from '@/platform/overrides';
 import { isInTauri, setTauriTheme } from '@/lib/tauriHelper';
 import { FontManager } from '@/lib/fontManager';
 
@@ -296,6 +297,12 @@ export class UserStore implements Store {
     // `html[data-*]` rules in styles/globals.css.
     applyAppearance(readAppearance(config as Record<string, unknown> | undefined), config?.language);
 
+    // Responsive overrides (PI-014): the same config carries the layout, side-nav
+    // and pointer preferences the shell's tier/form-factor decisions consult. Pushed
+    // here so they are in force from the first render after login, not from the
+    // first visit to the settings panel.
+    applyResponsiveOverrides(config as Record<string, unknown> | undefined);
+
     if (this.isLogin) {
       try {
         if (config) {
@@ -388,6 +395,10 @@ export class UserStore implements Store {
     // once on load, but settings-page writes must take effect immediately —
     // without a reload. The config observable is read here (inside the
     // observer Layout) and re-applied whenever an appearance key changes.
+    //
+    // The responsive overrides (PI-014) ride the same effect: they are read from
+    // the same config and must take effect as immediately as density does, which
+    // is why they are part of the same dependency key rather than a second one.
     const appearanceCfg = this.planinc.config.value as Record<string, unknown> | undefined;
     const appearanceKey = JSON.stringify([
       appearanceCfg?.density,
@@ -399,12 +410,20 @@ export class UserStore implements Store {
       appearanceCfg?.shadowStyle,
       appearanceCfg?.cornerStyle,
       appearanceCfg?.language,
+      appearanceCfg?.responsiveLayout,
+      appearanceCfg?.sideNavMode,
+      appearanceCfg?.touchTargets,
     ]);
     useEffect(() => {
       try {
         applyAppearance(readAppearance(appearanceCfg), appearanceCfg?.language as string | undefined);
       } catch {
         /* registry owns validation; a partially-loaded config simply skips */
+      }
+      try {
+        applyResponsiveOverrides(appearanceCfg);
+      } catch {
+        /* same contract: a partially-loaded config leaves the overrides at auto */
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [appearanceKey]);

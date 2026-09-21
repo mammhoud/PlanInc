@@ -94,7 +94,7 @@ const app = express();
 // PLANINC_PORT lets a dev instance run beside anything already bound to the
 // default 1111 (e.g. an IDE utility process squatting the port).
 const PORT = Number(process.env.PLANINC_PORT) || 1111;
-const appRootDev = path.resolve(__dirname, '../app');
+const appRootDev = path.resolve(__dirname, '../frontend');
 const appRootProd = path.resolve(__dirname, '../server');
 const corsOrigins = new Set(
   String(process.env.PLANINC_CORS_ORIGINS || '')

@@ -121,6 +121,41 @@ question in **43 places** (`useMediaQuery('(min-width: 768px)')` ×36 and
 old pair was not, since both matched at 768 — which is how the mobile bottom
 bar's spacer could render while the bar itself was hidden.
 
+## User overrides for the automatic decision
+
+Deriving the layout from the viewport is the right default, and wrong in two
+everyday cases: a desktop window dragged narrow collapses into a drawer the user
+did not ask for, and a tablet on a keyboard wants the wide layout with a fine
+pointer. Three per-user settings overrule the decision without touching the
+environment facts. They live in the settings registry, so they appear in
+Appearance → layout with no bespoke UI.
+
+| setting id | values | what it changes |
+|---|---|---|
+| `responsiveLayout` | `auto` (default) · `compact` · `comfortable` | the tier and the form factor — `compact` forces `xs` + `phone`, `comfortable` forces `lg` or the detected tier if larger |
+| `sideNavMode` | `auto` (default) · `pinned` · `drawer` | whether the persistent side navigation renders, independent of the tier |
+| `touchTargets` | `auto` (default) · `coarse` · `fine` | `data-pointer`, i.e. target sizes and inert hover states |
+
+`src/platform/overrides.ts` is the only reader. `responsive.ts` still owns the
+boundaries and `detect.ts` still owns the capabilities; this module decides which
+of those answers the shell acts on. `useSideNav()` and the form factor reported by
+`usePlatform()` resolve through it, so they can now legitimately disagree (forced
+compact layout with a pinned sidebar). The provider subscribes rather than reads
+once, so a change takes effect without a reload.
+
+**What the override does and does not govern.** It changes everything that asks
+the platform layer — the tier tokens (`html[data-tier]`, target sizes, spacing),
+`useSideNav()` / `useIsPhone()` / `useFormFactor()` and the 43 call sites behind
+them, `data-pointer`, and the JS-derived layout of screens that compute columns
+from the tier (the note masonry and the hub feed). It does **not** rewrite Tailwind
+utility classes: `sm:` / `md:` / `lg:` in a component still respond to the real
+viewport, because that is what the CSS media queries see. A forced compact layout
+therefore compresses token-driven chrome and the tier-aware grids, but a
+hand-written `md:grid-cols-2` stays two columns. Converting those utility pairs to
+tier-driven tokens is the remaining work; until then, prefer
+`cardColumnsFor(viewportWidth, preferredCardColumns(tier, …))` over a fresh
+`breakpointCols` object in any new screen.
+
 ## Remarks & Notes
 
 - **Colour lives in the token contract, not here.** `platform.css` introduces no

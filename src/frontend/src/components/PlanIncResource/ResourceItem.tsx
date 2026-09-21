@@ -7,7 +7,8 @@ import filesize  from 'filesize';
 import dayjs from '@/lib/dayjs';
 import { FileIcons } from '@/components/Common/AttachmentRender/FileIcon';
 import { memo, useCallback, useMemo } from 'react';
-import { Draggable, Droppable } from 'react-beautiful-dnd-next';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import { useTranslation } from 'react-i18next';
 import { type ResourceType } from '@shared/lib/types';
 import { ResourceContextMenu } from './ResourceContextMenu';
@@ -16,7 +17,6 @@ import { ResourceStore } from '@/store/resourceStore';
 import { _ } from '@/lib/lodash';
 import { observer } from 'mobx-react-lite';
 import { toJS } from 'mobx';
-import { motion } from 'framer-motion';
 import { ImageThumbnailRender } from '../Common/AttachmentRender/imageRender';
 import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
 import { UserStore } from '@/store/user';
@@ -209,45 +209,53 @@ const ResourceItem = observer(({ item, index, onSelect, isSelected, onFolderClic
 
   const draggableId = useMemo(() => (item.isFolder ? `folder-${item.folderName}` : String(item.id)), [item.isFolder, item.folderName, item.id]);
 
-  const droppableId = useMemo(() => (item.isFolder ? `folder-${item.folderName}` : undefined), [item.isFolder, item.folderName]);
+  // Folders are drop targets (a drop moves the selection into that folder); files are draggables.
+  // Both hooks are declared unconditionally and disabled per item, which is what the previous
+  // Draggable/Droppable pair expressed through `isDragDisabled` and the folder-only Droppable.
+  const droppableId = useMemo(
+    () => (item.isFolder ? `folder-${item.folderName}` : `resource-slot-${index}`),
+    [item.isFolder, item.folderName, index],
+  );
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: draggableId,
+    disabled: item.isFolder,
+    data: { index },
+  });
+
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: droppableId,
+    disabled: !item.isFolder,
+    data: { index },
+  });
 
   return (
-    <Draggable draggableId={draggableId} index={index} isDragDisabled={item.isFolder}>
-      {(provided: any, snapshot: any) => {
-        const draggableStyle = {
-          cursor: item.isFolder ? 'pointer' : 'default',
-          ...provided.draggableProps.style,
-          transform: item.isFolder ? 'none' : provided.draggableProps.style?.transform,
-        };
-
-        return (
-          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={`relative group`} onClick={handleClick} style={draggableStyle}>
-            <motion.div
-              // initial={{ opacity: 0, y: 20 }}
-              // animate={{ opacity: 1, y: 0 }}
-              // transition={{
-              //   duration: 0.2,
-              //   delay: index * 0.05,
-              //   ease: 'easeOut',
-              // }}
-            >
-              {item.isFolder ? (
-                <Droppable droppableId={droppableId!}>
-                  {(dropProvided, dropSnapshot) => (
-                    <div ref={dropProvided.innerRef} {...dropProvided.droppableProps} className="w-full h-full relative">
-                      <ResourceCard item={item} isSelected={isSelected} onSelect={onSelect} isDraggingOver={dropSnapshot.isDraggingOver} />
-                      {dropProvided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              ) : (
-                <ResourceCard item={item} isSelected={isSelected} onSelect={onSelect} isDragging={snapshot.isDragging} />
-              )}
-            </motion.div>
-          </div>
-        );
+    <div
+      ref={(node) => {
+        setDraggableRef(node);
+        setDroppableRef(node);
       }}
-    </Draggable>
+      {...(item.isFolder ? {} : { ...attributes, ...listeners })}
+      className={`relative group`}
+      onClick={handleClick}
+      style={{
+        cursor: item.isFolder ? 'pointer' : 'default',
+        transform: item.isFolder ? undefined : CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+      }}
+    >
+      {item.isFolder ? (
+        <ResourceCard item={item} isSelected={isSelected} onSelect={onSelect} isDraggingOver={isOver} />
+      ) : (
+        <ResourceCard item={item} isSelected={isSelected} onSelect={onSelect} isDragging={isDragging} />
+      )}
+    </div>
   );
 });
 

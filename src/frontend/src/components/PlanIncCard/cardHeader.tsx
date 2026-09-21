@@ -16,6 +16,7 @@ import { AvatarAccount, CommentButton, UserAvatar } from './commentButton';
 import { HistoryButton } from '../PlanIncNoteHistory/HistoryButton';
 import { api } from '@/lib/trpc';
 import { PromiseCall } from '@/store/standard/PromiseState';
+import { trashNotesWithUndo } from '@/lib/trashWithUndo';
 
 interface CardHeaderProps {
   planincItem: Note;
@@ -181,9 +182,7 @@ export const CardHeader = observer(({ planincItem, planinc, isShareMode, isExpan
                 className={`${planincItem.isRecycle ? 'opacity-100 text-red-500' : 'hover-only-on-fine group-hover/card:translate-x-0 text-desc'} ml-2 cursor-pointer hover:text-red-500 inline-flex`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  PromiseCall(api.notes.trashMany.mutate({ ids: [planincItem.id!] })).then(() => {
-                    planinc.updateTicker++;
-                  });
+                  void trashNotesWithUndo([planincItem.id]);
                 }}
               >
                 <Icon

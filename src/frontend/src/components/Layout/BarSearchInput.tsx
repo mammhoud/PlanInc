@@ -10,6 +10,7 @@ import { eventBus } from '@/lib/event';
 import { GlobalSearch } from './GlobalSearch';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { clearSearchState, getSearchWithClearedFilters } from '@/lib/searchFilters';
+import { OPEN_GLOBAL_SEARCH_EVENT } from './CommandPalette';
 
 interface BarSearchInputProps {
   isPc: boolean;
@@ -25,25 +26,16 @@ export const BarSearchInput = observer(({ isPc }: BarSearchInputProps) => {
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [localSearchText, setLocalSearchText] = useState('');
 
+  // The Cmd/Ctrl+K chord belongs to the command palette (CommonLayout); this component
+  // only reacts to OPEN_GLOBAL_SEARCH_EVENT, which the palette's search action and the
+  // mobile search button both emit.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        eventBus.emit('open-global-search');
-      }
-    };
-
-    eventBus.on('open-global-search', () => {
+    eventBus.on(OPEN_GLOBAL_SEARCH_EVENT, () => {
       setIsGlobalSearchOpen(true);
     });
 
     // Sync with planincStore.searchText
     setLocalSearchText(planincStore.searchText || '');
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
   }, [planincStore.searchText]);
 
   // Check if there are any active filters
@@ -65,7 +57,7 @@ export const BarSearchInput = observer(({ isPc }: BarSearchInputProps) => {
 
   const handleGlobalSearch = () => {
     // Emit an event that will be caught by the CommonLayout to open the global search
-    eventBus.emit('open-global-search');
+    eventBus.emit(OPEN_GLOBAL_SEARCH_EVENT);
   };
 
   const handleClearSearch = (e: React.MouseEvent) => {

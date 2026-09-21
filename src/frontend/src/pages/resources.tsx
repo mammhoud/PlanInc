@@ -5,7 +5,7 @@ import { useMemo, useCallback, useState } from "react";
 import { ScrollArea } from "@/components/Common/ScrollArea";
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useTranslation } from "react-i18next";
-import { DragDropContext, Droppable } from 'react-beautiful-dnd-next';
+import { DndContext, TouchSensor, PointerSensor, pointerWithin, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { toJS } from "mobx";
 import { MemoizedResourceItem } from "@/components/PlanIncResource/ResourceItem";
 import { ResourceMultiSelectPop } from "@/components/PlanIncResource/ResourceMultiSelectpop";
@@ -23,6 +23,22 @@ const Page = observer(() => {
   const [viewMode, setViewMode] = usePlanningView('planinc:resources:view', 'list');
   const [searchText, setSearchText] = useState('');
   const [sortMode, setSortMode] = useState<'name' | 'updated'>('updated');
+
+  // Distance-based activation keeps folder clicks working — a click must not start a drag.
+  // Touch keeps the long-press pattern the rest of the app uses (see useDragCard).
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
+
+  // Folders are the only drop targets, so a drop elsewhere resolves to no `over` and is ignored —
+  // the store's handler keeps its existing react-beautiful-dnd result shape, translated here.
+  const handleResourceDragEnd = useCallback(({ active, over }: DragEndEvent) => {
+    const sourceIndex = active.data.current?.index;
+    const destinationIndex = over?.data.current?.index;
+    if (typeof sourceIndex !== 'number' || typeof destinationIndex !== 'number') return;
+    void resourceStore.handleDragEnd({ source: { index: sourceIndex }, destination: { index: destinationIndex } });
+  }, [resourceStore]);
   const resources = useMemo(() => {
     const allResources = toJS(resourceStore.planinc.resourceList.value) || [];
     // Filter out .folder placeholder files
@@ -65,7 +81,7 @@ const Page = observer(() => {
 
   return (
     <>
-      <DragDropContext onDragEnd={resourceStore.handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragEnd={handleResourceDragEnd}>
         <ScrollArea
           fixMobileTopBar
           onBottom={resourceStore.loadNextPage}
@@ -256,33 +272,24 @@ const Page = observer(() => {
           />
           <PhotoProvider>
             {resources.length > 0 && (
-              <Droppable droppableId="resources">
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`py-2 min-h-[200px] ${viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-2 items-start' : ''}`}
-                  >
-                    {visibleResources.map((item, index) => (
-                      <MemoizedResourceItem
-                        key={item.isFolder ? `folder-${item.folderName}` : `file-${item.id}`}
-                        item={item}
-                        index={index}
-                        isSelected={selectedItems.has(item.id!)}
-                        onSelect={resourceStore.toggleSelect}
-                        onFolderClick={(folder) => resourceStore.navigateToFolder(folder, navigate)}
-                      />
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+              <div className={`py-2 min-h-[200px] ${viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-2 items-start' : ''}`}>
+                {visibleResources.map((item, index) => (
+                  <MemoizedResourceItem
+                    key={item.isFolder ? `folder-${item.folderName}` : `file-${item.id}`}
+                    item={item}
+                    index={index}
+                    isSelected={selectedItems.has(item.id!)}
+                    onSelect={resourceStore.toggleSelect}
+                    onFolderClick={(folder) => resourceStore.navigateToFolder(folder, navigate)}
+                  />
+                ))}
+              </div>
             )}
 
           </PhotoProvider>
 
         </ScrollArea>
-      </DragDropContext>
+      </DndContext>
       <ResourceMultiSelectPop />
     </>
   );

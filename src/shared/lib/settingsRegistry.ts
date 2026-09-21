@@ -120,6 +120,35 @@ const CORNER_STYLE_OPTIONS: readonly SettingOption[] = [
   { value: 'rounded', labelKey: 'corner-style-rounded' },
 ];
 
+/*
+ * Responsive overrides (PI-014).
+ *
+ * The tier is derived from the viewport by default, which is right for a phone
+ * but wrong in two common cases: a desktop window dragged narrow (the shell
+ * flips to a drawer the user did not ask for) and a tablet held in a keyboard
+ * case, where the wide layout is wanted without a pointer. These three settings
+ * let the user overrule the automatic decision; `auto` keeps today's behaviour
+ * and is the default, so no existing install changes. `platform/overrides.ts`
+ * is the only reader.
+ */
+const RESPONSIVE_LAYOUT_OPTIONS: readonly SettingOption[] = [
+  { value: 'auto', labelKey: 'responsive-layout-auto' },
+  { value: 'compact', labelKey: 'responsive-layout-compact' },
+  { value: 'comfortable', labelKey: 'responsive-layout-comfortable' },
+];
+
+const SIDE_NAV_MODE_OPTIONS: readonly SettingOption[] = [
+  { value: 'auto', labelKey: 'side-nav-mode-auto' },
+  { value: 'pinned', labelKey: 'side-nav-mode-pinned' },
+  { value: 'drawer', labelKey: 'side-nav-mode-drawer' },
+];
+
+const TOUCH_TARGETS_OPTIONS: readonly SettingOption[] = [
+  { value: 'auto', labelKey: 'touch-targets-auto' },
+  { value: 'coarse', labelKey: 'touch-targets-coarse' },
+  { value: 'fine', labelKey: 'touch-targets-fine' },
+];
+
 /**
  * Every preference the app exposes.
  *
@@ -232,6 +261,42 @@ export const SETTINGS: readonly SettingDefinition[] = [
     hintKey: 'corner-style-hint',
     validation: { kind: 'enum', values: ['sharp', 'rounded'] },
     options: CORNER_STYLE_OPTIONS,
+  },
+  {
+    id: 'responsiveLayout',
+    section: 'appearance',
+    group: 'layout',
+    type: 'select',
+    scope: 'user',
+    default: 'auto',
+    labelKey: 'responsive-layout',
+    hintKey: 'responsive-layout-hint',
+    validation: { kind: 'enum', values: ['auto', 'compact', 'comfortable'] },
+    options: RESPONSIVE_LAYOUT_OPTIONS,
+  },
+  {
+    id: 'sideNavMode',
+    section: 'appearance',
+    group: 'layout',
+    type: 'select',
+    scope: 'user',
+    default: 'auto',
+    labelKey: 'side-nav-mode',
+    hintKey: 'side-nav-mode-hint',
+    validation: { kind: 'enum', values: ['auto', 'pinned', 'drawer'] },
+    options: SIDE_NAV_MODE_OPTIONS,
+  },
+  {
+    id: 'touchTargets',
+    section: 'appearance',
+    group: 'layout',
+    type: 'select',
+    scope: 'user',
+    default: 'auto',
+    labelKey: 'touch-targets',
+    hintKey: 'touch-targets-hint',
+    validation: { kind: 'enum', values: ['auto', 'coarse', 'fine'] },
+    options: TOUCH_TARGETS_OPTIONS,
   },
   {
     id: 'customBackgroundUrl',

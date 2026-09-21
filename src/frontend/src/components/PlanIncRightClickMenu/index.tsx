@@ -18,6 +18,7 @@ import { AiStore } from "@/store/aiStore";
 import { parseAbsoluteToLocal } from "@internationalized/date";
 import i18n from "@/lib/i18n";
 import { PlanIncShareDialog } from "../PlanIncShareDialog";
+import { trashNotesWithUndo } from '@/lib/trashWithUndo';
 import { BaseStore } from "@/store/baseStore";
 import { PluginApiStore } from "@/store/plugin/pluginApiStore";
 import { ToastPlugin } from "@/store/module/Toast/Toast";
@@ -304,7 +305,7 @@ const handleAITag = () => {
 
 const handleTrash = () => {
   const planinc = RootStore.Get(PlanIncStore)
-  PromiseCall(api.notes.trashMany.mutate({ ids: [planinc.curSelectedNote?.id!] }))
+  void trashNotesWithUndo([planinc.curSelectedNote?.id])
 }
 
 const handleDelete = async () => {
