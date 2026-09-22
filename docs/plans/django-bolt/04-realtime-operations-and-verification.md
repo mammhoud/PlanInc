@@ -7,6 +7,33 @@ architecture staged; release gates pending
 **Outcome:** Django is operationally complete, observable, recoverable, and
 ready to become the sole PlanInc server.
 
+## Current deployment topology (TypeScript source stack)
+
+**Verified 2026-09-22.** Until Django takes traffic, the running service is the
+Bun/TypeScript source stack. The cutover must preserve these facts:
+
+- **Build context and image.** `dockerfile` builds from the repository root
+  (context `.`), not `./runtime`. The runner stage is `node:20-alpine` and starts
+  `node server/index.js` — there is no `bun` in the runtime image.
+- **Data mount.** Live state moved from `./runtime/data` to `./data`
+  (`PLANINC_DB_FILE=/app/data/planinc.db`). A host that predates the cutover must
+  have `planinc.db`, `documents/`, and `notes/` moved into `./data` **before**
+  the first start, or the service silently boots on an empty store.
+- **Runtime externals.** The esbuild bundle externalises a fixed set
+  (`server/esbuild.config.ts`): `surrealdb`, `@surrealdb/node`, `esbuild`,
+  `llamaindex`, `@langchain/community` (plus the `@langchain/core` and
+  `pdf-parse` peers it loads at boot), `sharp`, `sqlite3`, `lightningcss`,
+  `@node-rs/crc32`, `@libsql/*`. A missing entry fails only at boot, so the
+  runner stage's install list must be revisited whenever that array changes.
+- **Build memory.** The client's Vite chunk render peaks near 5.7 GB RSS in a
+  single Node process. Serialise the workspace builds (`TURBO_CONCURRENCY=1`) and
+  build on a host with ~7 GB free or a swapfile; an 8 GB host without swap dies
+  with an OOM kill rather than a useful error.
+- **Seed gap.** `server/seed.ts` is not compiled into `dist/`, so the container
+  cannot run it and default-font seeding never executes; schema/index setup is
+  handled by the server's own `bootstrap()`. Decide whether the Django migration
+  owns seeding or the container gains a compiled seed step.
+
 ## Channels and WebSockets
 
 - Map every existing event to a typed event name and payload schema.
