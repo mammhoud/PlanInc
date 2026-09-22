@@ -33,9 +33,11 @@ RUN if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then \
 
 # Install Dependencies and Build App
 RUN bun install --unsafe-perm
-RUN bun run build:web
+# TURBO_CONCURRENCY=1 serialises the backend (esbuild) and frontend (vite) bundles.
+# Running them in parallel peaks above this host's RAM and gets OOM-killed.
+RUN TURBO_CONCURRENCY=1 bun run build:web
 
-RUN printf '#!/bin/sh\necho "Current Environment: $NODE_ENV"\ncd server && bun run seed.ts\ncd .. && node server/index.js\n' > start.sh && \
+RUN printf '#!/bin/sh\necho "Current Environment: $NODE_ENV"\nnode server/index.js\n' > start.sh && \
     chmod +x start.sh
 
 
@@ -100,6 +102,8 @@ RUN echo "Installing additional dependencies..." && \
     npm install sqlite3@5.1.7 && \
     npm install --legacy-peer-deps llamaindex @langchain/community@0.3.40 && \
     npm install @libsql/client @libsql/core && \
+    npm install --legacy-peer-deps surrealdb@^2.0.8 @surrealdb/node@^2.0.0 esbuild@^0.25.3 && \
+    npm install --legacy-peer-deps @langchain/core@^0.3.0 pdf-parse@^1.1.1 && \
     rm -rf /tmp/* && \
     apk del python3 py3-setuptools make g++ gcc libc-dev linux-headers && \
     rm -rf /var/cache/apk/* /root/.npm /root/.cache
