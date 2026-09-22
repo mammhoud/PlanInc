@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 256" role="img" aria-labelledby="title">
+  <title>PlanInc</title>
+  <g transform="translate(8 8) scale(.94)">
+    <path fill="#0284C7" d="M128 12 220 76v104l-92 64-92-64V76z"/>
+    <path fill="none" stroke="#F0F9FF" stroke-linecap="round" stroke-linejoin="round" stroke-width="18" d="m78 154 42-72 18 42 38-46"/>
+    <path fill="none" stroke="#F0F9FF" stroke-linecap="round" stroke-width="12" d="M80 190h96"/>
+  </g>
+  <text x="250" y="166" fill="#082F49" font-family="Arial, sans-serif" font-size="86" font-weight="700" letter-spacing="4">PLANINC</text>
+</svg>

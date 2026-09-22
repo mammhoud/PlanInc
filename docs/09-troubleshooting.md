@@ -14,7 +14,7 @@ failed and fell through to the object branch, emitting `{}` for every record
 link. Notes with tags hit it first because they write link values.
 
 **Fix.** Handle `RecordId` explicitly before the object branch in `inlineValue()`
-(`runtime/server.mjs`). Guarded by the note-creation test.
+(`server/index.ts`). Guarded by the note-creation test.
 
 ---
 
@@ -44,7 +44,7 @@ Affected: `ai_allowed_providers`, `context_roots`, `context_files`,
 
 ## A button is labelled with the wrong text
 
-**Cause.** A duplicate key in the same object literal in `runtime/public/i18n.mjs`
+**Cause.** A duplicate key in the same object literal in `frontend/i18n.mjs`
 — the later declaration wins, discarding the earlier one silently.
 `viewRecycle`/`viewArchive` collided between the toolbar and live-filter groups.
 
@@ -103,8 +103,8 @@ documents the two lists as a pair to keep in sync.
 
 ## The test suite hangs or mutates real data
 
-**Cause.** A Playwright config was pointed at the default `SURREALDB_FILE`
-(`runtime/data/planinc.db`). The running instance holds that file locked, so the
+**Cause.** A Playwright config was pointed at the default `PLANINC_DB_FILE`
+(`data/planinc.db`). The running instance holds that file locked, so the
 suite either blocks or clobbers deployment state.
 
 **Fix.** Keep the disposable store under `os.tmpdir()` per run. See

@@ -74,7 +74,7 @@ curl -fsS -o /dev/null -w '%{http_code}\n' \
 
 ## Secret hygiene
 
-- `runtime/data/` and `.env` are gitignored — keep it that way.
+- `data/` and `.env` are gitignored — keep it that way.
 - The deploy-generated password exists in exactly one place: `.env`. There is no
   recovery path other than recreating the account.
 - Never log the password. The bootstrap log line deliberately prints only the

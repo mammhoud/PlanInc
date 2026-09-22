@@ -115,87 +115,87 @@ PURPOSE: dict[str, str] = {
         "Desktop/web client. React + Vite, shipped both as a web bundle and as a "
         "Tauri desktop app."
     ),
-    "src/frontend/public": "Static assets copied verbatim into the Vite build.",
-    "src/frontend/src": "Client source tree.",
-    "src/frontend/src/assets": "Bundled static assets imported by components.",
-    "src/frontend/src/components": (
+    "frontend/public": "Static assets copied verbatim into the Vite build.",
+    "frontend/src": "Client source tree.",
+    "frontend/src/assets": "Bundled static assets imported by components.",
+    "frontend/src/components": (
         "React component library. Grouped as `Common/` (reusable primitives), "
         "`Layout/`, and feature components named `Planinc*`."
     ),
-    "src/frontend/src/hooks": "Reusable React hooks.",
-    "src/frontend/src/lib": "Client-side library code: API clients, storage, i18n and helpers.",
-    "src/frontend/src/pages": "Route-level page components.",
-    "src/frontend/src/store": (
+    "frontend/src/hooks": "Reusable React hooks.",
+    "frontend/src/lib": "Client-side library code: API clients, storage, i18n and helpers.",
+    "frontend/src/pages": "Route-level page components.",
+    "frontend/src/store": (
         "State management, built on a custom store base with per-domain stores "
         "plus pluggable `module/` and `standard/` primitives."
     ),
-    "src/frontend/src/styles": "Global stylesheets and vendor style overrides.",
-    "src/frontend/src-tauri": (
+    "frontend/src/styles": "Global stylesheets and vendor style overrides.",
+    "frontend/src-tauri": (
         "Tauri desktop shell: Rust host, capabilities and per-platform generated "
         "projects."
     ),
-    "src/frontend/tauri-plugin-planinc": "Tauri plugin exposing native PlanInc capabilities to the web layer.",
+    "frontend/tauri-plugin-planinc": "Tauri plugin exposing native PlanInc capabilities to the web layer.",
     "src/helm": "Helm chart for Kubernetes deployment of PlanInc.",
-    "src/planinc-types": "Published type package consumed by the client and server.",
-    "src/server": (
+    "planinc-types": "Published type package consumed by the client and server.",
+    "server": (
         "Backend: Express + tRPC API, AI provider abstraction and background jobs."
     ),
-    "src/server/aiServer": "AI layer - model factory, providers, tools and MCP bridge.",
-    "src/server/aiServer/mcp": "Model Context Protocol client manager and tool bridge.",
-    "src/server/aiServer/providers": (
+    "server/aiServer": "AI layer - model factory, providers, tools and MCP bridge.",
+    "server/aiServer/mcp": "Model Context Protocol client manager and tool bridge.",
+    "server/aiServer/providers": (
         "Provider abstraction (LLM, embedding, audio) over the AI SDK."
     ),
-    "src/server/aiServer/tools": "Agent tools exposed to the model (create/search/update notes, web).",
-    "src/server/jobs": "Scheduled and queue-driven background jobs.",
-    "src/server/lib": "Server utilities - storage, queues, scheduling and integration clients.",
-    "src/server/middleware": "Express middleware (auth context, error handling).",
-    "src/server/routerExpress": "REST routes: auth, files, MCP, OpenAI-compatible API and RSS.",
-    "src/server/routerTrpc": "tRPC router - the primary typed API surface.",
-    "src/server/scripts": "One-off operational scripts (superuser creation, fixture seeding).",
-    "src/server/seedfiles": "Seed media shipped with the database seeder.",
-    "src/server/types": "Ambient type augmentations for Express and tRPC.",
-    "src/server/vditor": "Vendored Vditor editor bundle and its diagram/render libraries.",
-    "src/shared": "Code shared by client and server (Bun workspace `@planinc/shared`).",
-    "src/shared/lib/__tests__": (
+    "server/aiServer/tools": "Agent tools exposed to the model (create/search/update notes, web).",
+    "server/jobs": "Scheduled and queue-driven background jobs.",
+    "server/lib": "Server utilities - storage, queues, scheduling and integration clients.",
+    "server/middleware": "Express middleware (auth context, error handling).",
+    "server/routerExpress": "REST routes: auth, files, MCP, OpenAI-compatible API and RSS.",
+    "server/routerTrpc": "tRPC router - the primary typed API surface.",
+    "server/scripts": "One-off operational scripts (superuser creation, fixture seeding).",
+    "server/seedfiles": "Seed media shipped with the database seeder.",
+    "server/types": "Ambient type augmentations for Express and tRPC.",
+    "server/vditor": "Vendored Vditor editor bundle and its diagram/render libraries.",
+    "shared": "Code shared by client and server (Bun workspace `@planinc/shared`).",
+    "shared/lib/__tests__": (
         "Unit tests for the shared isomorphic helpers. Run with `turbo run test` "
         "from `src/`."
     ),
-    "src/.github": "GitHub community-health files, issue templates and CI workflows.",
-    "src/.github/workflows": "CI workflow definitions (build, test, release).",
-    "src/.github/ISSUE_TEMPLATE": "Issue report templates.",
-    "src/.github/changelog": "Changelog fragments consumed by the release workflow.",
-    "src/frontend/src/lib/utils": "Small focused utility modules shared across the client.",
-    "src/frontend/src/store/module": (
+    ".github": "GitHub community-health files, issue templates and CI workflows.",
+    ".github/workflows": "CI workflow definitions (build, test, release).",
+    ".github/ISSUE_TEMPLATE": "Issue report templates.",
+    ".github/changelog": "Changelog fragments consumed by the release workflow.",
+    "frontend/src/lib/utils": "Small focused utility modules shared across the client.",
+    "frontend/src/store/module": (
         "Reusable state modules: `Dialog`, `DialogStandalone` and `Toast` providers "
         "plus the app-level `AppProvider`."
     ),
-    "src/frontend/src/store/module/Dialog": "Modal dialog state module.",
-    "src/frontend/src/store/module/DialogStandalone": (
+    "frontend/src/store/module/Dialog": "Modal dialog state module.",
+    "frontend/src/store/module/DialogStandalone": (
         "Imperative dialogs rendered outside the React tree."
     ),
-    "src/frontend/src/store/module/Toast": "Toast notification state module.",
-    "src/frontend/src/store/standard": (
+    "frontend/src/store/module/Toast": "Toast notification state module.",
+    "frontend/src/store/standard": (
         "Store primitives: `base`, promise/async state, object pooling and "
         "persisted list state that the per-domain stores build on."
     ),
-    "src/frontend/src/store/plugin": (
+    "frontend/src/store/plugin": (
         "Plugin runtime: registry, manager, render pipeline and the API surface "
         "exposed to plugins."
     ),
-    "src/frontend/src/components/Common": (
+    "frontend/src/components/Common": (
         "Reusable UI primitives shared across features - editors, markdown "
         "rendering, dialogs, pickers and layout helpers."
     ),
-    "src/frontend/src-tauri/capabilities": (
+    "frontend/src-tauri/capabilities": (
         "Tauri v2 capability grants: which native commands the web layer may call."
     ),
-    "src/frontend/src-tauri/src": "Rust host for the Tauri desktop shell.",
-    "src/frontend/src-tauri/src/desktop": "Desktop-specific Rust commands and window wiring.",
+    "frontend/src-tauri/src": "Rust host for the Tauri desktop shell.",
+    "frontend/src-tauri/src/desktop": "Desktop-specific Rust commands and window wiring.",
     "src/test-docker/mock-openai": (
         "Mock OpenAI-compatible endpoint used by containerised tests to exercise "
         "AI paths without spending quota."
     ),
-    "src/shared/lib": "Isomorphic helpers: cache, dates, lodash subset, schemas and constants.",
+    "shared/lib": "Isomorphic helpers: cache, dates, lodash subset, schemas and constants.",
     "src/test-docker": "Containerised test fixtures - a mock OpenAI endpoint and its compose file.",
     "src/helm/templates": "Kubernetes manifests rendered by the chart.",
     "src/helm/charts": "Chart dependencies.",
@@ -419,7 +419,7 @@ def usage_block(rel: str, kind: str, symbols: list[str]) -> str:
     if kind == "locale":
         return (
             "```ts\n"
-            'import i18n from "@/lib/i18n";   // src/frontend/src/lib/i18n.ts\n\n'
+            'import i18n from "@/lib/i18n";   // frontend/src/lib/i18n.ts\n\n'
             f'i18n.t("some.key", {{ lng: "{rel.split("/")[-1]}" }});\n'
             "```"
         )
@@ -434,15 +434,15 @@ def usage_block(rel: str, kind: str, symbols: list[str]) -> str:
             "cd runtime && npm test          # drive the runtime through Playwright\n"
             "```"
         )
-    if rel.startswith("src/server"):
+    if rel.startswith("server"):
         return (
             "```ts\n"
             f'// from {rel}\n'
             'import { ... } from "@planinc/backend";\n'
             "```"
         )
-    if rel.startswith("src/shared") and not rel.endswith("index.ts"):
-        tail = rel[len("src/shared") :].strip("/")
+    if rel.startswith("shared") and not rel.endswith("index.ts"):
+        tail = rel[len("shared") :].strip("/")
         spec = f"@planinc/shared/{tail}" if tail else "@planinc/shared"
         return (
             "```ts\n"

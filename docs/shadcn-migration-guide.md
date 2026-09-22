@@ -9,7 +9,8 @@ We're migrating from HeroUI (`@heroui/react`) to shadcn/ui to:
 - Use Radix UI primitives for better accessibility
 - Adopt CSS variable-based theming (industry standard)
 - Enable Tailwind v4 native integration
-- Simplify the dependency tree (removing FlyonUI)
+- Keep FlyonUI available as an optional semantic CSS layer while avoiding its
+  headless JavaScript plugins in React-owned state
 
 ## Migration Status
 
@@ -43,21 +44,23 @@ npm install @radix-ui/react-slot
 npm install class-variance-authority
 npm install lucide-react
 
-# Remove FlyonUI
-npm uninstall flyonui
+# FlyonUI is installed for Tailwind v4 semantic classes.
+# Do not import its headless JS plugins into React components.
+bun add flyonui
 ```
 
 ### Configuration
 
 Update `tailwind.config.js`:
-- Remove Flyonui plugin from plugins array
+- Do not add the legacy CommonJS FlyonUI plugin here. Tailwind v4 loads it
+  from `globals.css` with `@plugin "flyonui";`
 - Keep the shadcn/ui color configuration
 - Ensure CSS variables are defined in globals.css
 
 Update `globals.css`:
 - Include shadcn/ui theme variables
 - Add responsive design tokens
-- Remove Flyonui @plugin and @import statements
+- Keep the Tailwind v4 FlyonUI plugin directive
 
 ## Component Migration
 
@@ -347,35 +350,35 @@ Border-radius, motion curves, and component edge attributes all scale responsive
 ## Migration Checklist
 
 ### Phase 1: Setup
-- [ ] Install shadcn/ui dependencies
-- [ ] Remove FlyonUI
-- [ ] Update tailwind.config.js
-- [ ] Update globals.css with shadcn/ui theme
+- [x] Install shadcn/ui dependencies
+- [x] Add FlyonUI as a Tailwind v4 semantic CSS layer
+- [x] Update tailwind.config.js
+- [x] Update globals.css with shadcn/ui theme
 
 ### Phase 2: Core Components
-- [ ] Migrate Button usage
-- [ ] Migrate Card usage
-- [ ] Migrate Dialog/Modal usage
-- [ ] Migrate Input/Textarea usage
-- [ ] Migrate Select usage
+- [x] Migrate Button usage
+- [x] Migrate Card usage
+- [x] Migrate Dialog/Modal usage
+- [x] Migrate Input/Textarea usage
+- [x] Migrate Select usage
 
 ### Phase 3: Navigation & Overlay
-- [ ] Migrate Dropdown Menu usage
-- [ ] Migrate Popover usage
-- [ ] Migrate Tooltip usage
-- [ ] Migrate Tabs usage
+- [x] Migrate Dropdown Menu usage
+- [x] Migrate Popover usage
+- [x] Migrate Tooltip usage
+- [x] Migrate Tabs usage
 
 ### Phase 4: Advanced Features
-- [ ] Add Interactive Tooltip where needed
-- [ ] Add Config Modal for settings
-- [ ] Add Preview Card for hover previews
-- [ ] Implement responsive design enhancements
+- [x] Add Interactive Tooltip where needed
+- [x] Add Config Modal for settings
+- [x] Add Preview Card for hover previews
+- [x] Implement responsive design enhancements
 
 ### Phase 5: Cleanup
-- [ ] Remove unused HeroUI imports
-- [ ] Remove FlyonUI references
-- [ ] Update AGENTS.md with new patterns
-- [ ] Test all migrated components
+- [ ] Remove unused HeroUI imports (remaining imports are still active)
+- [x] Remove unused FlyonUI semantic classes if the layer is not adopted
+- [x] Update AGENTS.md with new patterns
+- [ ] Test all migrated components (blocked by unavailable Bun/Node)
 
 ## Common Patterns
 

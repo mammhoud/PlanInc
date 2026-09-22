@@ -1,0 +1,279 @@
+@import "tailwindcss";
+@plugin "flyonui";
+@import "./tokens.css";
+@import "./platform.css";
+
+/* --------------------------------------------------------------------------
+ * Tokens → Tailwind v4 theme namespace.
+ * This is the shadcn-style contract: semantic CSS variables exposed as
+ * utilities (`bg-background`, `text-desc`, `border-border`, `ring-ring`, …).
+ * `inline` keeps the resolution at the utility site so the `.dark` remap in
+ * tokens.css flows through without a `dark:` branch anywhere.
+ * The legacy JS config is intentionally not loaded via `@config`; Tailwind v4
+ * and the FlyonUI plugin are configured from this CSS entrypoint.
+ * ------------------------------------------------------------------------ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondbackground: var(--secondbackground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-destructive-soft-foreground: var(--destructive-soft-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-progress-from: var(--progress-from);
+  --color-progress-to: var(--progress-to);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-header: var(--header);
+  --color-hover: var(--hover);
+  --color-desc: var(--desc);
+  --color-ignore: var(--ignore);
+  --color-tag: var(--tag);
+  --color-tag-foreground: var(--tag-foreground);
+
+  --radius-sm: var(--pi-radius-sm);
+  --radius-md: var(--pi-radius-md);
+  --radius-lg: var(--pi-radius-lg);
+  --radius-xl: var(--pi-radius-xl);
+  --radius-2xl: var(--pi-radius-2xl);
+}
+
+/* Burger menu + masonry grids (consumed by Layout / hub / index). */
+.bm-burger-button {
+  display: none;
+}
+
+.bm-menu-wrap {
+  width: fit-content;
+  height: 100%;
+  overflow: hidden !important;
+}
+
+.bm-menu {
+  overflow: hidden !important;
+}
+
+.card-masonry-grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -10px;
+  width: auto;
+}
+
+.card-masonry-grid_column {
+  padding-left: 10px;
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.card-masonry-grid_column>div {
+  margin-bottom: 10px;
+}
+
+
+.blog-masonry-grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -20px;
+  width: auto;
+}
+
+.blog-masonry-grid_column {
+  padding-left: 20px;
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.blog-masonry-grid_column>div {
+  margin-bottom: 20px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  /* Focus visible */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Container utility */
+  .container-custom {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:scale-[1.01];
+  }
+
+  /* Input focus ring */
+  .input-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Button press effect */
+  .button-press {
+    @apply active:scale-[0.98] transition-all duration-150;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Truncate */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Responsive tiers + appearance bridge.
+ * tokens.css owns the 8-tier radius / motion / component-edge scale
+ * (single source — this file only aliases shadcn names onto it and wires
+ * the appearance attributes that lib/appearance.ts writes). */
+@layer base {
+  /* Base tier (mobile first): interface scale multiplies the rem base so
+   * the ui-scale setting rescales the whole UI. */
+  html {
+    font-size: calc(16px * var(--pi-ui-scale, 1));
+    line-height: var(--pi-line-height, 1.55);
+  }
+
+  /* shadcn radius aliases track the responsive --pi-radius-* scale.
+   * Tier overrides live in tokens.css; do NOT redefine them here. */
+  /* Tier radius values: see tokens.css html[data-tier=*] (single source). */
+
+  /* Component edges / motion: see tokens.css (single source, all 8 tiers).
+   * Appearance attributes written by lib/appearance.ts: */
+  /* Density row tightening lives in platform.css (.pi-setting-row) so the
+   * platform checker sees the single consumer↔rule pair.
+   * Line height follows the resolved token. */
+  body {
+    line-height: var(--pi-line-height, 1.55);
+  }
+}
+
+/* Hover-only reveals - pointer aware */
+@layer utilities {
+  .hover-only-on-fine {
+    @apply opacity-0 group-hover/sidebar:opacity-100;
+  }
+
+  @media (pointer: fine) {
+    .hover-only-on-fine {
+      @apply opacity-100;
+    }
+  }
+
+  /* Data-safe-area for mobile */
+  .data-safe-area {
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+}

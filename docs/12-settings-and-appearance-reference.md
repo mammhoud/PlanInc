@@ -33,10 +33,10 @@ three views from drifting again.
 ### Adding a setting
 
 1. Add the key to `ZUserPerferConfigKey` (per-user) or `ZConfigKey` (instance) in
-   `src/shared/lib/types.ts`.
-2. Add an entry to `SETTINGS` in `src/shared/lib/settingsRegistry.ts` — id,
+   `shared/lib/types.ts`.
+2. Add an entry to `SETTINGS` in `shared/lib/settingsRegistry.ts` — id,
    section, group, type, scope, default, `labelKey`, and a `validation` block.
-3. Add the English string(s) to `src/frontend/public/locales/en/translation.json`.
+3. Add the English string(s) to `frontend/public/locales/en/translation.json`.
 4. Run `npm run check:settings` from `src/app`. It fails if the id is not a real
    config key, if the scope disagrees with `types.ts`, if the default fails its
    own validation, if an option is outside its enum, or if a string is missing.
@@ -130,7 +130,7 @@ the same token values, so the OS preference alone is enough to disable motion.
 
 ### Where appearance is applied
 
-`src/frontend/src/store/user.ts` — on every config load, next to theme, palette and
+`frontend/src/store/user.ts` — on every config load, next to theme, palette and
 font application. The palette injection itself is now a single call
 (`applyThemePalette()` from `lib/themePalettes.ts`) instead of two copies of the
 `.dark`/`.light` `setProperty` dance.
@@ -138,7 +138,7 @@ font application. The palette injection itself is now a single call
 ## 4. Verifying the chain
 
 ```bash
-cd application/tools/PlanInc/src/app
+cd application/tools/PlanInc/app
 
 npm run check:settings     # registry integrity + round-trip + i18n coverage
 npm run validate:tokens    # the token contract (tiers, theme parity, bridge)

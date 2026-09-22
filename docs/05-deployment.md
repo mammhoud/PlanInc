@@ -68,10 +68,10 @@ Health endpoint, container health check and `make test-canonical` all use
 
 | Container path | Host path | Contents |
 | --- | --- | --- |
-| `/app/data` | `./runtime/data` | `planinc.db` (surrealkv) + `uploads/` |
+| `/app/data` | `./data` | `planinc.db` (surrealkv) + `uploads/` |
 | `/app/context` | `${PLANINC_CONTEXT_DIR:-../../..}`, read-only | project tree the AI chat may read |
 
-**Back up `runtime/data/`.** It is the entire application state — there is no
+**Back up `data/`.** It is the persistent application state for the source stack. There is no
 database container to dump.
 
 ## Environment notes

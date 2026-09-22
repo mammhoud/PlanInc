@@ -6,19 +6,19 @@
 
 | Tool | Version | Needed for |
 | --- | --- | --- |
-| Node.js | >= 20 (`runtime/package.json` `engines`) | running the runtime natively |
+| Node.js | >= 20 (`package.json` `engines`) | running the runtime natively |
 | Docker + Compose | current | `make deploy`, the canonical smoke test |
 | Python 3 | any 3.8+ | `scripts/generate-dir-docs.py` |
 
-The runtime has no build step. There is no bundler, no transpiler and no
-codegen — `server.mjs` plus `public/*.mjs` is the whole application.
+The root stack builds the React/Vite frontend with Bun and serves it from the
+TypeScript Express server. There is no separate legacy runtime build.
 
 ## First run
 
 ```bash
 make setup        # .env from .env.example, if missing
 $EDITOR .env      # set PLANINC_SUPERUSER_NAME / PLANINC_SUPERUSER_PASSWORD
-make install      # npm install inside runtime/
+make install      # bun install
 make run          # listen on :1111
 ```
 
@@ -40,7 +40,7 @@ Run `make help` for the annotated list. The ones that matter:
 | Target | What it does |
 | --- | --- |
 | `setup` | Create `.env` from `.env.example` if missing |
-| `install` | Install `runtime/` npm dependencies |
+| `install` | Install Bun dependencies for the root workspace |
 | `run` | Run the server natively (no Docker) |
 | `test` | Hermetic suite: Playwright with a disposable embedded store |
 | `test-canonical` | Smoke a *running* deployment over HTTP (`PLANINC_TEST_URL`) |

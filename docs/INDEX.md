@@ -12,7 +12,7 @@
 | PI-000 | [`docs/INDEX.md`](./INDEX.md) | This index | ✅ Exists |
 | PI-001 | [`docs/00-package-guide.md`](./00-package-guide.md) | Layout, what is actually deployed, where to change things | ✅ Exists |
 | PI-002 | [`docs/01-getting-started.md`](./01-getting-started.md) | Running locally, `make` targets, first login | ✅ Exists |
-| PI-003 | [`docs/02-architecture.md`](./02-architecture.md) | Runtime vs `src/` monorepo, request flow, Mermaid diagram | ✅ Exists |
+| PI-003 | [`docs/02-architecture.md`](./02-architecture.md) | Root source layout, request flow, Mermaid diagram | ✅ Exists |
 | PI-004 | [`docs/03-runtime-http-api.md`](./03-runtime-http-api.md) | HTTP surface, route groups, auth, fragments | ✅ Exists |
 | PI-005 | [`docs/04-database-and-schema.md`](./04-database-and-schema.md) | Embedded SurrealDB, schema bootstrap, engine semantics | ✅ Exists |
 | PI-006 | [`docs/05-deployment.md`](./05-deployment.md) | `notes.structa.cloud`, compose, networks, TLS | ✅ Exists |
@@ -23,7 +23,14 @@
 | PI-011 | [`docs/10-blinko-parity-and-design-plan.md`](./10-blinko-parity-and-design-plan.md) | Blinko analysis, design-system base (HeroUI/shadcn/FlyonUI), skill + content map, UX/integration backlog, ordered P0–P11 programme, phase log (P1/P2/P3 shipped) | ✅ Exists |
 | PI-012 | [`docs/11-parity-matrix.md`](./11-parity-matrix.md) | P0 parity matrix — one row per backlog item with Blinko evidence, file-verified PlanInc status, gap type and owning phase | ✅ Exists |
 | PI-013 | [`docs/12-settings-and-appearance-reference.md`](./12-settings-and-appearance-reference.md) | Settings registry reference (generated table), appearance v2 attributes/tokens, verification commands | ✅ Exists |
-| PI-014 | [`docs/13-single-frontend-platforms.md`](./13-single-frontend-platforms.md) | Single frontend directory for every platform/OS: platform model, capabilities, `useSideNav`/`useIsPhone`, responsive tiers, `<html>` attribute contract, what the shell actually consumes, `check:platform` (12 groups), `runtime/` migration note | ✅ Exists |
+| PI-014 | [`docs/13-single-frontend-platforms.md`](./13-single-frontend-platforms.md) | Single frontend directory for every platform/OS: platform model, capabilities, `useSideNav`/`useIsPhone`, responsive tiers, `<html>` attribute contract, shared token contract, build artifact wiring, and `check:platform` (12 groups) | ✅ Exists |
+| PI-015 | [`docs/plans/django-bolt/00-index.md`](./plans/django-bolt/00-index.md) | Master execution plan for the Django + django-bolt migration | ✅ Exists |
+| PI-016 | [`docs/plans/django-bolt/01-foundation-and-tenancy.md`](./plans/django-bolt/01-foundation-and-tenancy.md) | Remaining PostgreSQL, Redis, and tenant-isolation rehearsal gate | ✅ Exists |
+| PI-017 | [`docs/plans/django-bolt/02-domain-and-api.md`](./plans/django-bolt/02-domain-and-api.md) | Domain apps, django-bolt APIs, django-fusion fragments, auth, and frontend cutover | ✅ Exists |
+| PI-018 | [`docs/plans/django-bolt/03-data-migration-and-cutover.md`](./plans/django-bolt/03-data-migration-and-cutover.md) | SurrealKV export/import, parity evidence, rollback, and production cutover | ✅ Exists |
+| PI-019 | [`docs/plans/django-bolt/04-realtime-operations-and-verification.md`](./plans/django-bolt/04-realtime-operations-and-verification.md) | Channels, workers, analytics, deployment, observability, and release gates | ✅ Exists |
+| PI-020 | [`docs/plans/django-bolt/05-server-architecture-and-erd.md`](./plans/django-bolt/05-server-architecture-and-erd.md) | Formint Cloud-inspired PlanInc server boundaries, integrated flows, settings, and complete ERD | ✅ Exists |
+| PI-021 | [`docs/plans/django-bolt/06-implementation-task-board.md`](./plans/django-bolt/06-implementation-task-board.md) | Executable implementation tasks, dependencies, evidence, and external gates | ✅ Exists |
 
 ## Per-directory documentation
 

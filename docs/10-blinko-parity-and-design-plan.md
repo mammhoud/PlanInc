@@ -102,7 +102,7 @@ Verified from `settings/preference`:
 
 ## 2. Baseline: PlanInc today (verified in this checkout)
 
-Path root: `application/tools/PlanInc/src/`.
+Path root: `application/tools/PlanInc/`.
 
 | Area | Current implementation |
 |---|---|
@@ -167,9 +167,12 @@ already shipping), not in the abstract.
    HeroUI has no equivalent and the app shell needs them: **Command** (palette),
    **Kbd**, **Sidebar**, **Resizable**, **Direction** (RTL), **Data Table**.
    This is per-primitive, reversible, and does not commit the whole app.
-4. **Use FlyonUI as a reference, not a dependency** — mine it for theme
-   breadth/theme-generator UX and RTL handling; adopting its class + JS-plugin
-   paradigm would fight React state ownership and MobX.
+4. **Use FlyonUI as an additive semantic CSS layer only** — it is now enabled
+   through Tailwind v4's `@plugin "flyonui"` directive and pinned in
+   `frontend/package.json`. Use its semantic classes for isolated, markup-led
+   surfaces where they reduce duplication. Keep React-owned state, overlays,
+   and application primitives on Radix/HeroUI; do not load FlyonUI's headless
+   JavaScript plugins into the React tree.
 5. **Revisit only on a trigger:** if HeroUI's beta line blocks a release, or if
    shell primitives become the bottleneck, escalate to a proper shadcn migration
    (own decision, own phase).
@@ -315,7 +318,8 @@ visual pass).
 
 **Tasks**
 1. Write the ADR recording the base decision (HeroUI kept; shadcn token contract
-   + selective shadcn/Radix primitives; FlyonUI as reference only).
+   + selective shadcn/Radix primitives; FlyonUI semantic CSS enabled without
+   its headless JavaScript plugins).
 2. Implement the 3-tier token architecture (global → alias → component) as CSS
    custom properties, exposed to Tailwind v4 via `@theme inline`, with light/dark
    as **alias remaps** (not component branches) and a derived `--radius-*` scale.
@@ -338,8 +342,8 @@ components; light/dark/system all render; lint passes.
 ### P2 — Settings registry + preferences persistence
 
 **Status: SHIPPED (registry + validation + proof).** The setting-level registry is
-`src/shared/lib/settingsRegistry.ts`; the offline proof is
-`src/frontend/scripts/check-settings-registry.mjs`. See §11 phase log.
+`shared/lib/settingsRegistry.ts`; the offline proof is
+`frontend/scripts/check-settings-registry.mjs`. See §11 phase log.
 
 **Objective:** one declarative place to declare, validate, persist and localise a
 setting; per-account preference document with offline-first sync.
@@ -360,8 +364,8 @@ code; a schema test proves round-trip.
 ### P3 — Appearance settings v2
 
 **Status: SHIPPED (tokens + wiring; panel review pending).** Appearance v2 is
-`src/frontend/src/lib/appearance.ts` + the `html[data-*]` rules in
-`src/frontend/src/styles/globals.css`, driven by registry entries. See §11 phase log.
+`frontend/src/lib/appearance.ts` + the `html[data-*]` rules in
+`frontend/src/styles/globals.css`, driven by registry entries. See §11 phase log.
 
 **Objective:** Blinko-parity-plus appearance panel, AppFlowy-style breadth.
 
@@ -519,10 +523,10 @@ without core changes; importers round-trip a real vault.
 ### P11 — Validation, release & rollout
 
 ```bash
-cd application/tools/PlanInc/src
+cd application/tools/PlanInc
 bun install && bun run dev:backend
 bun run test
-cd runtime && npx playwright test --config playwright.canonical.config.mjs
+cd frontend && npx playwright test --config playwright.canonical.config.mjs
 cd application/tools/PlanInc && make test-canonical
 cd application/tools/PlanInc && python3 scripts/generate-dir-docs.py --check
 ```
@@ -693,13 +697,13 @@ introduced three times and the check caught each time).
 
 | Artefact | What it is |
 |---|---|
-| `src/frontend/` | the single source: `git mv src/app src/frontend` (588 paths), so history is preserved rather than a copy |
-| `src/frontend/src/platform/{types,detect,responsive,pwa,PlatformProvider}.ts(x)` | the platform model — 5 `PlatformKind`s × 10 capability flags, injectable `PlatformEnv`, 8 responsive tiers, capability-gated offline shell, `<html>` attribute mirror |
-| `src/frontend/src/styles/platform.css` | the adaptation layer: safe areas, coarse-pointer tap targets, OS window chrome, tier content widths, reduced motion, print — **colour-free** |
-| `src/frontend/src/main.tsx` | the one entry point: wraps the app in `PlatformProvider`, boots the offline shell only where the capability allows, probes `__TAURI__` from the first frame |
-| `src/frontend/scripts/check-platform.mjs` + `ts-resolve.mjs` | the offline proof (12 check groups) and the Node resolver hook that lets it import the shipping TS |
-| `src/frontend/index.html` | `viewport-fit=cover` (without it every safe-area rule is inert), media-scoped `theme-color` pair resolved against `--background`, `black-translucent` status bar |
-| `src/frontend/vite.config.ts` | manifest `orientation: "any"` + `scope` — one build serves desktop and landscape tablets |
+| `frontend/` | the single source: `git mv src/app frontend` (588 paths), so history is preserved rather than a copy |
+| `frontend/src/platform/{types,detect,responsive,pwa,PlatformProvider}.ts(x)` | the platform model — 5 `PlatformKind`s × 10 capability flags, injectable `PlatformEnv`, 8 responsive tiers, capability-gated offline shell, `<html>` attribute mirror |
+| `frontend/src/styles/platform.css` | the adaptation layer: safe areas, coarse-pointer tap targets, OS window chrome, tier content widths, reduced motion, print — **colour-free** |
+| `frontend/src/main.tsx` | the one entry point: wraps the app in `PlatformProvider`, boots the offline shell only where the capability allows, probes `__TAURI__` from the first frame |
+| `frontend/scripts/check-platform.mjs` + `ts-resolve.mjs` | the offline proof (12 check groups) and the Node resolver hook that lets it import the shipping TS |
+| `frontend/index.html` | `viewport-fit=cover` (without it every safe-area rule is inert), media-scoped `theme-color` pair resolved against `--background`, `black-translucent` status bar |
+| `frontend/vite.config.ts` | manifest `orientation: "any"` + `scope` — one build serves desktop and landscape tablets |
 | rewired | root workspace + `dev` script, `tsconfig`/`tsconfig.planinc.json` paths, `turbo.json` untouched (was already clean), Tauri `frontendDist`, `.github/workflows/app-release.yml`, `bun.lock` workspace key, 18 locale README path comments, `CLAUDE.md`, all `docs/*.md` |
 
 **Design note.** The unit of adaptation is a *capability*, not a device. A phone in
@@ -731,11 +735,12 @@ and the unwired `check:platform` script itself.
   no `vite build` ran and no simulator/emulator exists here. Every claim above comes
   from the offline checker against the shipping sources, which is why that checker
   exists — but P8's real-device review remains the release gate for this work.
-- **`runtime/public` is still a separate frontend.** `src/frontend` is now the one
-  *source*; the running container still serves the older vanilla JS app, and the two
-  speak different APIs (REST vs tRPC). PI-014 closes the source-tree consolidation and
-  records the three deployment options in `docs/13-single-frontend-platforms.md`; the
-  choice itself is a product/deployment decision, not a code task.
+- **The frontend is now unified.** `frontend` is the single source for web, PWA,
+  desktop, Android, and iOS. Vite and Tauri consume the shared `dist/public`
+  artifact, while the active server serves its copied bundle from `server/public`.
+  The former duplicate frontend directory was removed after its supported use
+  cases moved into the source tree. See `docs/13-single-frontend-platforms.md`
+  for the current build contract.
 - **No iOS/Android project regeneration.** `tauri ios`/`tauri android` need the Rust
   toolchain and SDKs, so `tauri:ios:dev|build` are wired in `package.json` but have
   not been executed here.
@@ -747,10 +752,6 @@ work needs something this environment does not have; the reason names it.
 
 | Phase | Status | Evidence / blocker |
 |---|---|---|
-| P0 Analysis & parity matrix | **shipped** | PI-012 `11-parity-matrix.md` |
-| P1 Token contract | **shipped** | `styles/tokens.css` + `validate-tokens.mjs` (6 checks) |
-| P2 Settings registry | **shipped** | `shared/lib/settingsRegistry.ts` + `check-settings-registry.mjs` (10 groups) |
-| P3 Appearance v2 | **shipped (panel review pending)** | `lib/appearance.ts` + `html[data-*]` rules; needs a visual pass |
 | P4 AI settings/agent surface | **partial** | `RebuildEmbeddingProgress` shipped; Test Connection, embedding credentials and retrieval-tuning UX need a running AI provider |
 | P5 UX & interaction layer | **blocked** | needs the bundler (`cmdk`, `@tanstack/react-virtual` installs) and a browser for keyboard/a11y proof |
 | P6 Integrations | **partial by finding** | MCP server, OpenAPI doc, webhooks, share links, plugins, SSO/S3 **already shipped**; token management, signed note-event webhooks, RSS ingestion and capability enforcement remain |
@@ -759,7 +760,6 @@ work needs something this environment does not have; the reason names it.
 | P9 Content & documentation | **partial** | registry strings (67, en) + this reference shipped; integration quick-starts need P6 to land |
 | P10 Ecosystem & growth | **blocked** | needs a published plugin SDK + marketplace decisions |
 | P11 Validation & rollout | **blocked** | needs `bun install` + the deployment target |
-| PI-014 Single frontend dir | **shipped** | `src/frontend` is the one source for web/PWA/Tauri desktop+mobile; `check:platform` (10 groups, 15 environments, 8 tiers) — see PI-014 |
 
 ### P9 — Content & documentation · PARTIAL
 
@@ -797,10 +797,10 @@ strings resolve in `en`.
 
 | Artefact | What it is |
 |---|---|
-| `src/frontend/src/lib/appearance.ts` | `readAppearance()` (reads the six settings **through the registry**, so defaults and validation are never re-invented), `resolveDirection()` (`auto` → RTL language list), `applyAppearance()` (writes `data-*` attributes + `--pi-ui-scale` on `<html>`) |
-| `src/frontend/src/styles/globals.css` | `html { font-size: calc(1rem * var(--pi-ui-scale)) }`, `body { line-height: var(--pi-line-height) }`, and `html[data-line-height|data-density|data-contrast-boost|data-reduce-motion]` token-override blocks — **token references only, no literals** |
-| `src/frontend/src/styles/tokens.css` | `--pi-ui-scale`, `--pi-line-height` (tier 4, theme-invariant) |
-| `src/frontend/src/store/user.ts` | applies appearance on every config load, next to the theme/palette/font application; the duplicated four-way palette injection collapsed into `applyThemePalette()` |
+| `frontend/src/lib/appearance.ts` | `readAppearance()` (reads the six settings **through the registry**, so defaults and validation are never re-invented), `resolveDirection()` (`auto` → RTL language list), `applyAppearance()` (writes `data-*` attributes + `--pi-ui-scale` on `<html>`) |
+| `frontend/src/styles/globals.css` | `html { font-size: calc(1rem * var(--pi-ui-scale)) }`, `body { line-height: var(--pi-line-height) }`, and `html[data-line-height|data-density|data-contrast-boost|data-reduce-motion]` token-override blocks — **token references only, no literals** |
+| `frontend/src/styles/tokens.css` | `--pi-ui-scale`, `--pi-line-height` (tier 4, theme-invariant) |
+| `frontend/src/store/user.ts` | applies appearance on every config load, next to the theme/palette/font application; the duplicated four-way palette injection collapsed into `applyThemePalette()` |
 | `PerferSetting.tsx` | renders `typography` + `layout` (appearance), `motion`, and `accessibility` from the registry — six controls, no bespoke code |
 
 **Design note.** Appearance settings are *tokens plus `<html>` attributes*, not
@@ -839,10 +839,10 @@ places that could drift — a key in `types.ts`, a hand-written `<Switch>` in
 
 | Artefact | What it is |
 |---|---|
-| `src/shared/lib/settingsRegistry.ts` | 34 settings declared once: `id, section, group, type, scope, default, labelKey, hintKey, validation, options, adminOnly/hidden/requiresReload/desktopOnly, aliases`. Plus `coerceSettingValue()`, `resolveConfig()`, `findSetting()`/`canonicalSettingId()`, `settingGroups()` |
-| `src/shared/lib/types.ts` | the seven new appearance keys added to `ZUserPerferConfigKey` so the server scopes them per user |
-| `src/frontend/scripts/check-settings-registry.mjs` | offline integrity + round-trip proof (10 check groups) |
-| `src/frontend/src/components/PlanincSettings/registry/{RegistrySettingItem,RegistrySection}.tsx` | the generic control renderer (switch/select/number/slider/text/secret) and the section renderer |
+| `shared/lib/settingsRegistry.ts` | 34 settings declared once: `id, section, group, type, scope, default, labelKey, hintKey, validation, options, adminOnly/hidden/requiresReload/desktopOnly, aliases`. Plus `coerceSettingValue()`, `resolveConfig()`, `findSetting()`/`canonicalSettingId()`, `settingGroups()` |
+| `shared/lib/types.ts` | the seven new appearance keys added to `ZUserPerferConfigKey` so the server scopes them per user |
+| `frontend/scripts/check-settings-registry.mjs` | offline integrity + round-trip proof (10 check groups) |
+| `frontend/src/components/PlanincSettings/registry/{RegistrySettingItem,RegistrySection}.tsx` | the generic control renderer (switch/select/number/slider/text/secret) and the section renderer |
 | `public/locales/en/translation.json` | all 48 new strings written (67 registry strings total, all present) |
 | `package.json` | `check:settings`, `check:contracts` (tokens + settings + strict lint in one command) |
 
@@ -995,18 +995,20 @@ items, not oversights:
 adopt the shadcn/ui **token convention** (CSS variables → semantic tokens →
 Tailwind v4 `@theme inline`, `.dark` as an alias remap, derived `--radius-*`);
 adopt shadcn components **per-primitive as copy-in** where HeroUI has no
-equivalent; use FlyonUI as reference only. Status: accepted, 2026-09-20.
+equivalent; enable FlyonUI's semantic CSS plugin without its headless
+JavaScript plugins. Status: accepted, 2026-09-20.
 
 **Shipped**
 
 | Artefact | What it is |
 |---|---|
-| `src/frontend/src/styles/tokens.css` | the contract — tier 1 global (OKLCH ramps) → tier 2 alias (semantic, light) → tier 3 channel (HSL triplets for HeroUI) → tier 4 component; `.dark` is a pure remap of tiers 2–4 |
-| `src/frontend/src/styles/globals.css` | imports the contract, exposes it via `@theme inline`, and no longer declares a single colour literal (`.dark` component branches for hero/glass removed) |
-| `src/frontend/tailwind.config.js` | radius now reads `--pi-radius-*`; HeroUI theme fed from the channel tokens (background, foreground, divider, focus, content1–4, primary, secondary, danger) and `layout.radius` from the radius tokens |
-| `src/frontend/scripts/validate-tokens.mjs` | contract validator — reference integrity, tier purity, channel shape/coverage, theme parity, **look preservation** |
-| `src/frontend/scripts/lint-tokens.mjs` | raw-value scanner with `--strict` gate mode |
-| `src/frontend/package.json` | `validate:tokens`, `lint:tokens`, `lint:tokens:strict` |
+| `frontend/src/styles/tokens.css` | the contract — tier 1 global (OKLCH ramps) → tier 2 alias (semantic, light) → tier 3 channel (HSL triplets for HeroUI) → tier 4 component; `.dark` is a pure remap of tiers 2–4 |
+| `frontend/src/styles/globals.css` | imports the contract, exposes it via `@theme inline`, and no longer declares a single colour literal (`.dark` component branches for hero/glass removed) |
+| `frontend/tailwind.config.js` | radius now reads `--pi-radius-*`; HeroUI theme fed from the channel tokens (background, foreground, divider, focus, content1–4, primary, secondary, danger) and `layout.radius` from the radius tokens |
+| `frontend/src/styles/globals.css` | loads FlyonUI through the Tailwind v4 `@plugin` directive; no legacy CommonJS plugin or content glob remains |
+| `frontend/scripts/validate-tokens.mjs` | contract validator — reference integrity, tier purity, channel shape/coverage, theme parity, **look preservation** |
+| `frontend/scripts/lint-tokens.mjs` | raw-value scanner with `--strict` gate mode |
+| `frontend/package.json` | `validate:tokens`, `lint:tokens`, `lint:tokens:strict` |
 
 **Verification actually run**
 
@@ -1072,7 +1074,7 @@ can start at the blocker.
 **One thing no phase can do here:** the frontend has **no `node_modules` and no
 bun** in this environment, so no Vite build, no Playwright run, and no visual
 confirmation of the P1/P3 appearance work. Everything reported as verified above
-was verified by the offline scripts in `src/frontend/scripts/`, which is why those
+was verified by the offline scripts in `frontend/scripts/`, which is why those
 scripts exist — but a visual pass (P8) is still the gate before release.
 
 ---

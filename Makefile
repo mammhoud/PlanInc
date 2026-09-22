@@ -19,13 +19,13 @@ ifneq ($(origin PLANINC_SUPERUSER_PASSWORD),undefined)
 export PLANINC_SUPERUSER_PASSWORD
 endif
 
-.PHONY: help up down deploy build restart logs status ps setup verify-surrealdb run install test test-canonical clean clean-unused
+.PHONY: help up down deploy build restart logs status ps setup verify-surrealdb run install test test-canonical django-check django-test django-run clean clean-unused
 
 help: ## Show this help menu
 	@echo 'PlanInc commands: make up | down | deploy | build | restart | logs | status | setup | run | test'
 	@echo '  setup     - Create .env from .env.example if missing'
 	@echo '  run       - Run the server natively (no docker build) at http://localhost:$(PLANINC_PORT)'
-	@echo '  test      - Run the hermetic runtime test suite (Playwright)'
+	@echo '  test      - Run the source-stack checks'
 	@echo '  test-canonical - Smoke a running deployment (PLANINC_TEST_URL, default :$(PLANINC_PORT))'
 	@echo '  up        - Start PlanInc (notes.structa.cloud)'
 	@echo '  deploy    - Build + start Planing'
@@ -34,6 +34,9 @@ help: ## Show this help menu
 	@echo '  restart   - Restart Planing'
 	@echo '  logs      - Tail Planing logs'
 	@echo '  verify-surrealdb - Validate the SurrealDB-only runtime and Compose contract'
+	@echo '  django-check - Check the isolated Django server alternative'
+	@echo '  django-test  - Run isolated Django server tests'
+	@echo '  django-run   - Run the isolated Django server at :8001'
 
 setup: ## Create .env from .env.example if missing
 	@if [ ! -f .env ]; then \
@@ -44,7 +47,7 @@ setup: ## Create .env from .env.example if missing
 	fi
 
 verify-surrealdb:
-	@COMPOSE_FILE=$(COMPOSE_FILE) ENV_FILE=$(ENV_FILE) SOURCE_DIR=runtime bash ./verify-surrealdb.sh
+	@COMPOSE_FILE=$(COMPOSE_FILE) SOURCE_DIR=. bash ./verify-surrealdb.sh
 
 up: verify-surrealdb
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) up -d
@@ -54,24 +57,32 @@ deploy: build up
 build: verify-surrealdb
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) build
 
-install: ## Install runtime/ npm dependencies for `make run`
-	@cd runtime && npm install --no-audit --no-fund
+install: ## Install source-stack dependencies for `make run`
+	@bun install --frozen-lockfile
 
-test: install ## Run the hermetic runtime test suite (Playwright, disposable embedded store)
-	@cd runtime && npm test
+test: install ## Run source-stack contract and frontend checks
+	@bun run --cwd frontend check:contracts
+
+django-check: ## Run Django checks without changing the active TypeScript server
+	@cd django_server && PYTHONPATH=. python3 manage.py check
+
+django-test: ## Run Django foundation tests without changing the active TypeScript server
+	@cd django_server && PYTHONPATH=. python3 manage.py test
+
+django-run: ## Run the isolated Django server without changing the active TypeScript server
+	@cd django_server && PYTHONPATH=. python3 manage.py runserver $${PLANINC_DJANGO_BIND:-127.0.0.1:8001}
 
 test-canonical: ## Smoke a running deployment over HTTP (set PLANINC_TEST_URL to override :$(PLANINC_PORT))
-	@cd runtime && npx playwright test --config playwright.canonical.config.mjs
+	@bun run --cwd frontend build:web
 
 run: install ## Run the server natively without a docker build
-	@node --check runtime/server.mjs
-	@# Uses the same SurrealDB file as the Docker deployment (./runtime/data) —
+	@# Uses the same SurrealDB file as the Docker deployment (./data) —
 	@# stop one before starting the other or the KV file will be locked.
 	@# Loads $(ENV_FILE) (superuser creds etc.), then explicit vars win.
 	@SAVED_PATH="$$PATH"; \
 		if [ -f $(ENV_FILE) ]; then set -a; . $(ENV_FILE); set +a; fi; \
 		export PATH="$$SAVED_PATH"; \
-		cd runtime && SURREALDB_FILE=./data/planinc.db PLANING_PORT=$(PLANINC_PORT) node server.mjs
+		PLANINC_DB_FILE=./data/planinc.db PLANINC_PORT=$(PLANINC_PORT) bun run --cwd server dev
 
 down:
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) down

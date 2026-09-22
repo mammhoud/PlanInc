@@ -2,9 +2,10 @@
 
 # Runtime data (databases, uploads — local only)
 planinc-data/
-runtime/data/
-src/data/planinc.db/
-src/server/data/planinc.db/
+data/
+data/planinc.db/
+server/data/planinc.db/
+django_server/data/
 
 # Env files
 .env
@@ -21,17 +22,41 @@ Thumbs.db
 # Turbo cache
 .turbo/
 
-# Node (root level only; src/ has its own .gitignore)
+# Node dependencies
 node_modules/
 
 # Legacy vendored fork (its own git repo, node_modules and turbo cache).
-# The canonical application lives in src/ and the deployed server in runtime/,
-# so this tree is intentionally kept out of the repository to avoid committing a
-# 2.4 GB vendored dependency tree and a nested git directory.
 planing/
 
 # Build and test artefacts produced inside the tracked trees.
 dist/
+dist-ssr/
 .turbo/
 test-results/
 playwright-report/
+frontend/node_modules/
+frontend/dist-ssr/
+frontend/.planinc/
+frontend/target/
+server/public/
+e2e/.artifacts/
+*.local
+out/
+.next/
+yarn-error.log
+package-lock.json
+yarn.lock
+*.tsbuildinfo
+.tsbuildinfo
+.scannerwork/
+public/robots.txt
+public/sitemap*
+public/assets/
+public/sw*
+public/workbox*.*
+public/plugins/
+keystore.properties
+dev-dist/
+.claudeconfig
+.claude/
+target/

@@ -20,6 +20,9 @@ Long-form documentation, indexed by [`INDEX.md`](./INDEX.md). Start there for th
 - `11-parity-matrix.md`
 - `12-settings-and-appearance-reference.md`
 - `13-single-frontend-platforms.md`
+- `plans/django-bolt/00-index.md`
+- `plans/django-bolt/05-server-architecture-and-erd.md`
+- `plans/django-bolt/06-implementation-task-board.md`
 - `INDEX.md`
 
 ## Public API

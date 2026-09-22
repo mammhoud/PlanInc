@@ -3,7 +3,7 @@
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
 The runtime uses an **embedded SurrealDB** over `surrealkv://`, opened from
-`SURREALDB_FILE` (default `runtime/data/planinc.db`). There is no database
+`PLANINC_DB_FILE` (default `data/planinc.db`). There is no database
 container: `@surrealdb/node` runs the engine in-process.
 
 ⚠️ **This makes running the test suite against a live database a real risk.**
@@ -13,7 +13,7 @@ run. Never change them back to the default path.
 ## Schema bootstrap
 
 Table, field, index and analyzer definitions live in the `DEFINE` block of
-`runtime/server.mjs` and are applied on boot by an idempotent helper. Two
+`server/index.ts` and are applied on boot by an idempotent helper. Two
 consequences:
 
 1. **Booting twice is safe**, including on an existing database — the bootstrap
@@ -67,7 +67,7 @@ disappears. The i18n spec asserts key uniqueness.
 
 ```bash
 # Where the data actually is
-ls -la runtime/data/
+ls -la data/
 
 # Confirm the engine opens cleanly (used by make up/build as a pre-flight)
 make verify-surrealdb

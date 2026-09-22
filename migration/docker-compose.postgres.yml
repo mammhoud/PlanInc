@@ -1,0 +1,19 @@
+services:
+  migration-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: planinc_migration
+      POSTGRES_USER: planinc
+      POSTGRES_PASSWORD: planinc-dev-only
+    ports:
+      - "55432:5432"
+    volumes:
+      - migration-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planinc -d planinc_migration"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  migration-postgres-data:

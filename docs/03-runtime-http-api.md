@@ -2,12 +2,12 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-The runtime exposes **124 routes** from `runtime/server.mjs`. They are grouped
+The active TypeScript server exposes **124 routes** from `server/index.ts`. They are grouped
 below by concern rather than listed exhaustively — duplicate the file's own
 `grep` when you need a complete inventory:
 
 ```bash
-grep -nE "app\.(get|post|put|patch|delete)\(" runtime/server.mjs
+grep -nE "app\.(get|post|put|patch|delete)\(" server/index.ts
 ```
 
 ## Route groups

@@ -9,11 +9,11 @@ HTTP**. There are no mocked routers: if the assertions pass, the endpoints work.
 
 | Config | Run by | Targets | Proves |
 | --- | --- | --- | --- |
-| `playwright.config.mjs` | `npm test` (first) | `127.0.0.1:1112` | Core behaviour — auth, categories, i18n parity |
-| `playwright.extra.config.mjs` | `npm test` (second) | own server + own store | Suites that seed their own admin (appearance/graph) or register via the API (tickets) |
+| `playwright.config.mjs` | `make test` (first) | `127.0.0.1:1112` | Core behaviour — auth, categories, i18n parity |
+| `playwright.extra.config.mjs` | `make test` (second) | own server + own store | Suites that seed their own admin (appearance/graph) or register via the API (tickets) |
 | `playwright.canonical.config.mjs` | `make test-canonical` | a **running** deployment (`:1111` or `PLANINC_TEST_URL`) | The deployment itself answers and serves the expected contract |
 
-`npm test` runs the first two only, so it stays hermetic. The canonical config is
+`make test` runs the first two only, so it stays hermetic. The canonical config is
 excluded from `playwright.config.mjs`'s `testIgnore` so the default run needs no
 running instance.
 
@@ -28,10 +28,10 @@ const embeddedDir = path.join(os.tmpdir(), `planing_pw_embedded_${runId}`);
 const embeddedFile = path.join(embeddedDir, 'planinc.db');
 ```
 
-Each run gets `SURREALDB_FILE` and `UPLOAD_DIR` under a unique temp directory,
+Each run gets `PLANINC_DB_FILE` and `UPLOAD_DIR` under a unique temp directory,
 and chat context roots point at disposable fixtures. Consequences:
 
-- The suite **cannot** touch the deployment store at `runtime/data/planinc.db` —
+- The suite **cannot** touch the deployment store at `data/planinc.db` —
   which the running instance holds locked anyway.
 - The suite never reads the real project tree or writes into real documents.
 - Pointing a config back at the default path is a destructive change. Don't.
@@ -47,7 +47,7 @@ make test                       # everything hermetic (~40 tests)
 make test-canonical             # smoke the container on :1111
 PLANINC_TEST_URL=https://notes.structa.cloud make test-canonical
 
-cd runtime
+cd frontend
 npx playwright test --config playwright.extra.config.mjs
 ```
 

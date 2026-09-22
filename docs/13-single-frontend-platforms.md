@@ -1,6 +1,6 @@
 # Single frontend for every platform and OS (PI-014)
 
-> One directory — `src/frontend/` — is the source for the web app, the installable
+> One directory — `frontend/` — is the source for the web app, the installable
 > PWA, and the Tauri desktop and mobile apps. There is no per-platform frontend and
 > no per-OS fork. This document is the reference for how that works and how to
 > verify it.
@@ -25,15 +25,16 @@ src/
 └── planinc-types/
 ```
 
-`src/frontend` is declared in the root `package.json` `workspaces` list and named
-`@planinc/frontend`. The deploy artifact for **both** stacks is `src/dist/public`:
+`frontend` is declared in the root `package.json` `workspaces` list and named
+`@planinc/frontend`. The deploy artifact for **both** web and Tauri builds is
+`dist/public` at the PlanInc root:
 `vite.config.ts` writes it, `src-tauri/tauri.conf.json` (`frontendDist`) bundles it,
-`src/dockerfile` copies it into the image, and `server/index.ts` serves it.
+`dockerfile` copies it into the image, and `server/index.ts` serves it.
 
 ```mermaid
 flowchart LR
-  F["src/frontend (one source)"] --> V["vite build"]
-  V --> D["src/dist/public"]
+  F["frontend (one source)"] --> V["vite build"]
+  V --> D["dist/public"]
   D --> W["web + PWA (docker image)"]
   D --> T["Tauri: desktop / Android / iOS"]
 ```
@@ -156,6 +157,33 @@ tier-driven tokens is the remaining work; until then, prefer
 `cardColumnsFor(viewportWidth, preferredCardColumns(tier, …))` over a fresh
 `breakpointCols` object in any new screen.
 
+## Audit status
+
+The unified theme and responsive layer are implemented and wired into the
+shipping entry point:
+
+- `main.tsx` imports one `globals.css`, which imports the shared token and
+  platform layers for every web, PWA, and Tauri target.
+- `tokens.css` is the only source for semantic colors, dark-mode aliases,
+  component radii, motion values, safe-area values, and tier-dependent scale.
+  The former standalone `planinc-palette.css` was unused and has been removed.
+- `globals.css` no longer redeclares a second shadcn color palette. Tailwind
+  utilities resolve the semantic aliases from `tokens.css`, so light and dark
+  themes cannot drift between CSS files.
+- Vite, Tauri desktop, Tauri Android/iOS, and the production server converge on
+  the same `dist/public` artifact. Native shells use `build:no-pwa`, while web
+  builds retain the PWA service worker.
+- `viewport-fit=cover`, safe-area variables, coarse-pointer target sizing,
+  hover-only control fallbacks, reduced-motion rules, and `data-*` platform
+  attributes are all present in the shared layer.
+
+The remaining intentional limitation is Tailwind's viewport media-query
+utilities. A user-selected compact or comfortable layout changes token-driven
+shell behavior and tier-aware JavaScript layouts, but cannot change a
+component's handwritten `sm:`, `md:`, or `lg:` utility. New screens must use
+the platform tier helpers instead of adding private breakpoint maps. Existing
+utility pairs should be migrated incrementally when those screens are edited.
+
 ## Remarks & Notes
 
 - **Colour lives in the token contract, not here.** `platform.css` introduces no
@@ -167,15 +195,15 @@ tier-driven tokens is the remaining work; until then, prefer
 - **The PWA manifest is `orientation: "any"`**, not `portrait`. One build serves
   desktop and landscape tablets; a locked orientation makes the installed
   desktop/tablet app unusable.
-- **`runtime/` is a different, older frontend.** `runtime/public` is a
-  hand-maintained vanilla JS + Alpine app served by the current `planinc`
-  container, and it speaks REST (`/api/notes`) where this app speaks tRPC
-  (`/api/trpc`). The two are not interchangeable; see the migration note below.
+- The former duplicate frontend directory was removed after its supported use
+  cases were moved into the source tree. The active web server is `server/`,
+  and the built frontend is the same `dist/public` artifact used by the Tauri
+  shells.
 
 ## Verify it
 
 ```bash
-cd src/frontend
+cd frontend
 bun run check:platform     # 12 check groups, 15 environments, 8 tiers, shell wiring
 bun run check:contracts    # tokens + settings registry + platform + strict lint
 ```
@@ -228,36 +256,20 @@ fine pointer still gets the reveal, and `:focus-visible` covers the keyboard.
 
 ## Platform commands
 
-All from `src/frontend`, the single directory:
+All from `frontend`, the single directory:
 
 ```bash
 bun run dev                  # frontend + backend (Tauri dev shell)
-bun run build:web            # web + PWA bundle → src/dist/public
+bun run build:web             # web + PWA bundle → dist/public
 bun run build:no-pwa         # same, without the service worker (what Tauri uses)
 bun run tauri:desktop:build  # Windows / macOS / Linux bundles
 bun run tauri:android:build  # Android APK/AAB
 bun run tauri:ios:build      # iOS
 ```
 
-## Migration note — `runtime/` → one frontend
+## Current build contract
 
-The change in this document consolidates the **source** tree: `src/app/` became
-`src/frontend/`, and every build, workspace, Tauri, Docker and CI reference was
-rewired to it. It does not by itself change what the running container serves.
-
-`runtime/` (the deployed self-contained Express + SurrealDB app with its own
-`runtime/public` frontend) and `src/` (this monorepo) are two products that happen
-to share a name. Making `runtime/public` a *build output* of `src/frontend` is a
-deployment decision with three options:
-
-1. **Serve the built bundle** — add a build stage to `runtime/Dockerfile` that runs
-   the frontend build and copies `dist/public` over `runtime/public`. Requires the
-   tRPC server (`src/server`) to be what the container runs, since this frontend
-   calls `/api/trpc`, not `/api/notes`.
-2. **Port the design layer** into `runtime/public` — keep the runtime frontend and
-   bring the token contract, registry and appearance layer across.
-3. **Keep them separate intentionally** — `src/frontend` for the Tauri/desktop and
-   self-hosted React stack, `runtime/` for the current web deployment.
-
-Until one is chosen, treat `runtime/public` as the deployed frontend and
-`src/frontend` as the single source for the apps.
+The frontend is now the single source for web, PWA, desktop, Android and iOS.
+Vite writes `PlanInc/dist/public`; Tauri's `frontendDist` points to that same
+directory; and the production server serves the copied bundle from
+`server/public`. There is no second runtime frontend to keep in sync.

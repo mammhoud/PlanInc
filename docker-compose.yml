@@ -2,7 +2,8 @@
 # PlanInc — self-hosted planning & incubation platform
 # =============================================================================
 # SurrealDB runs in embedded file mode (surrealkv://) — no container needed.
-# The database file lives at ./runtime/data/planinc.db on the data volume.
+# the database file remains at ./data/planinc.db after the runtime cutover so
+# the source stack can use the existing persistent data without a data move.
 # No surrealdb image, no port 8000.
 # Served at its own domain, notes.structa.cloud, by a dedicated Traefik vhost
 # (proxy/configs/traefik/dynamic/notes.yml). Deploy with
@@ -23,35 +24,32 @@ networks:
 services:
   planinc:
     build:
-      context: ./runtime
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: dockerfile
     image: planinc-local:latest
     container_name: planinc
     ports:
       - "${PLANINC_PORT:-1111}:1111"
     environment:
-      # runtime/server.mjs reads these exact names (NEXTAUTH_SECRET is the JWT
-      # secret; NEXTAUTH_URL/NEXT_PUBLIC_BASE_URL are not consumed by the
-      # runtime and are intentionally omitted).
+      # The source server reads PLANINC_NEXTAUTH_SECRET as its JWT secret.
       NEXTAUTH_SECRET: ${PLANINC_NEXTAUTH_SECRET:-planinc-secret-change-me}
       # Bootstrap superuser: created on first boot when set (idempotent after).
       PLANINC_SUPERUSER_NAME: ${PLANINC_SUPERUSER_NAME:-}
       PLANINC_SUPERUSER_PASSWORD: ${PLANINC_SUPERUSER_PASSWORD:-}
-      PLANING_PORT: "1111"
-      # SurrealDB embedded file — path inside the container data volume.
-      SURREALDB_FILE: /app/data/planinc.db
-      SURREALDB_NS: ${PLANINC_DB_NS:-planinc}
-      SURREALDB_DB: ${PLANINC_DB_NAME:-planinc}
+      PLANINC_PORT: "1111"
+      PLANINC_DB_FILE: /app/data/planinc.db
+      PLANINC_DB_NS: ${PLANINC_DB_NS:-planinc}
+      PLANINC_DB_NAME: ${PLANINC_DB_NAME:-planinc}
       # Uploads (written under the same data volume as the database file).
       UPLOAD_DIR: /app/data/uploads
       MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-26214400}
       # Chat context root: the project tree is mounted read-only so a chat can
       # read the repository it is asked about but never write to it.
-      PLANING_CONTEXT_PROJECT_DIR: /app/context
+      PLANINC_CONTEXT_PROJECT_DIR: /app/context
       PLANING_CONTEXT_MAX_BYTES: ${PLANINC_CONTEXT_MAX_BYTES:-262144}
     volumes:
       # Persist the SurrealDB file and uploads across container restarts.
-      - ./runtime/data:/app/data
+      - ./data:/app/data
       - ${PLANINC_CONTEXT_DIR:-../../..}:/app/context:ro
     networks:
       - default

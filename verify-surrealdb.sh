@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # verify-surrealdb.sh — PlanInc deployment validator
 # Confirms that:
-#   1. The runtime uses SurrealDB in embedded file mode (no container/URL)
+#   1. The deployed source stack uses SurrealDB in embedded file mode (no container/URL)
 #   2. No forbidden PostgreSQL / legacy datastore configuration remains
 #   3. Required runtime files are present
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
-SOURCE_DIR="${SOURCE_DIR:-runtime}"
+if [[ "$COMPOSE_FILE" != /* ]]; then
+  COMPOSE_FILE="$SCRIPT_DIR/$COMPOSE_FILE"
+fi
+SOURCE_DIR="${SOURCE_DIR:-$SCRIPT_DIR}"
+if [[ "$SOURCE_DIR" != /* ]]; then
+  SOURCE_DIR="$SCRIPT_DIR/$SOURCE_DIR"
+fi
 
 # ── 1. Forbidden legacy datastore check ──────────────────────────────────────
 if grep -Eq 'postgres|postgresql|DATABASE_URL' "$SOURCE_DIR/package.json" "$COMPOSE_FILE" 2>/dev/null; then
@@ -28,23 +35,23 @@ if grep -Eq 'surrealdb/surrealdb|SURREALDB_URL|SURREALDB_PASS|SURREALDB_PORT' "$
   exit 1
 fi
 
-# ── 3. Confirm embedded file mode is configured in the runtime ───────────────
-if ! grep -Eq 'surrealkv://|SURREALDB_FILE|createNodeEngines|@surrealdb/node' "$SOURCE_DIR/server.mjs" 2>/dev/null; then
-  echo "❌ SurrealDB embedded file-mode configuration not found in runtime/server.mjs." >&2
+# ── 3. Confirm embedded file mode is configured in the source stack ───────────
+if ! grep -REq 'surrealkv://|PLANINC_DB_FILE|createNodeEngines|@surrealdb/node' "$SOURCE_DIR/server" "$SOURCE_DIR/dockerfile" 2>/dev/null; then
+  echo "❌ SurrealDB embedded file-mode configuration not found in the source server." >&2
   exit 1
 fi
 
-if ! grep -Eq 'SURREALDB_FILE|surrealkv' "$COMPOSE_FILE" 2>/dev/null; then
-  echo "❌ SURREALDB_FILE not configured in Compose file." >&2
+if ! grep -Eq 'PLANINC_DB_FILE|surrealkv' "$COMPOSE_FILE" 2>/dev/null; then
+  echo "❌ PLANINC_DB_FILE not configured in Compose file." >&2
   exit 1
 fi
 
 # ── 4. Required runtime files present ────────────────────────────────────────
-for f in "$SOURCE_DIR/package.json" "$SOURCE_DIR/server.mjs"; do
+for f in "$SOURCE_DIR/server/package.json" "$SOURCE_DIR/server/surreal.ts" "$SOURCE_DIR/dockerfile"; do
   if [[ ! -f "$f" ]]; then
     echo "❌ Required runtime file missing: $f" >&2
     exit 1
   fi
 done
 
-echo "✅ PlanInc runtime is SurrealDB file-mode only. No containers required."
+echo "✅ PlanInc source deployment is SurrealDB file-mode only. No database container required."
