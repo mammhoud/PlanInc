@@ -3,7 +3,7 @@ import { PlanIncStore } from '@/store/planincStore'
 import { RootStore } from '@/store'
 import { EditorStore } from '../../editorStore'
 import { useEffect } from 'react'
-import { PlanIncSelectNote } from '@/components/Common/PlanIncSelectNote'
+import { PlanIncSelectNote } from '@/components/Common/PlanincSelectNote'
 
 interface Props {
   store: EditorStore

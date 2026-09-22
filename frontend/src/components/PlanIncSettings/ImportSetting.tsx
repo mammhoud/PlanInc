@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { UploadFileWrapper } from "../Common/UploadFile";
 import { ToastPlugin } from "@/store/module/Toast/Toast";
 import { ShowMemosProgressDialog } from "../Common/ImportMemosProgress";
-import { ShowPlanIncProgressDialog } from "../Common/ImportPlanIncProgress";
+import { ShowPlanIncProgressDialog } from "../Common/ImportPlanincProgress";
 import { ShowMarkdownProgressDialog } from "../Common/ImportMarkdownProgress";
 import { CollapsibleCard } from "../Common/CollapsibleCard";
 import { useSideNav } from '@/platform/PlatformProvider';

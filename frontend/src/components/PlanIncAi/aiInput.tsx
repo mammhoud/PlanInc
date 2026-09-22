@@ -9,7 +9,7 @@ import { RootStore } from '@/store/root';
 import { DialogStore } from '@/store/module/Dialog';
 import { AiConversactionList } from './aiConversactionList';
 import { PromiseCall } from '@/store/standard/PromiseState';
-import { PlanIncSelectNote } from '../Common/PlanIncSelectNote';
+import { PlanIncSelectNote } from '../Common/PlanincSelectNote';
 import i18n from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
 import { ScrollArea } from '../Common/ScrollArea';
