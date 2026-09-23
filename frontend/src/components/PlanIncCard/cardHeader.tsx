@@ -3,7 +3,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Copy } from "../Common/Copy";
 import { LeftCickMenu, ShowEditTimeModel } from "../PlanIncRightClickMenu";
 import { PlanIncStore } from '@/store/planincStore';
-import { Note, NoteType } from '@shared/lib/types';
+import { NoteType } from '@shared/lib/types';
+import { Note } from '@/lib/apiTypes';
 import { RootStore } from '@/store';
 import dayjs from '@/lib/dayjs';
 import { useTranslation } from 'react-i18next';

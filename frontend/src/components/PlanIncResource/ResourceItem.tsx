@@ -10,7 +10,7 @@ import { memo, useCallback, useMemo } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useTranslation } from 'react-i18next';
-import { type ResourceType } from '@shared/lib/types';
+import { type ResourceType } from '@/lib/apiTypes';
 import { ResourceContextMenu } from './ResourceContextMenu';
 import { RootStore } from '@/store';
 import { ResourceStore } from '@/store/resourceStore';
@@ -226,13 +226,15 @@ const ResourceItem = observer(({ item, index, onSelect, isSelected, onFolderClic
   } = useDraggable({
     id: draggableId,
     disabled: item.isFolder,
-    data: { index },
+    // The page sorts and filters items, so a bare `index` does not identify the
+    // row. Carry the stable identity too and let the store resolve by it.
+    data: { index, resourceId: item.id },
   });
 
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: droppableId,
     disabled: !item.isFolder,
-    data: { index },
+    data: { index, folderName: item.folderName },
   });
 
   return (

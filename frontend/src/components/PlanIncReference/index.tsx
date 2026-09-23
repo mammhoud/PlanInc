@@ -1,5 +1,5 @@
 import { api } from "@/lib/trpc"
-import { Note } from "@shared/lib/types"
+import { Note } from "@/lib/apiTypes"
 import { RootStore } from "@/store"
 import { PromiseState } from "@/store/standard/PromiseState"
 import { DialogStore } from "@/store/module/Dialog"

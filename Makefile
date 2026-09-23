@@ -8,6 +8,7 @@ ENV_FILE     ?= $(if $(wildcard .env),.env,$(if $(wildcard ../.env),../.env,../.
 PLANINC_PORT ?= 1111
 
 # Exported so `PLANINC_SUPERUSER_NAME=... make run` reaches the server process,
+# and so a recreated container keeps the bootstrap account on first boot.
 # but ONLY when the caller actually supplies a value. Exporting an unset variable
 # pushes an EMPTY value into the child environment, and an empty environment
 # variable takes precedence over .env during compose interpolation — which
@@ -19,20 +20,24 @@ ifneq ($(origin PLANINC_SUPERUSER_PASSWORD),undefined)
 export PLANINC_SUPERUSER_PASSWORD
 endif
 
-.PHONY: help up down deploy build restart logs status ps setup verify-surrealdb run install test test-canonical django-check django-test django-run clean clean-unused
+.PHONY: help up down deploy redeploy build restart logs status ps health setup verify-surrealdb run install test test-e2e test-canonical django-check django-test django-run clean clean-unused
 
 help: ## Show this help menu
-	@echo 'PlanInc commands: make up | down | deploy | build | restart | logs | status | setup | run | test'
+	@echo 'PlanInc commands: make deploy | redeploy | up | down | restart | logs | status | health | run | test'
 	@echo '  setup     - Create .env from .env.example if missing'
 	@echo '  run       - Run the server natively (no docker build) at http://localhost:$(PLANINC_PORT)'
 	@echo '  test      - Run the source-stack checks'
 	@echo '  test-canonical - Smoke a running deployment (PLANINC_TEST_URL, default :$(PLANINC_PORT))'
+	@echo '  test-e2e  - Run the hermetic Playwright suite only (no contract checks)'
 	@echo '  up        - Start PlanInc (notes.structa.cloud)'
-	@echo '  deploy    - Build + start Planing'
-	@echo '  build     - Build the Planing image'
-	@echo '  down      - Stop Planing'
-	@echo '  restart   - Restart Planing'
-	@echo '  logs      - Tail Planing logs'
+	@echo '  deploy    - Build + recreate + wait for /health (the one command to ship)'
+	@echo '  redeploy  - Alias for deploy: rebuild the image and recreate the container'
+	@echo '  build     - Build the PlanInc image'
+	@echo '  down      - Stop PlanInc'
+	@echo '  restart   - Restart PlanInc'
+	@echo '  logs      - Tail PlanInc logs'
+	@echo '  status    - Show PlanInc container status'
+	@echo '  health    - Wait until the running container answers /health'
 	@echo '  verify-surrealdb - Validate the SurrealDB-only runtime and Compose contract'
 	@echo '  django-check - Check the isolated Django server alternative'
 	@echo '  django-test  - Run isolated Django server tests'
@@ -52,7 +57,25 @@ verify-surrealdb:
 up: verify-surrealdb
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) up -d
 
-deploy: build up
+# Build, (re)create, then prove it serves. `up -d` already recreates the
+# container when the image changed, so `deploy` is also the redeploy path —
+# `redeploy` is kept as an explicit alias because that is what people type.
+deploy: build up health
+
+redeploy: deploy
+
+health: ## Wait until the running deployment answers /health
+	@# A cold boot opens the SurrealKV file, runs migrations and creates the
+	@# bootstrap superuser before it listens, so the budget has to cover that
+	@# (~2 min observed) — polling for less makes a successful deploy look failed.
+	@printf '⏳ Waiting for http://127.0.0.1:$(PLANINC_PORT)/health '; \
+	for _ in $${PLANINC_HEALTH_TRIES:-90}; do \
+		if curl -fsS "http://127.0.0.1:$(PLANINC_PORT)/health" >/dev/null 2>&1; then \
+			echo ' ✅ healthy'; exit 0; \
+		fi; \
+		printf '.'; sleep 2; \
+	done; \
+	echo ' ❌ timed out — run `make logs` to see why'; exit 1
 
 build: verify-surrealdb
 	@docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) build
@@ -60,8 +83,12 @@ build: verify-surrealdb
 install: ## Install source-stack dependencies for `make run`
 	@bun install --frozen-lockfile
 
-test: install ## Run source-stack contract and frontend checks
+test: install ## Run source-stack contract checks and the hermetic Playwright suite
 	@bun run --cwd frontend check:contracts
+	@bunx playwright test
+
+test-e2e: install ## Run the hermetic Playwright suite only
+	@bunx playwright test
 
 django-check: ## Run Django checks without changing the active TypeScript server
 	@cd django_server && PYTHONPATH=. python3 manage.py check
@@ -73,7 +100,7 @@ django-run: ## Run the isolated Django server without changing the active TypeSc
 	@cd django_server && PYTHONPATH=. python3 manage.py runserver $${PLANINC_DJANGO_BIND:-127.0.0.1:8001}
 
 test-canonical: ## Smoke a running deployment over HTTP (set PLANINC_TEST_URL to override :$(PLANINC_PORT))
-	@bun run --cwd frontend build:web
+	@bunx playwright test --config playwright.canonical.config.mjs
 
 run: install ## Run the server natively without a docker build
 	@# Uses the same SurrealDB file as the Docker deployment (./data) —

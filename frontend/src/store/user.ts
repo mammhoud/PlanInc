@@ -489,6 +489,10 @@ export class UserStore implements Store {
     }, []);
 
     useEffect(() => {
+      // `id` is '' until a session exists and `Number('')` is 0 — asking the
+      // server for account 0 logged a NOT_FOUND for every logged-out visitor.
+      // Stay quiet until there is a real id.
+      if (!this.id) return;
       this.userInfo.call(Number(this.id));
     }, [this.id]);
 

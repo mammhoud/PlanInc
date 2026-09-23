@@ -3,7 +3,7 @@ import { PlanIncStore } from '@/store/planincStore';
 import { Card } from '@/components/ui/card';
 import { RootStore } from '@/store';
 import { ContextMenuTrigger } from '@/components/Common/ContextMenu';
-import { Note } from '@shared/lib/types';
+import { Note } from '@/lib/apiTypes';
 import { ShowEditPlanIncModel } from "../PlanIncRightClickMenu";
 import { _ } from '@/lib/lodash';
 import { useState } from "react";

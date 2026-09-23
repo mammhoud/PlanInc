@@ -525,9 +525,8 @@ without core changes; importers round-trip a real vault.
 ```bash
 cd application/tools/PlanInc
 bun install && bun run dev:backend
-bun run test
-cd frontend && npx playwright test --config playwright.canonical.config.mjs
-cd application/tools/PlanInc && make test-canonical
+make test                            # contract checks + hermetic Playwright suite
+make test-canonical                  # smoke the running deployment on :1111
 cd application/tools/PlanInc && python3 scripts/generate-dir-docs.py --check
 ```
 

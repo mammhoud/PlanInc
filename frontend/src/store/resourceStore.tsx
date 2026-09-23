@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { PlanIncStore } from "./planincStore";
 import { RootStore } from ".";
-import { ResourceType } from "@shared/lib/types";
+import { ResourceType } from "@/lib/apiTypes";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/trpc";
 import { PromiseCall } from "./standard/PromiseState";
@@ -76,15 +76,23 @@ export class ResourceStore implements Store {
 
     const { source, destination } = result;
 
-    const destItem = this.planinc.resourceList.value?.[destination.index];
+    const list = this.planinc.resourceList.value ?? [];
+    // Prefer the folder's identity: `index` addresses the sorted/filtered list
+    // rendered on the page, which does not necessarily match the store's order
+    // (folders are derived first, and the page re-sorts by name/updated).
+    const destItem = destination.folderName
+      ? list.find(item => item.isFolder && item.folderName === destination.folderName)
+      : list[destination.index];
     if (!destItem?.isFolder) return;
 
     const itemsToMove = Array.from(this.selectedItems).map(id =>
-      this.planinc.resourceList.value?.find(item => item.id === Number(id))
+      list.find(item => item.id === Number(id))
     ).filter((item): item is NonNullable<typeof item> => item != null);
 
     if (itemsToMove.length === 0) {
-      const draggedItem = this.planinc.resourceList.value?.[source.index];
+      const draggedItem = source.id != null
+        ? list.find(item => item.id === Number(source.id))
+        : list[source.index];
       if (!draggedItem) return;
       itemsToMove.push(draggedItem);
     }

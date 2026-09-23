@@ -1,29 +1,29 @@
+// Knowledge-graph interactions for the active `frontend/` app.
+//
+// The graph lives at `frontend/src/pages/graph.tsx` and is rendered by
+// `frontend/src/components/PlanIncGraph/PlanincGraph.tsx`; the d3 SVG must be
+// reachable and operable without a pointer (role/tabindex/keydown), and its
+// camera controls must be present. Seeded tickets/studies give the graph nodes.
 import { test, expect } from '@playwright/test';
-
-const USER = process.env.PLANINC_E2E_USER;
-const PASSWORD = process.env.PLANINC_E2E_PASSWORD;
-const BASE_URL = process.env.PLANINC_E2E_BASE_URL || 'http://127.0.0.1:1111';
+import { signIn, watchConsole } from './support.mjs';
 
 test.describe('knowledge graph interactions', () => {
-  test.skip(!USER || !PASSWORD, 'Set PLANINC_E2E_USER and PLANINC_E2E_PASSWORD to run the graph suite.');
+  let consoleErrors;
 
   test.beforeEach(async ({ page }) => {
-    const response = await page.request.post(`${BASE_URL}/api/auth/login`, {
-      data: { username: USER, password: PASSWORD },
-    });
-    expect(response.ok(), `POST /api/auth/login returned ${response.status()}`).toBeTruthy();
-    const body = await response.json();
-    const tokenData = body?.tokenData?.token ? body.tokenData : { ...body, token: body?.token };
-    expect(tokenData?.token, 'login response carried no token').toBeTruthy();
-    await page.addInitScript(
-      ([key, value]) => window.localStorage.setItem(key, JSON.stringify(value)),
-      ['planincToken', tokenData],
-    );
+    consoleErrors = watchConsole(page);
+    await signIn(page);
+  });
+
+  test.afterEach(async () => {
+    expect(consoleErrors, `page logged errors:\n${consoleErrors.join('\n')}`).toEqual([]);
   });
 
   test('renders an accessible graph and camera controls', async ({ page }) => {
     await page.goto('/graph');
-    const graph = page.locator('svg[role="img"]');
+    // Decorative icons also render `svg[role="img"]` (with aria-hidden); the
+    // graph is the one that carries a label.
+    const graph = page.locator('svg[role="img"][aria-label]');
     await expect(graph).toBeVisible({ timeout: 30_000 });
     await expect(graph).toHaveAttribute('aria-label');
     await expect(page.getByRole('button', { name: 'Fit' })).toBeVisible();

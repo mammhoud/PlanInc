@@ -21,8 +21,36 @@ export interface AttachmentResult {
   folderName: string | null;
 }
 
+// The list query mixes `db.attachments.findMany` (which normalises record ids to
+// numbers) with raw `surrealSelect` rows, whose `id` is still `attachments:<n>`.
+// The client treats ids as numbers (selection keys, move `sourceIds`), so the
+// raw branches must normalise too or drag-and-drop silently no-ops.
+const numericId = (value: unknown): number | null => {
+  if (value == null) return null;
+  const parsed = Number(String(value).split(':').pop());
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+// Attachments can reach an account two ways: uploaded against a note
+// (`note.accountId`) or owned directly by the account (`accountId`, which is what
+// uploads and folder placeholders set). `list` scopes by both, so every read and
+// mutation must as well — a mutation that only checks `note.accountId` matches
+// zero rows for note-less attachments and fails with "Attachment(s) not found".
+const accountScope = (ctx: { id: unknown }) => ({
+  OR: [
+    {
+      note: {
+        accountId: Number(ctx.id)
+      }
+    },
+    {
+      accountId: Number(ctx.id)
+    }
+  ]
+});
+
 const mapAttachmentResult = (item: any): AttachmentResult => ({
-  id: item.id,
+  id: numericId(item.id),
   path: item.path,
   name: item.name,
   size: item.size?.toString() || null,
@@ -138,7 +166,7 @@ export const attachmentsRouter = router({
         const childRows = await surrealSelect<any>(
           `SELECT perfixPath FROM attachments
            WHERE perfixPath != NONE
-             AND string::startsWith(perfixPath, ${JSON.stringify(folderPath + ',')})
+             AND string::starts_with(perfixPath, ${JSON.stringify(folderPath + ',')})
              AND (accountId = ${Number(ctx.id)} OR noteId IN (SELECT value id FROM notes WHERE accountId = ${Number(ctx.id)}));`
         );
         const folderSet = new Map<string, any>();
@@ -298,9 +326,7 @@ export const attachmentsRouter = router({
         const attachment = await tx.attachments.findFirst({
           where: {
             id,
-            note: {
-              accountId: Number(ctx.id)
-            }
+            ...accountScope(ctx)
           }
         });
 
@@ -335,9 +361,7 @@ export const attachmentsRouter = router({
         const attachments = await tx.attachments.findMany({
           where: {
             id: { in: sourceIds },
-            note: {
-              accountId: Number(ctx.id)
-            }
+            ...accountScope(ctx)
           }
         });
 
@@ -392,9 +416,7 @@ export const attachmentsRouter = router({
         if (isFolder && folderPath) {
           const attachments = await tx.attachments.findMany({
             where: {
-              note: {
-                accountId: Number(ctx.id)
-              },
+              ...accountScope(ctx),
               perfixPath: {
                 startsWith: folderPath
               }
@@ -418,16 +440,7 @@ export const attachmentsRouter = router({
         const attachment = await tx.attachments.findFirst({
           where: {
             id: id!,
-            OR: [
-              {
-                note: {
-                  accountId: Number(ctx.id)
-                }
-              },
-              {
-                accountId: Number(ctx.id)
-              }
-            ]
+            ...accountScope(ctx)
           }
         });
 
@@ -456,16 +469,7 @@ export const attachmentsRouter = router({
       const attachments = await db.attachments.findMany({
         where: {
           id: { in: ids },
-          OR: [
-            {
-              note: {
-                accountId: Number(ctx.id)
-              }
-            },
-            {
-              accountId: Number(ctx.id)
-            }
-          ]
+          ...accountScope(ctx)
         }
       });
 

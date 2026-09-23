@@ -37,7 +37,13 @@ const Page = observer(() => {
     const sourceIndex = active.data.current?.index;
     const destinationIndex = over?.data.current?.index;
     if (typeof sourceIndex !== 'number' || typeof destinationIndex !== 'number') return;
-    void resourceStore.handleDragEnd({ source: { index: sourceIndex }, destination: { index: destinationIndex } });
+    // `index` addresses the rendered (sorted/filtered) list, which is not the
+    // order of the store's raw list — pass identities so the store can resolve
+    // the drop target and dragged row correctly.
+    void resourceStore.handleDragEnd({
+      source: { index: sourceIndex, id: active.data.current?.resourceId },
+      destination: { index: destinationIndex, folderName: over?.data.current?.folderName },
+    });
   }, [resourceStore]);
   const resources = useMemo(() => {
     const allResources = toJS(resourceStore.planinc.resourceList.value) || [];

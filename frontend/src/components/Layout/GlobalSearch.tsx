@@ -11,7 +11,7 @@ import { AiStore } from '@/store/aiStore';
 import { observer } from 'mobx-react-lite';
 import { _ } from '@/lib/lodash';
 import { cn } from '@/lib/utils';
-import { Note, ResourceType, Tag } from '@shared/lib/types';
+import { Note, ResourceType, Tag } from '@/lib/apiTypes';
 import { ScrollArea } from '../Common/ScrollArea';
 import { ResourceItemPreview } from '@/components/PlanIncResource/ResourceItem';
 import { allSettings } from '@/pages/settings';

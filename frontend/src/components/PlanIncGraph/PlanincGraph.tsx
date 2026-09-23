@@ -12,7 +12,10 @@ import type { GraphKind, GraphNode } from '@/pages/graph';
 
 type GraphEdge = { id: number; source: GraphNode; target: GraphNode; label: string };
 
-type SimNode = GraphNode & { x: number; y: number; fx?: number | null; fy?: number | null };
+// `radius` is required by d3-force-cluster: it computes `r = d.radius + (c.radius || 0)`
+// and a missing value made `r` NaN, which then propagated NaN into every node's
+// x/y (and into the shared cluster centers) on each tick.
+type SimNode = GraphNode & { x: number; y: number; radius: number; fx?: number | null; fy?: number | null };
 
 type Props = {
   nodes: GraphNode[];
@@ -74,6 +77,7 @@ export function PlanincGraph({ nodes, edges, selectedNode, hoveredNode, labels, 
       ...node,
       x: node.kind === 'root' ? 400 : 160 + (index % 6) * 120,
       y: node.kind === 'root' ? 250 : 100 + Math.floor(index / 6) * 85,
+      radius: node.kind === 'root' ? 32 : 26,
     }));
     const nodeById = new Map(nodeData.map((node) => [node.id, node]));
     const edgeData = edges
@@ -158,7 +162,13 @@ export function PlanincGraph({ nodes, edges, selectedNode, hoveredNode, labels, 
         });
       edgeLabelSelection.attr('opacity', (edge) => activeNode && (edge.source.id === activeNode.id || edge.target.id === activeNode.id) ? 0.95 : 0);
       nodeSelection.select('.graph-node-halo').attr('opacity', (node) => selectedRef.current?.id === node.id ? 0.8 : hoveredRef.current?.id === node.id ? 0.25 : 0);
-      nodeSelection.select('.graph-node-dot').attr('fill', (node) => COLORS[node.kind]).attr('stroke', selectedRef.current?.id === node.id ? '#E0F2FE' : '#F0F9FF').attr('stroke-width', selectedRef.current?.id === node.id ? 5 : 3);
+      // Each attribute needs its own datum accessor: the previous `.attr('stroke', …)`
+      // referenced a bare `node` that was never in scope, which threw
+      // `ReferenceError: node is not defined` on every simulation tick.
+      nodeSelection.select('.graph-node-dot')
+        .attr('fill', (node) => COLORS[node.kind])
+        .attr('stroke', (node) => selectedRef.current?.id === node.id ? '#E0F2FE' : '#F0F9FF')
+        .attr('stroke-width', (node) => selectedRef.current?.id === node.id ? 5 : 3);
       nodeSelection.select('.graph-node-label').attr('fill', '#F0F9FF').attr('font-size', (node) => node.kind === 'root' ? 12 : 10);
     });
     if (reducedMotion) {

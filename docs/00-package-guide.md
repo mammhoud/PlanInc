@@ -55,7 +55,7 @@ active runtime; the remaining work is tracked in the
 ```bash
 make setup      # create .env from .env.example if missing
 make run        # run the server natively on :1111
-make test       # frontend contract checks
+make test       # frontend contract checks + hermetic Playwright suite
 make deploy     # build + start the container
 ```
 

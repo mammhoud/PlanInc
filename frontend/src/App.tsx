@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from 'next-themes';
 import { Inspector, InspectParams } from 'react-dev-inspector';
 import './styles/github-markdown.css';
@@ -284,15 +285,19 @@ function App() {
         }}
       />
       <BrowserRouter>
-        <ThemeProvider attribute="class" enableSystem={false}>
-          <AppProvider />
-          <CommonLayout>
-            <div className="app-content">
-              <AppRoutes />
-              <PlanIncMultiSelectPop />
-            </div>
-          </CommonLayout>
-        </ThemeProvider>
+        {/* One provider for the whole tree: Radix `Tooltip` throws without it, and
+            individual cards/pages should not each have to remember to add one. */}
+        <TooltipProvider delayDuration={300}>
+          <ThemeProvider attribute="class" enableSystem={false}>
+            <AppProvider />
+            <CommonLayout>
+              <div className="app-content">
+                <AppRoutes />
+                <PlanIncMultiSelectPop />
+              </div>
+            </CommonLayout>
+          </ThemeProvider>
+        </TooltipProvider>
         <PlanIncMusicPlayer />
       </BrowserRouter>
     </>

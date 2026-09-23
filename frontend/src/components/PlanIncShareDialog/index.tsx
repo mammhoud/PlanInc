@@ -28,7 +28,7 @@ import { useTranslation } from "react-i18next";
 import { DialogStore } from "@/store/module/Dialog";
 import { Copy } from "../Common/Copy";
 import { api } from "@/lib/trpc";
-import { PublicUser } from "@shared/lib/types";
+import { PublicUser } from "@/lib/apiTypes";
 import { UserStore } from "@/store/user";
 import { getPlanIncEndpoint } from "@/lib/planincEndpoint";
 

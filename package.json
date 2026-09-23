@@ -25,6 +25,7 @@
     "create:superuser": "cd server && bun --env-file=../.env scripts/create-superuser.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@types/lru-cache": "^7.10.10",
     "concurrently": "^9.1.2",
     "eslint": "^8.56.0",

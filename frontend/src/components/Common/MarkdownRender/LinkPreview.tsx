@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { api } from '@/lib/trpc';
-import { LinkInfo } from '@shared/lib/types';
+import { LinkInfo } from '@/lib/apiTypes';
 import { RootStore } from '@/store';
 import { StorageState } from '@/store/standard/StorageState';
 import { observer } from 'mobx-react-lite';

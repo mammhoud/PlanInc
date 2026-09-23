@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
@@ -65,8 +65,14 @@ export default function DashboardPage() {
             <p className="mt-3 max-w-xl text-sm leading-6 text-foreground-500">{t('dashboard-description')}</p>
           </div>
           <div className="flex gap-2">
-            <Button as={Link} to="/tickets" color="primary" startContent={<Icon icon="hugeicons:add-01" width="16" height="16" />}>{t('new-ticket')}</Button>
-            <Button as={Link} to="/study" variant="flat">{t('open-study')}</Button>
+            {/* Links styled with `buttonVariants` rather than `<Button asChild>`:
+                the action is a navigation, so it should stay an anchor, and the
+                slot-based `asChild` path is not what this Button supports. */}
+            <Link to="/tickets" className={buttonVariants()}>
+              <Icon icon="hugeicons:add-01" width="16" height="16" />
+              {t('new-ticket')}
+            </Link>
+            <Link to="/study" className={buttonVariants({ variant: 'secondary' })}>{t('open-study')}</Link>
           </div>
         </div>
       </section>
@@ -83,10 +89,10 @@ export default function DashboardPage() {
 
           <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
             <Card className="border border-divider/60 bg-background/80 shadow-sm">
-              <CardBody className="gap-5 p-5">
+              <CardContent className="flex flex-col gap-5 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div><h2 className="text-lg font-semibold">{t('delivery-report')}</h2><p className="text-sm text-foreground-500">{t('delivery-report-description')}</p></div>
-                  <Chip color={completionRate >= 70 ? 'success' : 'warning'} variant="flat">{completionRate}%</Chip>
+                  <Badge variant={completionRate >= 70 ? 'success' : 'warning'}>{completionRate}%</Badge>
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-content2"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${completionRate}%` }} /></div>
                 {/* Three stats side by side is a desktop reading; at phone widths
@@ -96,22 +102,22 @@ export default function DashboardPage() {
                   <div><p className="text-foreground-500">{t('blocked')}</p><strong>{blockedWork}</strong></div>
                   <div><p className="text-foreground-500">{t('words-this-month')}</p><strong>{noteStats.totalWords ?? 0}</strong></div>
                 </div>
-              </CardBody>
+              </CardContent>
             </Card>
             <Card className="border border-divider/60 bg-background/80 shadow-sm">
-              <CardBody className="gap-4 p-5">
+              <CardContent className="flex flex-col gap-4 p-5">
                 <div><h2 className="text-lg font-semibold">{t('completed-tasks')}</h2><p className="text-sm text-foreground-500">{t('completed-tasks-description')}</p></div>
                 <div className="flex items-end gap-3"><strong className="text-5xl font-semibold tracking-tight">{completedTasks}</strong><span className="pb-2 text-sm text-foreground-500">{t('items')}</span></div>
-                <Button as={Link} to="/tickets" variant="flat" className="w-fit">{t('review-tickets')}</Button>
-              </CardBody>
+                <Link to="/tickets" className={buttonVariants({ variant: 'secondary', className: 'w-fit' })}>{t('review-tickets')}</Link>
+              </CardContent>
             </Card>
           </div>
 
           <Card className="border border-divider/60 bg-background/80 shadow-sm">
-            <CardBody className="gap-4 p-5">
-              <div className="flex items-center justify-between"><div><h2 className="text-lg font-semibold">{t('recent-activity')}</h2><p className="text-sm text-foreground-500">{t('recent-activity-description')}</p></div><Button as={Link} to="/graph" variant="light">{t('view-graph')}</Button></div>
-              {recentItems.length ? <div className="grid gap-2 md:grid-cols-2">{recentItems.map((item) => <Link key={`${item.kind}-${item.id}`} to={item.kind === 'ticket' ? '/tickets' : '/study'} className="flex items-center justify-between rounded-xl border border-divider/60 p-3 transition-colors hover:bg-content2"><div className="flex min-w-0 items-center gap-3"><Icon icon={item.kind === 'ticket' ? 'tabler:list-check' : 'hugeicons:book-edit'} width="18" height="18" className="shrink-0 text-foreground-500" /><span className="truncate text-sm font-medium">{item.title}</span></div><Chip size="sm" variant="flat">{t(item.status)}</Chip></Link>)}</div> : <p className="py-5 text-sm text-foreground-500">{t('no-recent-activity')}</p>}
-            </CardBody>
+            <CardContent className="flex flex-col gap-4 p-5">
+              <div className="flex items-center justify-between"><div><h2 className="text-lg font-semibold">{t('recent-activity')}</h2><p className="text-sm text-foreground-500">{t('recent-activity-description')}</p></div><Link to="/graph" className={buttonVariants({ variant: 'ghost' })}>{t('view-graph')}</Link></div>
+              {recentItems.length ? <div className="grid gap-2 md:grid-cols-2">{recentItems.map((item) => <Link key={`${item.kind}-${item.id}`} to={item.kind === 'ticket' ? '/tickets' : '/study'} className="flex items-center justify-between rounded-xl border border-divider/60 p-3 transition-colors hover:bg-content2"><div className="flex min-w-0 items-center gap-3"><Icon icon={item.kind === 'ticket' ? 'tabler:list-check' : 'hugeicons:book-edit'} width="18" height="18" className="shrink-0 text-foreground-500" /><span className="truncate text-sm font-medium">{item.title}</span></div><Badge variant="secondary">{t(item.status)}</Badge></Link>)}</div> : <p className="py-5 text-sm text-foreground-500">{t('no-recent-activity')}</p>}
+            </CardContent>
           </Card>
         </>
       )}

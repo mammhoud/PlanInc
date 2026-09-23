@@ -166,8 +166,25 @@ async function setupApiRoutes(app: express.Application) {
       createContext: ({ req, res }) => {
         return createContext(req, res);
       },
-      onError: ({ error }) => {
-        console.error('tRPC error:', error);
+      onError: ({ error, path }) => {
+        // Expected client errors (logged-out visitors, expired sessions, bots
+        // probing auth-gated procedures) are routine — log one line without a
+        // stack trace so production logs stay readable. Full details are kept
+        // for genuine server failures.
+        const clientCodes = new Set([
+          'UNAUTHORIZED',
+          'FORBIDDEN',
+          'NOT_FOUND',
+          'BAD_REQUEST',
+          'CONFLICT',
+          'PRECONDITION_FAILED',
+          'TOO_MANY_REQUESTS',
+        ]);
+        if (error.code === 'INTERNAL_SERVER_ERROR' || !clientCodes.has(error.code)) {
+          console.error(`tRPC error on "${path ?? 'unknown'}":`, error);
+        } else {
+          console.warn(`tRPC ${error.code} on "${path ?? 'unknown'}": ${error.message}`);
+        }
       }
     })
   );

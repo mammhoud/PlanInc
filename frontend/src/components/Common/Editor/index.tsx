@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import { FileType, OnSendContentType } from './type';
 import { PlanIncStore } from '@/store/planincStore';
 import { useTranslation } from 'react-i18next';
-import { type Attachment } from '@shared/lib/types';
+import { type Attachment } from '@/lib/apiTypes';
 import { Card } from '@/components/ui/card';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { AttachmentsRender, ReferenceRender } from '../AttachmentRender';

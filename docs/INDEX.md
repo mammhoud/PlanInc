@@ -17,7 +17,7 @@
 | PI-005 | [`docs/04-database-and-schema.md`](./04-database-and-schema.md) | Embedded SurrealDB, schema bootstrap, engine semantics | ✅ Exists |
 | PI-006 | [`docs/05-deployment.md`](./05-deployment.md) | `notes.structa.cloud`, compose, networks, TLS | ✅ Exists |
 | PI-007 | [`docs/06-secrets-and-superuser.md`](./06-secrets-and-superuser.md) | `.env`, superuser bootstrap, secret handling | ✅ Exists |
-| PI-008 | [`docs/07-testing.md`](./07-testing.md) | The three Playwright configs and what each proves | ✅ Exists |
+| PI-008 | [`docs/07-testing.md`](./07-testing.md) | The two Playwright configs and what each proves | ✅ Exists |
 | PI-009 | [`docs/08-i18n.md`](./08-i18n.md) | Locales, parity rules, adding a language | ✅ Exists |
 | PI-010 | [`docs/09-troubleshooting.md`](./09-troubleshooting.md) | Symptom → cause → fix entries | ✅ Exists |
 | PI-011 | [`docs/10-blinko-parity-and-design-plan.md`](./10-blinko-parity-and-design-plan.md) | Blinko analysis, design-system base (HeroUI/shadcn/FlyonUI), skill + content map, UX/integration backlog, ordered P0–P11 programme, phase log (P1/P2/P3 shipped) | ✅ Exists |

@@ -15,6 +15,7 @@ import { MusicSetting } from '@/components/PlanIncSettings/MusicSetting';
 import { SSOSetting } from '@/components/PlanIncSettings/SSOSetting';
 import { HttpProxySetting } from '@/components/PlanIncSettings/HttpProxySetting';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { JSX } from 'react';
 import { ScrollableTabs, TabItem } from '@/components/Common/ScrollableTabs';
 import { useState, useEffect } from 'react';

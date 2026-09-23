@@ -1,4 +1,4 @@
-import { Note } from '@shared/lib/types';
+import { Note } from '@/lib/apiTypes';
 import { helper } from '@/lib/helper';
 import { RootStore } from '@/store/root';
 import { useNavigate } from 'react-router-dom';

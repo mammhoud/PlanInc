@@ -1,5 +1,5 @@
 import { helper } from "@/lib/helper"
-import { Attachment } from "@shared/lib/types"
+import { Attachment } from "@/lib/apiTypes"
 import { FileType } from "./type"
 import { PromiseState } from "@/store/standard/PromiseState"
 import { IsTagSelectVisible } from "../PopoverFloat/tagSelectPop"

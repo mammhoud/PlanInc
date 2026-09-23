@@ -1,6 +1,6 @@
 import { MarkdownRender } from '@/components/Common/MarkdownRender';
 import { FilesAttachmentRender } from "../Common/AttachmentRender";
-import { Note } from '@shared/lib/types';
+import { Note } from '@/lib/apiTypes';
 import { PlanIncStore } from '@/store/planincStore';
 import { observer } from 'mobx-react-lite';
 import { ReferencesContent } from './referencesContent';

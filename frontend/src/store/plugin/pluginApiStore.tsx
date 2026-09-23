@@ -2,7 +2,7 @@ import { RootStore } from "../root";
 import { DialogStandaloneStore } from "../module/DialogStandalone";
 import { Store } from "../standard/base";
 import { PluginRender } from "./pluginRender";
-import { Note } from "@shared/lib/types";
+import { Note } from "@/lib/apiTypes";
 import { makeAutoObservable } from "mobx";
 import { eventBus } from "@/lib/event";
 import { EditorStore } from "@/components/Common/Editor/editorStore";

@@ -6,6 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+// This page still uses the HeroUI modal for the "related items" dialog; the
+// shadcn Dialog only covers the CRUD form. Without the import the page threw
+// `Modal is not defined` and rendered nothing below the filter bar.
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/trpc';

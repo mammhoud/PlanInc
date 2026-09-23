@@ -15,7 +15,7 @@
  *  - `WHERE id = N` is rewritten to `WHERE id = table:N` because Surreal id
  *    equality compares record references.
  *  - String filters map to: contains → string::matches regex (with
- *    `(?i)` for mode:'insensitive'), startsWith → string::startsWith,
+ *    `(?i)` for mode:'insensitive'), startsWith → string::starts_with,
  *    in → id IN [...] / value IN [...].
  *  - Relation filters used by the codebase (kept explicit, compiled to
  *    subqueries): notes.attachments, notes.internalShares, notes.tags,
@@ -216,11 +216,13 @@ function compileValue(table: string, field: string, v: any): string {
         parts.push(`string::matches(${field}, ${JSON.stringify(escapeRegex(String(v.contains)))})`);
       }
     }
+    // SurrealDB's snake_case names are the ones that exist; the camelCase forms
+    // parse-error at query time ("Invalid function/constant path").
     if ('startsWith' in v) {
-      parts.push(`string::startsWith(${field}, ${JSON.stringify(String(v.startsWith))})`);
+      parts.push(`string::starts_with(${field}, ${JSON.stringify(String(v.startsWith))})`);
     }
     if ('endsWith' in v) {
-      parts.push(`string::endsWith(${field}, ${JSON.stringify(String(v.endsWith))})`);
+      parts.push(`string::ends_with(${field}, ${JSON.stringify(String(v.endsWith))})`);
     }
     if ('gt' in v) parts.push(`${field} > ${lit(v.gt)}`);
     if ('gte' in v) parts.push(`${field} >= ${lit(v.gte)}`);

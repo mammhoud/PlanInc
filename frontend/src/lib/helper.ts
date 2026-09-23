@@ -1,4 +1,4 @@
-import { type Tag } from '@shared/lib/types';
+import { type Tag } from '@/lib/apiTypes';
 import { _ } from './lodash';
 import i18n from './i18n';
 import { FileType } from '@/components/Common/Editor/type';

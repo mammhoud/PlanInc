@@ -190,68 +190,67 @@ export const ResourceContextMenu = observer(({ onTrigger }: ResourceContextMenuP
     );
   };
 
+  // shadcn/Radix dropdown (the file previously mixed HeroUI `Dropdown`/`DropdownItem`
+  // JSX with the shadcn imports, so the identifiers were undefined and the menu —
+  // and therefore every resource row — threw at render).
   return (
-    <Dropdown onOpenChange={e => onTrigger()}>
-      <DropdownTrigger>
-        <Button
-          isIconOnly
-          variant="light"
-        >
+    <DropdownMenu onOpenChange={() => onTrigger()}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" type="button" aria-label={t('more')}>
           <Icon icon="mdi:dots-vertical" width="20" height="20" />
         </Button>
-      </DropdownTrigger>
-      <DropdownMenu aria-label="Resource Actions">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" aria-label="Resource Actions">
         {
           resource?.isFolder ? (
-            <DropdownItem key="download-folder" onPress={() => void resourceStore.downloadResources([resource])}>
+            <DropdownMenuItem onSelect={() => void resourceStore.downloadResources([resource])}>
               <MenuItem icon="material-symbols:folder-zip" label={t('download')} />
-            </DropdownItem>
+            </DropdownMenuItem>
           ) : (
-            <DropdownItem key="download" onPress={handleDownload}>
+            <DropdownMenuItem onSelect={() => handleDownload()}>
               <MenuItem icon="material-symbols:download" label={t('download')} />
-            </DropdownItem>
+            </DropdownMenuItem>
           )
         }
 
-        <DropdownItem key="rename" onPress={handleRename}>
+        <DropdownMenuItem onSelect={() => handleRename()}>
           <MenuItem icon="gg:rename" label={t('rename')} />
-        </DropdownItem>
+        </DropdownMenuItem>
 
         {resourceStore.currentFolder ? (
-          <DropdownItem key="moveToParent" onPress={handleMoveToParent}>
+          <DropdownMenuItem onSelect={() => void handleMoveToParent()}>
             <MenuItem
               icon="material-symbols:drive-file-move-outline"
               label={t('move-up')}
             />
-          </DropdownItem>
+          </DropdownMenuItem>
         ) : null}
 
         {
           resource?.isFolder ? null : (
-            <DropdownItem key="cut" onPress={handleCut}>
+            <DropdownMenuItem onSelect={() => handleCut()}>
               <MenuItem icon="material-symbols:content-cut" label={t('cut')} />
-            </DropdownItem>
+            </DropdownMenuItem>
           )
         }
 
         {canPaste() ? (
-          <DropdownItem key="paste" onPress={handlePaste}>
+          <DropdownMenuItem onSelect={() => handlePaste()}>
             <MenuItem icon="material-symbols:content-paste" label={t('paste')} />
-          </DropdownItem>
+          </DropdownMenuItem>
         ) : null}
 
-        <DropdownItem
-          key="delete"
+        <DropdownMenuItem
           className="text-danger"
-          onPress={handleDelete}
+          onSelect={() => handleDelete()}
         >
           <MenuItem
             icon="material-symbols:delete-outline"
             label={t('delete')}
             className="text-danger"
           />
-        </DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }); 

@@ -9,7 +9,7 @@ import { RootStore } from '@/store';
 import { EditorStore } from '../../editorStore';
 import { useEffect, useState } from 'react';
 import { helper } from '@/lib/helper';
-import { ResourceType } from '@shared/lib/types';
+import { ResourceType } from '@/lib/apiTypes';
 import { PromiseState } from '@/store/standard/PromiseState';
 import { PhotoProvider } from 'react-photo-view';
 import { useTranslation } from 'react-i18next';

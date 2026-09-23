@@ -171,7 +171,7 @@ export const AiInput = observer(({ onSubmit, className, withoutOutline }: AiInpu
             {cardIcons.map(
               (icon, index) =>
                 !icon.isHidden?.() && (
-                  <IconButton onClick={icon.onClick} tooltip={icon.tooltip} icon={icon.icon} size={icon.size} containerSize={icon.containerSize} classNames={icon.classNames?.()} />
+                  <IconButton key={icon.tooltip ?? index} onClick={icon.onClick} tooltip={icon.tooltip} icon={icon.icon} size={icon.size} containerSize={icon.containerSize} classNames={icon.classNames?.()} />
                 ),
             )}
           </>

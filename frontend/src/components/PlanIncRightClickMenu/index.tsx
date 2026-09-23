@@ -22,7 +22,7 @@ import { trashNotesWithUndo } from '@/lib/trashWithUndo';
 import { BaseStore } from "@/store/baseStore";
 import { PluginApiStore } from "@/store/plugin/pluginApiStore";
 import { ToastPlugin } from "@/store/module/Toast/Toast";
-import { Note } from "@shared/lib/types";
+import { Note } from "@/lib/apiTypes";
 import { PlanIncCard } from "../PlanIncCard";
 import { useLocation } from "react-router-dom";
 import { ShowCommentDialog } from "../PlanIncCard/commentButton";

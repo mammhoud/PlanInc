@@ -1,41 +1,29 @@
-// Covers the drag-and-drop port (product-plan.md §2, task A4): the resources page must be wired to
-// dnd-kit, and dropping a file onto a folder must move it.
+// Drag-and-drop port coverage for the active `frontend/` app: the resources page
+// (`frontend/src/pages/resources.tsx` + `PlanIncResource/ResourceItem.tsx`) must
+// be wired to dnd-kit, and dropping a file onto a folder must move it.
 //
 // Why this shape:
-//   * The drag contracts belong to the `src/` app, so the suite drives that app through the real
-//     server rather than a component runner that does not exist for this package.
-//   * The session is obtained from the real `/api/auth/login` endpoint and injected as the store's
-//     persisted token (`store/user.ts` → StorageState key `planincToken`). That avoids depending on
-//     translated form labels, which are not stable across locales.
-//   * The interaction half needs a seeded folder, so it is skipped — with a message — when the
-//     environment does not provide one. The wiring half always runs.
+//   * The drag contracts belong to `frontend/`, so the suite drives the app
+//     through the real server rather than a component runner that does not exist
+//     for this package.
+//   * The seed project (`e2e/seed.setup.mjs`) uploads a *root* file
+//     (`PLANINC_E2E_ROOT_FILE`) and a folder (`PLANINC_E2E_FOLDER`), so the drag
+//     has an unambiguous source: the root file is the one that must change parent,
+//     and asserting placement (not just "a request went out") is what catches the
+//     server rejecting the move with "Attachments not found".
 import { test, expect } from '@playwright/test';
-
-const USER = process.env.PLANINC_E2E_USER;
-const PASSWORD = process.env.PLANINC_E2E_PASSWORD;
-const FOLDER = process.env.PLANINC_E2E_FOLDER;
-const BASE_URL = process.env.PLANINC_E2E_BASE_URL || 'http://127.0.0.1:1111';
-
-const credentialsMissing = !USER || !PASSWORD;
+import { FOLDER, ROOT_FILE, ROOT_FILE_BASE, signIn, watchConsole } from './support.mjs';
 
 test.describe('resources drag and drop (dnd-kit)', () => {
-  test.skip(credentialsMissing, 'Set PLANINC_E2E_USER and PLANINC_E2E_PASSWORD to run this suite.');
+  let consoleErrors;
 
   test.beforeEach(async ({ page }) => {
-    const response = await page.request.post(`${BASE_URL}/api/auth/login`, {
-      data: { username: USER, password: PASSWORD },
-    });
-    expect(response.ok(), `POST /api/auth/login returned ${response.status()}`).toBeTruthy();
+    consoleErrors = watchConsole(page);
+    await signIn(page);
+  });
 
-    const body = await response.json();
-    const tokenData = body?.tokenData?.token ? body.tokenData : { ...body, token: body?.token };
-    expect(tokenData?.token, 'login response carried no token').toBeTruthy();
-
-    // Same persistence the app itself uses, applied before the app boots.
-    await page.addInitScript(
-      ([key, value]) => window.localStorage.setItem(key, JSON.stringify(value)),
-      ['planincToken', tokenData],
-    );
+  test.afterEach(async () => {
+    expect(consoleErrors, `page logged errors:\n${consoleErrors.join('\n')}`).toEqual([]);
   });
 
   test('resource items are wired as dnd-kit draggables', async ({ page }) => {
@@ -51,42 +39,67 @@ test.describe('resources drag and drop (dnd-kit)', () => {
   });
 
   test('dragging a file onto a folder moves it into that folder', async ({ page }) => {
-    test.skip(!FOLDER, 'Set PLANINC_E2E_FOLDER to the name of a seeded folder to run the drop assertion.');
-
-    const moveRequests = [];
-    page.on('request', (request) => {
-      const url = request.url();
-      if (['POST', 'PATCH', 'PUT'].includes(request.method()) && url.includes('move')) {
-        moveRequests.push(url);
-      }
-    });
-
     await page.goto('/resources');
 
-    const draggable = page.locator('[aria-roledescription="draggable"]').first();
-    await expect(draggable).toBeVisible({ timeout: 30_000 });
+    // Target the seeded root file by name: `.first()` would sometimes pick the
+    // file that already lives in the folder, making the assertion vacuous.
+    const draggable = page
+      .locator('[aria-roledescription="draggable"]')
+      .filter({ hasText: ROOT_FILE_BASE })
+      .first();
+    await expect(draggable, `"${ROOT_FILE}" is not on /resources — seed it first`).toBeVisible({
+      timeout: 30_000,
+    });
 
     const folder = page.getByText(FOLDER, { exact: true }).first();
     await expect(folder, `folder "${FOLDER}" is not on /resources — seed it first`).toBeVisible({
       timeout: 30_000,
     });
 
+    // The move is a tRPC mutation; waiting on its response (rather than on "some
+    // request happened") is what proves the server accepted it.
+    const moveResponse = page.waitForResponse(
+      (response) => response.request().method() === 'POST' && response.url().includes('attachments.move'),
+      { timeout: 30_000 },
+    );
+
     // dnd-kit's PointerSensor uses a distance activation constraint, so the drag needs a movement
     // past that threshold before the drop target is tracked.
+    await draggable.scrollIntoViewIfNeeded();
     const source = await draggable.boundingBox();
     const target = await folder.boundingBox();
     expect(source, 'draggable has no bounding box').toBeTruthy();
     expect(target, 'folder has no bounding box').toBeTruthy();
 
-    await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+    const from = { x: source.x + source.width / 2, y: source.y + source.height / 2 };
+    const to = { x: target.x + target.width / 2, y: target.y + target.height / 2 };
+
+    await page.mouse.move(from.x, from.y);
     await page.mouse.down();
-    await page.mouse.move(source.x + source.width / 2 + 20, source.y + source.height / 2 + 20, { steps: 5 });
-    await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 10 });
+    // Clear the PointerSensor's 8px activation constraint before steering.
+    await page.mouse.move(from.x + 20, from.y + 20, { steps: 5 });
+    await page.waitForTimeout(150);
+    // Walk to the folder in small increments so dnd-kit re-measures the pointer
+    // on every move instead of teleporting (which can skip the drop target).
+    for (let step = 1; step <= 12; step += 1) {
+      const t = step / 12;
+      await page.mouse.move(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t);
+      await page.waitForTimeout(25);
+    }
+    await page.waitForTimeout(250);
     await page.mouse.up();
 
-    await expect.poll(() => moveRequests.length, {
-      message: 'no move request was issued after dropping a file onto a folder',
-      timeout: 15_000,
-    }).toBeGreaterThan(0);
+    const response = await moveResponse;
+    expect(
+      response.ok(),
+      `POST ${response.url()} failed with ${response.status()} — the server rejected the move`,
+    ).toBeTruthy();
+
+    // Placement, not just acceptance: the file must now be listed inside the folder.
+    await page.goto(`/resources?folder=${encodeURIComponent(FOLDER)}`);
+    await expect(
+      page.locator('[aria-roledescription="draggable"]').filter({ hasText: ROOT_FILE_BASE }).first(),
+      `"${ROOT_FILE}" was not listed inside "${FOLDER}" after the drop`,
+    ).toBeVisible({ timeout: 30_000 });
   });
 });

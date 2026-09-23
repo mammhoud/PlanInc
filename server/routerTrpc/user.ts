@@ -39,7 +39,7 @@ export const userRouter = router({
     .query(async () => {
       // Security fix: Only return non-sensitive public information
       // Removed: name, role, loginType, createdAt, updatedAt, linkAccountId
-      return await db.accounts.findMany({
+      const users = await db.accounts.findMany({
         select: {
           id: true,
           nickname: true,
@@ -48,6 +48,14 @@ export const userRouter = router({
           // Removed sensitive fields: name, role, loginType, createdAt, updatedAt, linkAccountId
         }
       })
+      // SurrealDB is schemaless: fields never set on a record come back as
+      // undefined, which fails the non-optional output schema. Normalize them.
+      return users.map((user) => ({
+        id: user.id,
+        nickname: user.nickname ?? '',
+        image: user.image ?? null,
+        description: user.description ?? null,
+      }))
     }),
   nativeAccountList: authProcedure
     .meta({
@@ -131,7 +139,7 @@ export const userRouter = router({
         description: 'Find user detail from user id, need login. Can only view own info unless superadmin.', tags: ['User']
       }
     })
-    .input(z.object({ id: z.number().optional() }))
+    .input(z.object({ id: z.number().optional() }).optional())
     .output(z.object({
       id: z.number(),
       name: z.string(),
@@ -143,7 +151,9 @@ export const userRouter = router({
       role: z.string()
     }))
     .query(async ({ input, ctx }) => {
-      const requestedId = input.id ?? Number(ctx.id);
+      // `input` may be omitted entirely (a bare `users.detail()` call): default
+      // to the caller's own account instead of rejecting the request.
+      const requestedId = input?.id ?? Number(ctx.id);
       const currentUserId = Number(ctx.id);
 
       // Get current user to check permissions
@@ -204,7 +214,6 @@ export const userRouter = router({
     .output(z.boolean())
     .mutation(async () => {
       try {
-        console.log('canRegisterxxx')
         const count = await db.accounts.count()
         if (count == 0) {
           return true
@@ -214,7 +223,7 @@ export const userRouter = router({
           return res?.config.value === true
         }
       } catch (error) {
-        console.log(error, 'canRegister error')
+        console.error('canRegister error:', error)
         return true
       }
     }),
@@ -290,7 +299,6 @@ export const userRouter = router({
       const user = await db.accounts.findFirst({ where: { id: Number(ctx.id) } })
       if (user) {
         const token = await generateApiToken({ id: user.id, name: user.name ?? '', role: user.role })
-        console.log('token', token);
         await db.accounts.update({ where: { id: user.id }, data: { apiToken: token } })
         return true
       } else {

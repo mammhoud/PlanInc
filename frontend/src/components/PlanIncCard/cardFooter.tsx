@@ -1,6 +1,7 @@
 import { Icon } from '@/components/Common/Iconify/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Note, NoteType } from '@shared/lib/types';
+import { NoteType } from '@shared/lib/types';
+import { Note } from '@/lib/apiTypes';
 import { ConvertItemFunction, ShowEditTimeModel } from '../PlanIncRightClickMenu';
 import { PlanIncStore } from '@/store/planincStore';
 import { useTranslation } from 'react-i18next';

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FileIcons } from './FileIcon';
 import { observer } from 'mobx-react-lite';
 import { helper } from '@/lib/helper';
-import { type Attachment } from '@shared/lib/types';
+import { type Attachment } from '@/lib/apiTypes';
 import { FileType } from '../Editor/type';
 import { DeleteIcon, DownloadIcon } from './icons';
 import { ImageRender } from './imageRender';

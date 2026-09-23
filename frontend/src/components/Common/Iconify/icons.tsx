@@ -1405,7 +1405,11 @@ const getIconData = (iconName: string) => {
 };
 
 // Icon component
-export const Icon = ({ 
+// Radix `Slot` (and therefore `TooltipTrigger asChild` and any other consumer
+// that clones an element) attaches a ref to its child. A plain function
+// component silently drops that ref and React logs a warning, so `Icon` is a
+// forwardRef component.
+export const Icon = React.forwardRef<SVGSVGElement, IconProps>(({ 
   icon, 
   width = 24, 
   height = 24, 
@@ -1413,7 +1417,7 @@ export const Icon = ({
   className = '', 
   style = {},
   onClick 
-}: IconProps) => {
+}, ref) => {
   // Return null if icon name is empty
   if (!icon) return null;
   
@@ -1424,6 +1428,7 @@ export const Icon = ({
   if (!iconData) {
     console.warn(`Local icon not found: ${icon}, using Iconify fallback`);
     return <IconifyIcon 
+      ref={ref}
       icon={icon}
       width={width}
       height={height}
@@ -1455,7 +1460,9 @@ export const Icon = ({
   };
   
   // Render SVG
-  return <svg {...svgAttributes} />;
-};
+  return <svg ref={ref} {...svgAttributes} />;
+});
+
+Icon.displayName = 'Icon';
 
 export default Icon;

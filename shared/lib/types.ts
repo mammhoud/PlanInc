@@ -1,22 +1,17 @@
-import { RouterOutput } from "../../server/routerTrpc/_app";
 import { z } from "zod";
 
-export type Note = Partial<NonNullable<RouterOutput['notes']['list'][0]>>
-export type Attachment = NonNullable<Note['attachments']>[0] & { size: number }
-export type Tag = NonNullable<RouterOutput['tags']['list']>[0]
-export type Config = NonNullable<RouterOutput['config']['list']>
-export type LinkInfo = NonNullable<RouterOutput['public']['linkPreview']>
-export type ResourceType = NonNullable<RouterOutput['attachments']['list']>[0]
-export type Comment = NonNullable<RouterOutput['comments']['list']>
-export type InstalledPluginInfo = NonNullable<RouterOutput['plugin']['getInstalledPlugins']>[0]
-export type Conversation = NonNullable<RouterOutput['conversation']['list']>[0]
-export type Message = NonNullable<RouterOutput['message']['list']>[0]
+// NOTE: the `RouterOutput`-derived aliases (Note, Attachment, Tag, ResourceType, …)
+// are frontend-only and live in `frontend/src/lib/apiTypes.ts`. They must not come
+// back here: importing the root tRPC router from `shared/` made the server's own
+// routers, jobs and AI tools depend on the whole router type graph through this
+// module, which is both a shared → server import cycle and the reason a server
+// `tsc` run needed multiple GB of heap.
+
 export enum NoteType {
   'PLANINC',
   'NOTE',
   'TODO'
 }
-export type PublicUser = NonNullable<RouterOutput['users']['publicUserList']>[0]
 export function toNoteTypeEnum(v?: number, fallback: NoteType = NoteType.PLANINC): NoteType {
   switch (v) {
     case 0:
