@@ -1,5 +1,6 @@
 
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 import { db } from '../db';
 import { helper, TagTreeNode } from '@shared/lib/helper';
 import { _ } from '@shared/lib/lodash';
@@ -329,7 +330,7 @@ export const noteRouter = router({
         '/v1/note/public-list',
         async () => {
           const { page, size, searchText } = input;
-          return await db.notes.findMany({
+          const rows = await db.notes.findMany({
             where: {
               isShare: true,
               sharePassword: '',
@@ -357,6 +358,9 @@ export const noteRouter = router({
               },
             },
           });
+          // Legacy rows may use Surreal ULID keys (notes:xxxxxxxx); stripIdPrefix
+          // yields NaN and fails notesSchema.id. Drop them rather than 500.
+          return rows.filter((n: any) => Number.isFinite(n?.id));
         },
         { ttl: 1000 * 5 },
       );
@@ -1260,14 +1264,8 @@ export const noteRouter = router({
     .mutation(async function ({ input, ctx }) {
       const { id, isCancel, password, expireAt } = input;
 
-      const generateShareId = () => {
-        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        let result = '';
-        for (let i = 0; i < 8; i++) {
-          result += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return result;
-      };
+    const generateShareId = () =>
+      randomBytes(16).toString('base64url').slice(0, 12);
 
       const note = await db.notes.findFirst({
         where: {

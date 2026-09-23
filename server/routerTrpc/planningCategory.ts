@@ -33,7 +33,7 @@ export const CATEGORY_ICON_PRESETS = [
   'tabler:clock-hour-4',
   'tabler:book',
   'tabler:rocket',
-  'tabler:archive',
+  'tabler:folder',
 ] as const;
 
 const categorySlug = z
@@ -212,7 +212,7 @@ export const planningCategoryRouter = router({
       });
     }),
 
-  /** Assign (or clear) the category of one plan. */
+  /** Assign (or clear) the category of one plan and keep tags in sync. */
   assign: authProcedure
     .input(z.object({ noteId: z.number().int(), categoryId: z.number().int().nullable() }))
     .output(z.object({ success: z.boolean() }))
@@ -220,11 +220,22 @@ export const planningCategoryRouter = router({
       const accountId = Number(ctx.id);
       const note = await db.notes.findFirst({ where: { id: input.noteId, accountId } });
       if (!note) throw new Error('Plan not found');
+      let nextCategoryName = '';
       if (input.categoryId) {
         const category = await db.planningCategories.findFirst({ where: { id: input.categoryId, accountId } });
         if (!category) throw new Error('Category not found');
+        nextCategoryName = String(category.name);
       }
-      await db.notes.update({ where: { id: input.noteId }, data: { categoryId: input.categoryId } });
+      // Category name is mirrored as a tag; clear the previous category tag.
+      const currentTags = Array.isArray(note.tags) ? (note.tags as string[]) : [];
+      const previousCategory = await db.planningCategories.findFirst({
+        where: { id: note.categoryId ?? -1, accountId },
+      }).catch(() => null);
+      const previousName = previousCategory ? String(previousCategory.name) : '';
+      const nextTags = currentTags.filter((tag) => tag !== previousName);
+      if (nextCategoryName) nextTags.push(nextCategoryName);
+      const tags = [...new Set(nextTags.filter(Boolean))];
+      await db.notes.update({ where: { id: input.noteId }, data: { categoryId: input.categoryId, tags } });
       return { success: true };
     }),
 
@@ -234,9 +245,11 @@ export const planningCategoryRouter = router({
     .output(z.array(categorySchema))
     .mutation(async ({ ctx, input }) => {
       const accountId = Number(ctx.id);
+      // Lanes only — Done is a card status (mark complete / archived), not a
+      // category, and the un-worked Ideas bucket is retired.
       const names = input?.names?.length
         ? input.names
-        : ['Now', 'Next', 'Later', 'Ideas'];
+        : ['Now', 'Next', 'Later'];
 
       const existing = await db.planningCategories.findMany({ where: { accountId } });
       const created: any[] = [];

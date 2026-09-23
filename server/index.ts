@@ -19,6 +19,9 @@ import { createContext } from './context';
 import { appRouter } from './routerTrpc/_app';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { createOpenApiExpressMiddleware } from 'trpc-to-openapi';
+import { ensureSurrealSchema } from './db';
+import { createSeed } from './seedData';
+import { hashPassword } from './lib/password';
 
 // API documentation
 import swaggerUi from 'swagger-ui-express';
@@ -312,11 +315,67 @@ async function setupApiRoutes(app: express.Application) {
 }
 
 /**
+ * Upsert superadmin from PLANINC_SUPERUSER_NAME / PLANINC_SUPERUSER_PASSWORD.
+ * Previously only documented — the container never ran create-superuser.ts.
+ */
+async function bootstrapSuperuserFromEnv(): Promise<void> {
+  const username = (process.env.PLANINC_SUPERUSER_NAME ?? '').trim();
+  const secret = (process.env.PLANINC_SUPERUSER_PASSWORD ?? '').trim();
+  if (!username || !secret) return;
+  if (secret.length < 12) {
+    console.warn('[superuser] PLANINC_SUPERUSER_PASSWORD must be at least 12 characters; skipping');
+    return;
+  }
+  try {
+    const { db } = await import('./db');
+    const existing = await db.accounts.findFirst({ where: { name: username } });
+    const passwordHash = await hashPassword(secret);
+    const data = {
+      name: username,
+      nickname: username,
+      password: passwordHash,
+      role: 'superadmin' as const,
+      loginType: '',
+      image: existing?.image ?? '',
+      apiToken: existing?.apiToken ?? '',
+      note: existing?.note ?? 0,
+      description: existing?.description ?? null,
+      linkAccountId: existing?.linkAccountId ?? null,
+    };
+    if (existing) {
+      await db.accounts.update({ where: { id: existing.id }, data });
+      console.log(`[superuser] Updated superuser "${username}" from environment (id ${existing.id}).`);
+    } else {
+      const created = await db.accounts.create({ data });
+      console.log(`[superuser] Bootstrapped superuser "${username}" from environment (id ${created.id}).`);
+    }
+  } catch (error) {
+    console.error('[superuser] env bootstrap failed:', error);
+  }
+}
+
+/**
  * Bootstrap the server
  * Sets up middleware, auth, API routes and starts the server
  */
 async function bootstrap() {
   try {
+    // Schema + welcome notes must exist before any request. `seed.ts` is not
+    // part of the production bundle (container only runs `node server/index.js`),
+    // so apply the idempotent schema helpers here instead of relying on a
+    // separate seed process that never runs.
+    try {
+      await ensureSurrealSchema();
+      const { db } = await import('./db');
+      await bootstrapSuperuserFromEnv();
+      const accounts = await db.accounts.findMany({ orderBy: { id: 'asc' } });
+      for (const account of accounts) {
+        await createSeed(Number(account.id));
+      }
+    } catch (seedErr) {
+      console.error('schema/seed bootstrap failed (continuing):', seedErr);
+    }
+
     app.use(cors({
       origin: (origin, callback) => {
         // Same-origin browser requests do not include an Origin header.

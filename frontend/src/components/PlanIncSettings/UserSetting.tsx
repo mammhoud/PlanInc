@@ -96,29 +96,29 @@ export const UserSetting = observer(() => {
 
       <Item
         leftContent={planinc.userList.value ? <div className="mb-2 max-h-[300px] overflow-auto rounded-md border">
-          <table className="w-full text-sm">
+          <table className="hidden sm:table w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-3 py-2 text-left font-medium">{t('name-db')}</th>
                 <th className="px-3 py-2 text-left font-medium">{t('nickname')}</th>
                 <th className="px-3 py-2 text-left font-medium">{t('role')}</th>
                 <th className="px-3 py-2 text-left font-medium">{t('login-type')}</th>
-                <th className="px-3 py-2 text-left font-medium">{t('action')}</th>
+                <th className="px-3 py-2 text-left font-medium sticky right-0 bg-muted/50">{t('action')}</th>
               </tr>
             </thead>
             <tbody>
               {
                 planinc.userList.value!.map(i => {
                   return <tr key={i.id} className="border-b last:border-0">
-                    <td className="px-3 py-2">{i.name}</td>
-                    <td className="px-3 py-2">{i.nickname}</td>
+                    <td className="px-3 py-2 max-w-[140px] truncate">{i.name}</td>
+                    <td className="px-3 py-2 max-w-[140px] truncate">{i.nickname}</td>
                     <td className="px-3 py-2">
                       <Badge variant="warning">{i.role}</Badge>
                     </td>
                     <td className="px-3 py-2">{i.loginType == 'oauth' ? 'oauth' : t('password')}</td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 sticky right-0 bg-background">
                       <div className="flex">
-                        <Button size="icon" variant="ghost" onClick={e => {
+                        <Button size="icon" variant="ghost" className="min-h-[44px] min-w-[44px]" onClick={e => {
                           RootStore.Get(DialogStore).setData({
                             isOpen: true,
                             title: t('edit-user'),
@@ -127,7 +127,7 @@ export const UserSetting = observer(() => {
                         }}>
                           <Icon icon="tabler:edit" width="18" height="18" />
                         </Button>
-                        <Button size="icon" variant="destructive" className="ml-2"
+                        <Button size="icon" variant="destructive" className="ml-2 min-h-[44px] min-w-[44px]"
                           onClick={e => {
                             showTipsDialog({
                               size: 'sm',
@@ -162,6 +162,53 @@ export const UserSetting = observer(() => {
               }
             </tbody>
           </table>
+          <div className="flex flex-col gap-2 p-2 sm:hidden">
+            {planinc.userList.value!.map(i => (
+              <div key={i.id} className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{i.nickname || i.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{i.name} · {i.loginType == 'oauth' ? 'oauth' : t('password')}</p>
+                  <div className="mt-1"><Badge variant="warning">{i.role}</Badge></div>
+                </div>
+                <div className="flex shrink-0">
+                  <Button size="icon" variant="ghost" className="min-h-[44px] min-w-[44px]" aria-label={t('edit-user')} onClick={e => {
+                    RootStore.Get(DialogStore).setData({
+                      isOpen: true,
+                      title: t('edit-user'),
+                      content: <UpdateUserInfo id={i.id} name={i.name} password={i.password} nickname={i.nickname} loginType={i.loginType} />
+                    })
+                  }}>
+                    <Icon icon="tabler:edit" width="18" height="18" />
+                  </Button>
+                  <Button size="icon" variant="destructive" className="ml-1 min-h-[44px] min-w-[44px]" aria-label={t('confirm-to-delete')}
+                    onClick={e => {
+                      showTipsDialog({
+                        size: 'sm',
+                        title: t('confirm-to-delete'),
+                        content: t('after-deletion-all-user-data-will-be-cleared-and-unrecoverable'),
+                        onConfirm: async () => {
+                          try {
+                            await RootStore.Get(ToastPlugin).promise(
+                              api.users.deleteUser.mutate({ id: i.id }),
+                              {
+                                loading: t('in-progress'),
+                                success: <b>{t('your-changes-have-been-saved')}</b>,
+                                error: (e) => <b>{e.message}</b>,
+                              })
+                            planinc.userList.call()
+                            RootStore.Get(DialogStandaloneStore).close()
+                          } catch (e) {
+                            RootStore.Get(DialogStandaloneStore).close()
+                          }
+                        }
+                      })
+                    }}>
+                    <Icon icon="tabler:trash" width="18" height="18" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div > : null
         }
       />

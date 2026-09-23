@@ -80,6 +80,10 @@ RUN apk add --no-cache openssl vips-dev python3 py3-setuptools make g++ gcc libc
 # Copy Build Artifacts and Necessary Files
 COPY --from=builder /app/dist ./server
 COPY --from=builder /app/server/lute.min.js ./server/lute.min.js
+# Welcome-note seed assets (createSeed copies these into .planinc/files).
+COPY --from=builder /app/server/seedfiles ./server/seedfiles
+# Vendored Vditor deps (highlight CSS, mermaid, echarts, katex, ...) served by serveVditorFile.
+COPY --from=builder /app/server/vditor ./server/vditor
 COPY --from=builder /app/start.sh ./
 COPY --from=init-downloader /app/dumb-init /usr/local/bin/dumb-init
 

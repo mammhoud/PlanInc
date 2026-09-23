@@ -50,6 +50,20 @@ export const PlanIncMultiSelectPop = observer(() => {
       }
     },
     {
+      icon: "hugeicons:chat",
+      text: t('select-as-agent'),
+      onClick: async () => {
+        await RootStore.Get(ToastPlugin).promise(
+          api.tags.updateTagMany.mutate({ tag: 'agent', ids: planinc.curMultiSelectIds }),
+          {
+            loading: t('in-progress'),
+            success: <b>{t('your-changes-have-been-saved')}</b>,
+            error: <b>{t('operation-failed')}</b>,
+          });
+        planinc.onMultiSelectRest();
+      }
+    },
+    {
       icon: "solar:trash-bin-trash-outline",
       text: t('trash'),
       onClick: () => {

@@ -37,15 +37,17 @@ const ResourcesPage = lazy(() => import('./pages/resources'));
 const ReviewPage = lazy(() => import('./pages/review'));
 const SettingsPage = lazy(() => import('./pages/settings'));
 const PluginPage = lazy(() => import('./pages/plugin'));
-const AnalyticsPage = lazy(() => import('./pages/analytics'));
+const InsightsPage = lazy(() => import('./pages/insights'));
 const TicketsPage = lazy(() => import('./pages/tickets'));
 const StudyPage = lazy(() => import('./pages/study'));
+const SkillsPage = lazy(() => import('./pages/skills'));
 const GraphPage = lazy(() => import('./pages/graph'));
 const AllPage = lazy(() => import('./pages/all'));
 const OAuthCallbackPage = lazy(() => import('./pages/oauth-callback'));
 const DetailPage = lazy(() => import('./pages/detail'));
 const ShareIndexPage = lazy(() => import('./pages/share'));
 const ShareDetailPage = lazy(() => import('./pages/share/[id]'));
+const ShareInvitePage = lazy(() => import('./pages/share/invite'));
 const AiSharePage = lazy(() => import('./pages/ai-share'));
 
 const HomeRedirect = () => {
@@ -61,14 +63,19 @@ const HomeRedirect = () => {
       const defaultHomePage = planinc.config.value?.defaultHomePage;
       const currentPath = searchParams.get('path');
       const isDirectNavigation = location.key === 'default';
-      if (currentPath || !defaultHomePage || defaultHomePage === 'planinc' || !isDirectNavigation) {
+      if (currentPath || !isDirectNavigation || location.pathname !== '/') {
         setLoading(false);
         return;
       }
-      
-      navigate(`/?path=${defaultHomePage}`, { replace: true });
+      // Explicit "planinc" stays on the root stream; an empty preference
+      // falls through to Agenda as the default first view.
+      if (defaultHomePage === 'planinc') {
+        setLoading(false);
+        return;
+      }
+      navigate(`/?path=${defaultHomePage || 'agenda'}`, { replace: true });
     };
-    
+
     redirectToDefaultPage();
   }, [navigate, searchParams, location]);
   
@@ -241,14 +248,17 @@ function AppRoutes() {
             <Route path="/review" element={<ProtectedRoute><ReviewPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/plugin" element={<ProtectedRoute><PluginPage /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Navigate to="/insights" replace /></ProtectedRoute>} />
+            <Route path="/insights" element={<ProtectedRoute><InsightsPage /></ProtectedRoute>} />
             <Route path="/tickets" element={<ProtectedRoute><TicketsPage /></ProtectedRoute>} />
             <Route path="/study" element={<ProtectedRoute><StudyPage /></ProtectedRoute>} />
+            <Route path="/skills" element={<ProtectedRoute><SkillsPage /></ProtectedRoute>} />
             <Route path="/graph" element={<ProtectedRoute><GraphPage /></ProtectedRoute>} />
             <Route path="/all" element={<ProtectedRoute><AllPage /></ProtectedRoute>} />
             <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
             <Route path="/detail/*" element={<ProtectedRoute><DetailPage /></ProtectedRoute>} />
             <Route path="/share" element={<ShareIndexPage />} />
+            <Route path="/share/invite/:token" element={<ShareInvitePage />} />
             <Route path="/share/:id" element={<ShareDetailPage />} />
             <Route path="/ai-share/:id" element={<AiSharePage />} />
             <Route path="/quicknote" element={<QuickNotePage />} />

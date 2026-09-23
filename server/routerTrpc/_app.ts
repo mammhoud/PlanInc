@@ -25,6 +25,7 @@ import { mcpServersRouter } from './mcpServers';
 import { fontRouter } from './font';
 import { ticketRouter } from './ticket';
 import { studyRouter } from './study';
+import { skillRouter } from './skill';
 import { planningLinkRouter } from './planningLink';
 import { planningFieldRouter } from './planningField';
 import { agentDirectoryRouter } from './agentDirectory';
@@ -52,6 +53,7 @@ export const appRouter = router({
   fonts: fontRouter,
   tickets: ticketRouter,
   study: studyRouter,
+  skills: skillRouter,
   planningLinks: planningLinkRouter,
   planningFields: planningFieldRouter,
   agentDirectories: agentDirectoryRouter,

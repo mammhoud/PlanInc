@@ -31,41 +31,23 @@ export class BaseStore implements Store {
       lane: 'planning',
     },
     {
+      title: 'skills',
+      href: '/skills',
+      icon: 'tabler:sparkles',
+      lane: 'knowledge',
+    },
+    {
       title: 'graph',
       href: '/graph',
       icon: 'hugeicons:share-05',
       lane: 'planning',
     },
     {
-      title: 'notes',
+      title: 'agenda',
       shallow: true,
-      href: '/?path=notes',
-      icon: 'hugeicons:note',
-      lane: 'work',
-    },
-    {
-      // Renamed in the UI from "Todo" to "Plans"; the route stays `?path=todo`
-      // so existing deep links and saved filters keep working.
-      title: 'plans',
-      shallow: true,
-      href: '/?path=todo',
-      icon: 'solar:bill-check-linear',
+      href: '/?path=agenda',
+      icon: 'solar:calendar-mark-linear',
       lane: 'planning',
-    },
-    {
-      title: 'archived',
-      href: '/?path=archived',
-      icon: 'solar:box-broken',
-      hiddenMobile: true,
-      lane: 'work',
-    },
-    {
-      title: 'trash',
-      href: '/?path=trash',
-      hiddenMobile: true,
-      hiddenSidebar: true,
-      icon: 'hugeicons:delete-02',
-      lane: 'work',
     },
     {
       title: 'resources',
@@ -82,11 +64,11 @@ export class BaseStore implements Store {
       lane: 'knowledge',
     },
     {
-      title: 'analytics',
-      href: '/analytics',
+      title: 'insights',
+      href: '/insights',
       hiddenMobile: true,
       icon: 'hugeicons:analytics-01',
-      lane: 'insights',
+      lane: 'knowledge',
     },
     {
       title: 'plugin',
@@ -102,8 +84,15 @@ export class BaseStore implements Store {
       icon: 'hugeicons:settings-01',
       lane: 'system',
     },
+    {
+      title: 'trash',
+      href: '/?path=trash',
+      hiddenMobile: true,
+      icon: 'hugeicons:delete-02',
+      lane: 'system',
+    },
   ];
-  laneOrder = ['planning', 'work', 'knowledge', 'insights', 'system'] as const;
+  laneOrder = ['planning', 'knowledge', 'system'] as const;
   currentRouter = this.routerList[0];
   currentQuery = {};
   currentTitle = '';
@@ -111,9 +100,19 @@ export class BaseStore implements Store {
   isSideBarActive(routerInfo: any, currentRouter: any) {
     const pathname = routerInfo.pathname;
     const path = routerInfo.searchParams?.get ? routerInfo.searchParams.get('path') : routerInfo.query?.path;
+    const type = routerInfo.searchParams?.get ? routerInfo.searchParams.get('type') : routerInfo.query?.type;
 
-    if (pathname == currentRouter.href && !path) {
+    const href = String(currentRouter.href ?? '');
+    const [hrefPath, hrefQuery] = href.split('?');
+    const hrefParams = new URLSearchParams(hrefQuery || '');
+
+    if (hrefPath === pathname && !hrefQuery) {
       return true;
+    }
+    if (hrefPath === pathname && hrefQuery) {
+      const pathMatches = !hrefParams.has('path') || hrefParams.get('path') === path;
+      const typeMatches = !hrefParams.has('type') || hrefParams.get('type') === type;
+      return pathMatches && typeMatches;
     }
     if (path == currentRouter.title) {
       return true;
@@ -125,8 +124,9 @@ export class BaseStore implements Store {
   locales = [
     { value: 'en', label: 'English' },
     { value: 'zh', label: '简体中文' },
-    { value: 'zh-tw', label: '繁體中文' },
-    { value: 'vi', label: 'Tiếng Việt' },
+    { value: 'zh-TW', label: '繁體中文' },
+    { value: 'ar', label: 'العربية' },
+    { value: 'kab', label: 'Taqbaylit' },
     { value: 'tr', label: 'Türkçe' },
     { value: 'ka', label: 'ქართული' },
     { value: 'de', label: 'Deutsch' },
@@ -188,10 +188,8 @@ export class BaseStore implements Store {
         this.currentTitle = 'detail';
       } else if (searchParams.get('path') == 'all') {
         this.currentTitle = t('total');
-      } else if (searchParams.get('path') == 'notes') {
-        this.currentTitle = 'notes';
-      } else if (searchParams.get('path') == 'todo') {
-        this.currentTitle = 'plans';
+      } else if (searchParams.get('path') == 'agenda' || searchParams.get('path') == 'notes' || searchParams.get('path') == 'todo') {
+        this.currentTitle = 'agenda';
       } else if (searchParams.get('path') == 'archived') {
         this.currentTitle = 'archived';
       } else if (location.pathname == '/resources') {
@@ -206,6 +204,8 @@ export class BaseStore implements Store {
         this.currentTitle = 'agents';
       } else if (location.pathname == '/dashboard') {
         this.currentTitle = 'dashboard';
+      } else if (location.pathname == '/insights' || location.pathname == '/analytics') {
+        this.currentTitle = 'insights';
       } else if (searchParams.get('path') == 'trash') {
         this.currentTitle = 'trash';
       } else if (location.pathname == '/plugin') {
@@ -216,8 +216,9 @@ export class BaseStore implements Store {
         this.currentTitle = this.currentRouter?.title ?? '';
       }
 
-      if (this.currentRouter?.href != location.pathname) {
-        this.currentRouter = this.routerList.find((item) => item.href == location.pathname) as any;
+      if (this.currentRouter?.href != location.pathname && !(location.pathname === '/' && this.currentRouter?.href?.startsWith('/?'))) {
+        this.currentRouter = this.routerList.find((item) => item.href == location.pathname) as any
+          ?? this.routerList.find((item) => item.href?.startsWith(`${location.pathname}?`)) as any;
       }
     }, [this.currentRouter, location.pathname, searchParams]);
 

@@ -33,7 +33,7 @@ export const UserAvatarDropdown = observer(({ onItemClick, collapsed = false, sh
             {user.image ? (
               <img src={getPlanIncEndpoint(`${user.image}?token=${user.tokenData.value?.token}`)} alt="avatar" className={`${collapsed ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover transition-all`} />
             ) : (
-              <img src="/logo.png" width={30} alt="avatar" />
+              <img src="/planinc-mark.svg" width={30} alt="avatar" />
             )}
             <div className={`absolute inset-0 bg-black/30 rounded-full flex items-center justify-center transition-opacity ${showOverlay ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
               <Icon icon="mdi:cog" width="16" height="16" className="text-white" />

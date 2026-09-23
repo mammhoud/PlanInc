@@ -28,24 +28,36 @@ export const SHARE_APPROVAL_POLICY_KEY = 'requireShareApproval';
 /** Email invites stay valid for 14 days unless the caller overrides it. */
 const INVITE_TTL_DAYS = 14;
 
+/** Nullable fields may be missing on legacy rows — coerce to null for tRPC output. */
+const nullableInt = z.preprocess((v) => (v == null || v === '' ? null : Number(v)), z.number().int().nullable());
+const nullableStr = z.preprocess((v) => (v == null ? null : String(v)), z.string().nullable());
+const nullableDate = z.preprocess(
+  (v) => {
+    if (v == null || v === '') return null;
+    const d = v instanceof Date ? v : new Date(v as any);
+    return Number.isNaN(d.getTime()) ? null : d;
+  },
+  z.date().nullable(),
+);
+
 const shareApprovalSchema = z.object({
   id: z.number().int(),
   accountId: z.number().int(),
   noteId: z.number().int(),
   scope: shareScope,
   status: shareStatus,
-  inviteeAccountId: z.number().int().nullable(),
-  inviteeEmail: z.string().nullable(),
-  token: z.string().nullable(),
+  inviteeAccountId: nullableInt,
+  inviteeEmail: nullableStr,
+  token: nullableStr,
   canEdit: z.boolean(),
   requiresAdmin: z.boolean(),
   adminApproved: z.boolean(),
-  requestedBy: z.number().int().nullable(),
-  decidedBy: z.number().int().nullable(),
-  decidedAt: z.coerce.date().nullable(),
-  decisionNote: z.string().nullable(),
-  expiresAt: z.coerce.date().nullable(),
-  message: z.string().nullable(),
+  requestedBy: nullableInt,
+  decidedBy: nullableInt,
+  decidedAt: nullableDate,
+  decisionNote: nullableStr,
+  expiresAt: nullableDate,
+  message: nullableStr,
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
@@ -77,8 +89,19 @@ async function findOwnedNote(noteId: number, accountId: number) {
   return db.notes.findFirst({ where: { id: noteId, accountId } });
 }
 
+/** Public base for absolute links: PLANINC_PUBLIC_URL > caller origin > localhost. */
+function publicOrigin(fallback?: string): string {
+  const fromEnv = (process.env.PLANINC_PUBLIC_URL ?? '').trim().replace(/\/$/, '');
+  if (fromEnv) return fromEnv;
+  const fromCaller = (fallback ?? '').trim().replace(/\/$/, '');
+  if (fromCaller) return fromCaller;
+  return '';
+}
+
 function inviteUrl(origin: string, token: string): string {
-  return `${origin.replace(/\/$/, '')}/share/invite/${token}`;
+  const base = publicOrigin(origin);
+  if (!base) return `/share/invite/${token}`;
+  return `${base}/share/invite/${token}`;
 }
 
 /**
@@ -124,19 +147,40 @@ export async function deliverShareInvite(input: {
 }
 
 /** Publish a note's public link (used when an approval is granted). */
-async function publishPublicNote(noteId: number, password: string, expireAt: Date | null) {
+async function publishPublicNote(noteId: number, password: string | null | undefined, expireAt: Date | null) {
   const note = await db.notes.findFirst({ where: { id: noteId } });
   if (!note) return null;
-  const shareId = note.shareEncryptedUrl || randomBytes(6).toString('hex').slice(0, 8);
+  const shareId = note.shareEncryptedUrl || randomBytes(16).toString('base64url').slice(0, 12);
+  // `null` means "keep whatever password the note already has"; only an explicit
+  // string (including '') replaces it. Admin approvals pass null so a requested
+  // password is never wiped.
+  const nextPassword = password === null || password === undefined ? (note.sharePassword ?? '') : password;
   return db.notes.update({
     where: { id: noteId },
     data: {
       isShare: true,
       shareEncryptedUrl: shareId,
-      sharePassword: password ?? note.sharePassword ?? '',
+      sharePassword: nextPassword,
       shareExpiryDate: expireAt,
     },
   });
+}
+
+/** Absolute share URL for a published share id (env-aware). */
+export function publicShareUrl(shareId: string, password?: string): string {
+  const base = publicOrigin();
+  const path = shareId ? `share/${shareId}` : 'share';
+  const url = base ? new URL(path, `${base}/`).toString() : `/share/${shareId}`;
+  if (password) {
+    try {
+      const u = new URL(url, base || 'http://localhost');
+      u.searchParams.set('password', password);
+      return u.toString();
+    } catch {
+      return `${url}?password=${encodeURIComponent(password)}`;
+    }
+  }
+  return url;
 }
 
 export const shareApprovalRouter = router({
@@ -376,6 +420,15 @@ export const shareApprovalRouter = router({
         },
       });
 
+      // Stage the requested password on the note so admin approval can keep it
+      // (publishPublicNote with `null` preserves whatever is already stored).
+      if (input.password) {
+        await db.notes.update({
+          where: { id: input.noteId },
+          data: { sharePassword: input.password, shareExpiryDate: input.expireAt ?? null },
+        });
+      }
+
       await CreateNotification({
         useAdmin: true,
         type: 'system',
@@ -449,7 +502,8 @@ export const shareApprovalRouter = router({
           });
         }
         if (row.scope === 'public') {
-          await publishPublicNote(row.noteId, '', row.expiresAt ?? null);
+          // Keep any password the note already has (requested at requestPublic time).
+          await publishPublicNote(row.noteId, null, row.expiresAt ?? null);
         }
       }
 

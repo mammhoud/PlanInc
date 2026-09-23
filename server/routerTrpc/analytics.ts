@@ -79,16 +79,30 @@ export const analyticsRouter = router({
       const maxDailyWords = wordStats.length > 0 ? Number(wordStats[0]!.words) : 0
       const activeDays = wordStats.length
 
-      // SurrealDB: compute tag usage counts via a grouped join subquery.
-      const tagCountRows = await surrealSelect<any>(
-        `SELECT name, count() AS c FROM tag
-         WHERE accountId = ${parseInt(ctx.id)}
-           AND id IN (SELECT value tagId FROM tagsToNote
-                      WHERE noteId IN (SELECT value id FROM notes WHERE accountId = ${parseInt(ctx.id)}))
-         GROUP BY name;`
+      // tagsToNote stores numeric noteId/tagId while notes/tag use record ids
+      // (notes:1 / tag:1). Count usage by number id, then map names in JS.
+      const usageRows = await surrealSelect<any>(
+        `SELECT tagId, count() AS c FROM tagsToNote
+         WHERE noteId IN (SELECT VALUE meta::id(id) FROM notes
+                          WHERE accountId = ${parseInt(ctx.id)}
+                            AND createdAt >= type::datetime(${JSON.stringify(startDate.toISOString())})
+                            AND createdAt <= type::datetime(${JSON.stringify(endDate.toISOString())}))
+         GROUP BY tagId;`
       )
-      const tagStats = tagCountRows
-        .map(r => ({ name: r.name, _count: { tagsToNote: r.c } }))
+      const tagRows = await surrealSelect<any>(
+        `SELECT id, name FROM tag WHERE accountId = ${parseInt(ctx.id)};`
+      )
+      const tagNameById = new Map<number, string>()
+      for (const row of tagRows) {
+        const numId = Number(String(row.id).split(':').pop())
+        if (Number.isFinite(numId) && row.name != null) tagNameById.set(numId, String(row.name))
+      }
+      const tagStats = usageRows
+        .map(r => ({
+          name: tagNameById.get(Number(r.tagId)) ?? String(r.tagId),
+          _count: { tagsToNote: Number(r.c) || 0 }
+        }))
+        .filter(tag => tag._count.tagsToNote > 0)
         .sort((a, b) => b._count.tagsToNote - a._count.tagsToNote)
 
       const validTags = tagStats.filter(tag => tag._count.tagsToNote > 0)

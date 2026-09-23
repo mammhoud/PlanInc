@@ -41,7 +41,7 @@ export const ItemWithTooltip = observer(({ content, toolTipContent }: { content:
       </div>
     </TooltipTrigger>
     <TooltipContent>
-      <div className="max-w-[300px] flex flex-col gap-2 p-2">
+      <div className="max-w-[calc(100vw-3rem)] sm:max-w-[300px] flex flex-col gap-2 p-2 break-words">
         {toolTipContent}
       </div>
     </TooltipContent>

@@ -172,7 +172,7 @@ export const ImportAIDialog = observer(({ onSelectTab }: { onSelectTab?: (tab: s
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleCancel(); }}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90dvh] overflow-y-auto">
                 <DialogHeader>
                     <div className="flex items-center gap-2">
                         <Icon icon="hugeicons:ai-beautify" className="text-primary" width={24} height={24} />

@@ -18,6 +18,7 @@ import { HistoryButton } from '../PlanIncNoteHistory/HistoryButton';
 import { api } from '@/lib/trpc';
 import { PromiseCall } from '@/store/standard/PromiseState';
 import { trashNotesWithUndo } from '@/lib/trashWithUndo';
+import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
 
 interface CardHeaderProps {
   planincItem: Note;
@@ -237,7 +238,7 @@ const ShareButton = observer(({ planincItem }: { planincItem: Note }) => {
                 size: 'md',
                 title: t('share'),
                 content: <PlanIncShareDialog defaultSettings={{
-                  shareUrl: planincItem.shareEncryptedUrl ? window.location.origin + '/share/' + planincItem.shareEncryptedUrl : undefined,
+                  shareUrl: planincItem.shareEncryptedUrl ? getPlanIncEndpoint(`share/${planincItem.shareEncryptedUrl}`) : undefined,
                   expiryDate: planincItem.shareExpiryDate ?? undefined,
                   password: planincItem.sharePassword ?? '',
                   isShare: planincItem.isShare

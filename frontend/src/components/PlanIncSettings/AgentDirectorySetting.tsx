@@ -13,6 +13,9 @@ import { PromiseCall } from '@/store/standard/PromiseState';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { CollapsibleCard } from '../Common/CollapsibleCard';
 import { showTipsDialog } from '@/components/Common/TipsDialog';
+import { LoadingAndEmpty } from '@/components/Common/LoadingAndEmpty';
+import { RootStore } from '@/store';
+import { ToastPlugin } from '@/store/module/Toast/Toast';
 
 type DirKind = 'working' | 'skills';
 
@@ -47,6 +50,7 @@ export const AgentDirectorySetting = observer(() => {
   const [dirs, setDirs] = useState<AgentDir[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [draft, setDraft] = useState({ ...emptyDraft });
   const [error, setError] = useState('');
 
@@ -54,8 +58,10 @@ export const AgentDirectorySetting = observer(() => {
     setIsLoading(true);
     try {
       setDirs(await api.agentDirectories.list.query({ includeDisabled: true }) as AgentDir[]);
+      setError('');
     } catch (cause) {
       console.error('Failed to load agent directories', cause);
+      setError((cause as Error)?.message ?? t('operation-failed'));
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +85,7 @@ export const AgentDirectorySetting = observer(() => {
   };
 
   const save = async () => {
-    if (!draft.path.trim()) return;
+    if (!draft.path.trim() || isSaving) return;
     const payload = {
       kind: draft.kind,
       label: draft.label.trim(),
@@ -87,6 +93,7 @@ export const AgentDirectorySetting = observer(() => {
       isDefault: draft.isDefault,
       enabled: draft.enabled,
     };
+    setIsSaving(true);
     try {
       if (draft.id == null) await api.agentDirectories.create.mutate(payload);
       else await api.agentDirectories.update.mutate({ id: draft.id, ...payload });
@@ -95,6 +102,15 @@ export const AgentDirectorySetting = observer(() => {
     } catch (cause) {
       console.error('Failed to save agent directory', cause);
       setError((cause as Error)?.message ?? t('operation-failed'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const pathKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (draft.path.trim() && !isSaving) void save();
     }
   };
 
@@ -125,6 +141,7 @@ export const AgentDirectorySetting = observer(() => {
       await api.agentDirectories.reorder.mutate({ kind: dir.kind, orderedIds: next.map((item) => item.id) });
     } catch (cause) {
       console.error('Failed to reorder agent directories', cause);
+      RootStore.Get(ToastPlugin).error((cause as Error)?.message ?? t('operation-failed'));
       await load();
     }
   };
@@ -197,7 +214,7 @@ export const AgentDirectorySetting = observer(() => {
       <div className="flex flex-col gap-5 p-1">
         <p className="text-sm text-default-500">{t('agent-directories-description')}</p>
 
-        {isLoading && <p className="py-4 text-center text-sm text-default-400">{t('in-progress')}</p>}
+        {isLoading && <LoadingAndEmpty isLoading emptyMessage="" isAbsolute={false} className="py-2" />}
 
         {!isLoading && (
           <>
@@ -230,16 +247,19 @@ export const AgentDirectorySetting = observer(() => {
         )}
       </div>
 
-      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) setIsOpen(false); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) setIsOpen(false); }}>
+        <DialogContent className="max-w-lg" onPointerDownOutside={(e) => { if (isSaving) e.preventDefault(); }}>
           <DialogHeader><DialogTitle>{draft.id == null ? t('add-directory') : t('edit-directory')}</DialogTitle></DialogHeader>
           <div className="flex flex-col gap-3">
             <Badge variant="secondary" className="self-start">{t(draft.kind === 'working' ? 'working-directories' : 'skills-directories')}</Badge>
             <div className="space-y-1.5">
               <Label>{t('directory-path')}</Label>
               <Input
+                autoFocus
                 value={draft.path}
                 onChange={(e) => setDraft((current) => ({ ...current, path: e.target.value }))}
+                onKeyDown={pathKeyDown}
+                disabled={isSaving}
               />
               <p className="text-xs text-muted-foreground">{t('directory-path-description')}</p>
             </div>
@@ -248,24 +268,26 @@ export const AgentDirectorySetting = observer(() => {
               <Input
                 value={draft.label}
                 onChange={(e) => setDraft((current) => ({ ...current, label: e.target.value }))}
+                onKeyDown={pathKeyDown}
+                disabled={isSaving}
               />
               <p className="text-xs text-muted-foreground">{t('directory-label-description')}</p>
             </div>
             {draft.kind === 'working' && (
               <div className="flex items-center justify-between rounded-xl bg-default-100/60 px-3 py-2">
                 <span className="text-sm">{t('set-as-default')}</span>
-                <Switch checked={draft.isDefault} onCheckedChange={(value) => setDraft((current) => ({ ...current, isDefault: value }))} />
+                <Switch checked={draft.isDefault} onCheckedChange={(value) => setDraft((current) => ({ ...current, isDefault: value }))} disabled={isSaving} />
               </div>
             )}
             <div className="flex items-center justify-between rounded-xl bg-default-100/60 px-3 py-2">
               <span className="text-sm">{t('enabled')}</span>
-              <Switch checked={draft.enabled} onCheckedChange={(value) => setDraft((current) => ({ ...current, enabled: value }))} />
+              <Switch checked={draft.enabled} onCheckedChange={(value) => setDraft((current) => ({ ...current, enabled: value }))} disabled={isSaving} />
             </div>
             {error && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsOpen(false)}>{t('cancel')}</Button>
-            <Button disabled={!draft.path.trim()} onClick={save}>{t('save')}</Button>
+            <Button variant="ghost" onClick={() => setIsOpen(false)} disabled={isSaving}>{t('cancel')}</Button>
+            <Button disabled={!draft.path.trim() || isSaving} loading={isSaving} onClick={save}>{t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

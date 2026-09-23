@@ -11,7 +11,7 @@ Route-level page components.
 - `ai-share.tsx`
 - `ai.tsx`
 - `all.tsx`
-- `analytics.tsx`
+- `insights.tsx`
 - `dashboard.tsx`
 - `graph.tsx`
 - `hub.tsx`

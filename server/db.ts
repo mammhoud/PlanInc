@@ -62,7 +62,9 @@ const DATE_FIELDS: Record<string, string[]> = {
   mcpServers: ['createdAt', 'updatedAt'],
   fonts: ['createdAt', 'updatedAt'],
   tickets: ['createdAt', 'updatedAt'],
-  studyItems: ['createdAt', 'updatedAt'],
+  studyItems: ['createdAt', 'updatedAt', 'srsDueAt', 'srsLastAt'],
+  // Learning skills (level 1–5 mastery bar, linked to notes by tag).
+  skills: ['createdAt', 'updatedAt'],
   planningLinks: ['createdAt', 'updatedAt'],
   planningFormFields: ['createdAt', 'updatedAt'],
   // Layered share approvals: one row per requested share (internal recipient,
@@ -118,14 +120,30 @@ function normalizeRecord(table: string, row: any): any {
     out.shareMaxView ??= null;
     out.shareViewCount ??= null;
     out.sortOrder ??= 0;
+    out.sharePassword ??= '';
+    out.isArchived ??= false;
+    out.isRecycle ??= false;
+    out.isShare ??= false;
+    out.isTop ??= false;
+    out.type ??= 0;
+    out.content ??= '';
   } else if (table === 'attachments') {
     out.accountId ??= null;
     out.sortOrder ??= 0;
     out.type ??= '';
     out.depth ??= null;
     out.perfixPath ??= null;
+    out.sharePassword ??= '';
+    out.isShare ??= false;
+    out.size ??= 0;
   } else if (table === 'tag') {
     out.sortOrder ??= 0;
+    out.icon ??= '';
+    out.parent ??= 0;
+    out.createdAt ??= out.created_at ?? new Date();
+    out.updatedAt ??= out.updated_at ?? out.createdAt;
+    if (!(out.createdAt instanceof Date) || Number.isNaN(out.createdAt.getTime())) out.createdAt = new Date();
+    if (!(out.updatedAt instanceof Date) || Number.isNaN(out.updatedAt.getTime())) out.updatedAt = out.createdAt;
   } else if (table === 'accounts') {
     out.image ??= '';
     out.apiToken ??= '';
@@ -147,6 +165,19 @@ function normalizeRecord(table: string, row: any): any {
     out.category ??= '';
     out.tags ??= [];
     out.customFields ??= {};
+    out.question ??= '';
+    out.answer ??= '';
+    out.srsEase ??= 2.5;
+    out.srsInterval ??= 0;
+    out.srsReps ??= 0;
+    out.srsLapses ??= 0;
+    out.srsDueAt ??= null;
+    out.srsLastAt ??= null;
+  } else if (table === 'skills') {
+    out.description ??= '';
+    out.level ??= 1;
+    out.mastery ??= 0;
+    out.tags ??= [];
   } else if (table === 'planningLinks') {
     out.label ??= '';
     out.metadata ??= {};
@@ -199,15 +230,23 @@ function toRecordId(table: string, id: any): string {
 function compileValue(table: string, field: string, v: any): string {
   if (v === null || v === undefined) return 'NONE';
   if (v instanceof Date) return lit(v);
+  // ISO date strings (openapi / JSON body paths) on datetime fields must become
+  // type::datetime; comparing against a bare string matches nothing.
+  if (
+    typeof v === 'string' &&
+    DATE_FIELDS[table]?.includes(field) &&
+    /^\d{4}-\d{2}-\d{2}([T ]|$)/.test(v)
+  ) {
+    const d = new Date(v);
+    if (!Number.isNaN(d.getTime())) return lit(d);
+  }
   if (typeof v === 'object' && !Array.isArray(v)) {
     // Filter object: { equals, in, notIn, contains, mode, startsWith, gt, gte, lt, lte, not }
     const parts: string[] = [];
     const insensitive = v.mode === 'insensitive';
-    const strFilter = (fn: string, arg: any, flags = '') =>
-      `${fn}(${field}, ${JSON.stringify(`${flags}${escapeRegex(arg)}`)})`;
     if ('equals' in v) parts.push(`${field} = ${compileValue(table, field, v.equals)}`);
-    if ('in' in v) parts.push(`${field} IN [${v.in.map((x: any) => lit(x)).join(', ')}]`);
-    if ('notIn' in v) parts.push(`${field} NOT IN [${v.notIn.map((x: any) => lit(x)).join(', ')}]`);
+    if ('in' in v) parts.push(`${field} IN [${v.in.map((x: any) => compileValue(table, field, x)).join(', ')}]`);
+    if ('notIn' in v) parts.push(`${field} NOT IN [${v.notIn.map((x: any) => compileValue(table, field, x)).join(', ')}]`);
     if ('not' in v) parts.push(`${field} != ${compileValue(table, field, v.not)}`);
     if ('contains' in v) {
       if (insensitive) {
@@ -224,10 +263,10 @@ function compileValue(table: string, field: string, v: any): string {
     if ('endsWith' in v) {
       parts.push(`string::ends_with(${field}, ${JSON.stringify(String(v.endsWith))})`);
     }
-    if ('gt' in v) parts.push(`${field} > ${lit(v.gt)}`);
-    if ('gte' in v) parts.push(`${field} >= ${lit(v.gte)}`);
-    if ('lt' in v) parts.push(`${field} < ${lit(v.lt)}`);
-    if ('lte' in v) parts.push(`${field} <= ${lit(v.lte)}`);
+    if ('gt' in v) parts.push(`${field} > ${compileValue(table, field, v.gt)}`);
+    if ('gte' in v) parts.push(`${field} >= ${compileValue(table, field, v.gte)}`);
+    if ('lt' in v) parts.push(`${field} < ${compileValue(table, field, v.lt)}`);
+    if ('lte' in v) parts.push(`${field} <= ${compileValue(table, field, v.lte)}`);
     return parts.length ? `(${parts.join(' AND ')})` : 'true';
   }
   return lit(v);
@@ -327,6 +366,16 @@ function compileWhere(table: string, where: any): string {
       const v: any = value;
       const inner = compileWhere('notes', v);
       parts.push(`(noteId IN (SELECT value id FROM notes WHERE ${inner}))`);
+      continue;
+    }
+
+    // Operator filters ({ gte, lte, contains, … }) compile to a full boolean
+    // expression in compileValue. Prefixing with `key =` yields invalid SQL
+    // (e.g. `createdAt = (createdAt >= … AND createdAt <= …)`) and silently
+    // returns zero rows — monthly stats noteCount was always 0 because of this.
+    if (isPlainObject(value)) {
+      const compiled = compileValue(table, key, value);
+      if (compiled !== 'true') parts.push(compiled);
       continue;
     }
 
@@ -691,7 +740,22 @@ function createDelegate(table: string): any {
         if (DATE_FIELDS[table]?.includes('updatedAt') && data.updatedAt == null) data.updatedAt = new Date();
       }
       const sets = Object.entries(data).map(([k, v]) => `${k} = ${lit(v)}`).join(', ');
-      await one(`CREATE ${table}:${id} SET ${sets};`);
+      // Explicit seed ids (e.g. tagsToNote:1) can race the seq counter — skip
+      // or re-allocate instead of failing CREATE with "already exists".
+      for (let attempt = 0; attempt < 32; attempt++) {
+        const clash = await select(`SELECT id FROM ${table} WHERE id = ${table}:${id};`);
+        if (!clash.length) break;
+        if (attempt === 0 && args.data?.id != null && data.id == null) {
+          // caller forced an id that already exists — fall through to update semantics
+        }
+        id = await nextId(table);
+      }
+      const still = await select(`SELECT id FROM ${table} WHERE id = ${table}:${id};`);
+      if (still.length) {
+        await one(`UPDATE ${table}:${id} SET ${sets};`);
+      } else {
+        await one(`CREATE ${table}:${id} SET ${sets};`);
+      }
       const rows = await select(`SELECT * FROM ${table} WHERE id = ${table}:${id};`);
       return parseDates(table, { ...rows[0], id });
     },
@@ -923,9 +987,126 @@ export async function ensureSurrealSchema(): Promise<void> {
   // tag.name has no unique constraint, so the name index stays non-unique —
   // it exists for lookup speed only.
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_tag_name ON TABLE tag COLUMNS name;`);
+  // Some deployments carry a foreign SCHEMAFULL definition on `notes` that
+  // requires relation fields (account/category) this data layer never writes.
+  // Relax those and declare every camelCase field PlanInc stores so creates
+  // and updates are accepted under SCHEMAFULL as well as SCHEMALESS.
+  const noteFields: Array<[string, string]> = [
+    ['account', 'option<record<account>>'],
+    ['category', 'option<record<category>>'],
+    ['assignee', 'option<record<account>>'],
+    ['created_by', 'option<record<account>>'],
+    ['type', 'option<number>'],
+    ['content', 'option<string>'],
+    ['accountId', 'option<number>'],
+    ['isArchived', 'option<bool>'],
+    ['isRecycle', 'option<bool>'],
+    ['isShare', 'option<bool>'],
+    ['isTop', 'option<bool>'],
+    ['isReviewed', 'option<bool>'],
+    ['sharePassword', 'option<string>'],
+    ['shareEncryptedUrl', 'option<string>'],
+    ['shareExpiryDate', 'option<datetime>'],
+    ['shareMaxView', 'option<number>'],
+    ['shareViewCount', 'option<number>'],
+    ['metadata', 'option<object>'],
+    ['categoryId', 'option<number>'],
+    ['sortOrder', 'option<number>'],
+    ['createdAt', 'option<datetime>'],
+    ['updatedAt', 'option<datetime>'],
+  ];
+  for (const [field, type] of noteFields) {
+    // Only content/metadata need FLEXIBLE (free-form objects/strings under
+    // SCHEMAFULL); the modifier sits before TYPE: `FLEXIBLE TYPE <kind>`.
+    const flexible = field === 'content' || field === 'metadata';
+    statements.push(
+      flexible
+        ? `DEFINE FIELD IF NOT EXISTS ${field} ON notes FLEXIBLE TYPE ${type};`
+        : `DEFINE FIELD IF NOT EXISTS ${field} ON notes TYPE ${type};`
+    );
+  }
+  // IF NOT EXISTS leaves a previously required foreign field required, so also
+  // overwrite the two relation fields that blocked creates (idempotent).
+  statements.push(`DEFINE FIELD OVERWRITE account ON notes TYPE option<record<account>>;`);
+  statements.push(`DEFINE FIELD OVERWRITE category ON notes TYPE option<record<category>>;`);
+  // Foreign SCHEMAFULL definitions may still store the legacy snake_case twins
+  // (`is_recycle`, …) without the camelCase fields PlanInc queries filter on.
+  // Declaring camelCase alone is not enough: rows written before this schema
+  // only have the snake_case keys, so `WHERE isRecycle = false` matches nothing
+  // and every notes/attachments list comes back empty. One-time copy (idempotent).
+  statements.push(
+    `UPDATE notes SET isRecycle = is_recycle WHERE isRecycle IS NONE AND is_recycle IS NOT NONE;`
+  );
+  statements.push(
+    `UPDATE notes SET isArchived = is_archived WHERE isArchived IS NONE AND is_archived IS NOT NONE;`
+  );
+  statements.push(
+    `UPDATE notes SET isShare = is_share WHERE isShare IS NONE AND is_share IS NOT NONE;`
+  );
+  statements.push(
+    `UPDATE notes SET isTop = is_top WHERE isTop IS NONE AND is_top IS NOT NONE;`
+  );
+  // Tag schema: seed rows and list hydration select icon/parent/dates/accountId.
+  const tagFields: Array<[string, string]> = [
+    ['name', 'string'],
+    ['icon', 'option<string>'],
+    ['parent', 'option<number>'],
+    ['accountId', 'option<number>'],
+    ['sortOrder', 'option<number>'],
+    ['createdAt', 'option<datetime>'],
+    ['updatedAt', 'option<datetime>'],
+  ];
+  for (const [field, type] of tagFields) {
+    statements.push(`DEFINE FIELD IF NOT EXISTS ${field} ON tag TYPE ${type};`);
+  }
+  statements.push(
+    `UPDATE tag SET icon = '' WHERE icon IS NONE;`
+  );
+  statements.push(
+    `UPDATE tag SET parent = 0 WHERE parent IS NONE;`
+  );
+  statements.push(
+    `UPDATE tag SET sortOrder = 0 WHERE sortOrder IS NONE;`
+  );
+  statements.push(
+    `UPDATE tag SET createdAt = created_at WHERE createdAt IS NONE AND created_at IS NOT NONE;`
+  );
+  statements.push(
+    `UPDATE tag SET updatedAt = updated_at WHERE updatedAt IS NONE AND updated_at IS NOT NONE;`
+  );
+  statements.push(
+    `UPDATE tag SET createdAt = time::now() WHERE createdAt IS NONE;`
+  );
+  statements.push(
+    `UPDATE tag SET updatedAt = time::now() WHERE updatedAt IS NONE;`
+  );
+  // Ensure every tag is owned so tags.list (scoped by accountId) returns them.
+  statements.push(
+    `UPDATE tag SET accountId = 1 WHERE accountId IS NONE;`
+  );
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_notes_account ON TABLE notes COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_t2n_note ON TABLE tagsToNote COLUMNS noteId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_t2n_tag ON TABLE tagsToNote COLUMNS tagId;`);
+  // Attachments schema (foreign SCHEMAFULL may omit camelCase PlanInc fields).
+  const attachmentFields: Array<[string, string]> = [
+    ['type', 'option<string>'],
+    ['size', 'option<number>'],
+    ['accountId', 'option<number>'],
+    ['noteId', 'option<number>'],
+    ['depth', 'option<number>'],
+    ['perfixPath', 'option<string>'],
+    ['sortOrder', 'option<number>'],
+    ['isShare', 'option<bool>'],
+    ['sharePassword', 'option<string>'],
+    ['createdAt', 'option<datetime>'],
+    ['updatedAt', 'option<datetime>'],
+  ];
+  for (const [field, type] of attachmentFields) {
+    statements.push(`DEFINE FIELD IF NOT EXISTS ${field} ON attachments TYPE ${type};`);
+  }
+  // Existing deployments may have required `type`/`size`; keep inserts flexible.
+  statements.push(`DEFINE FIELD OVERWRITE type ON attachments TYPE option<string>;`);
+  statements.push(`DEFINE FIELD OVERWRITE size ON attachments TYPE option<number>;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_att_note ON TABLE attachments COLUMNS noteId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_nis_note ON TABLE noteInternalShare COLUMNS noteId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_msg_conv ON TABLE message COLUMNS conversationId;`);
@@ -936,6 +1117,7 @@ export async function ensureSurrealSchema(): Promise<void> {
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_fonts_name ON TABLE fonts COLUMNS name UNIQUE;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_tickets_account ON TABLE tickets COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_study_account ON TABLE studyItems COLUMNS accountId;`);
+  statements.push(`DEFINE INDEX IF NOT EXISTS idx_skills_account ON TABLE skills COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_account ON TABLE planningLinks COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_source ON TABLE planningLinks COLUMNS sourceType, sourceId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_links_target ON TABLE planningLinks COLUMNS targetType, targetId;`);
@@ -948,11 +1130,45 @@ export async function ensureSurrealSchema(): Promise<void> {
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_share_approvals_invitee ON TABLE shareApprovals COLUMNS inviteeAccountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_share_approvals_status ON TABLE shareApprovals COLUMNS status;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_share_approval_token ON TABLE shareApprovals COLUMNS token UNIQUE;`);
+  // shareApprovals: declare every column so output validation sees nulls not
+  // undefined (legacy rows and creates that omit optional fields).
+  const shareApprovalFields: Array<[string, string]> = [
+    ['accountId', 'option<number>'],
+    ['noteId', 'option<number>'],
+    ['scope', 'option<string>'],
+    ['status', 'option<string>'],
+    ['inviteeAccountId', 'option<number>'],
+    ['inviteeEmail', 'option<string>'],
+    ['token', 'option<string>'],
+    ['canEdit', 'option<bool>'],
+    ['requiresAdmin', 'option<bool>'],
+    ['adminApproved', 'option<bool>'],
+    ['requestedBy', 'option<number>'],
+    ['decidedBy', 'option<number>'],
+    ['decidedAt', 'option<datetime>'],
+    ['decisionNote', 'option<string>'],
+    ['expiresAt', 'option<datetime>'],
+    ['message', 'option<string>'],
+    ['createdAt', 'option<datetime>'],
+    ['updatedAt', 'option<datetime>'],
+  ];
+  for (const [field, type] of shareApprovalFields) {
+    statements.push(`DEFINE FIELD IF NOT EXISTS ${field} ON shareApprovals TYPE ${type};`);
+  }
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_agent_dirs_account ON TABLE agentDirectories COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_agent_dir_path ON TABLE agentDirectories COLUMNS accountId, kind, path UNIQUE;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS idx_planning_categories_account ON TABLE planningCategories COLUMNS accountId;`);
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_planning_category_slug ON TABLE planningCategories COLUMNS accountId, slug UNIQUE;`);
-  await query(statements.join('\n'));
+  // Apply one statement at a time so a single foreign/legacy DEFINE failure
+  // (e.g. index on a field that does not exist yet) cannot abort the rest of
+  // the bootstrap — the notes camelCase migration below must still run.
+  for (const stmt of statements) {
+    try {
+      await query(stmt);
+    } catch (err: any) {
+      console.warn('[ensureSurrealSchema] skipped:', err?.message?.slice?.(0, 160) ?? err, '|', stmt.slice(0, 120));
+    }
+  }
 }
 
 export { peekMaxId, stripIdPrefix, toRecordId };

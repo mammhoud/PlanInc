@@ -57,13 +57,13 @@ export const NoteTypeButton = ({ noteType, setNoteType}: {
   const getLabelForType = (noteType: NoteType) => {
     switch (noteType) {
       case NoteType.PLANINC:
-        return t('planinc');
+        return t('type-plan');
       case NoteType.NOTE:
-        return t('note');
+        return t('type-note');
       case NoteType.TODO:
-        return t('todo');
+        return t('type-task');
       default:
-        return t('planinc');
+        return t('type-plan');
     }
   };
   

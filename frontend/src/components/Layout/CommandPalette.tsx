@@ -37,17 +37,21 @@ const SECTION_LABEL: Record<PaletteSection, string> = {
 // Route targets mirror the router in App.tsx. Labels are plain strings rather than new i18n keys so
 // this change adds no locale churn; localising them is a follow-up, not a hidden dependency.
 const NAVIGATION: { path: string; title: string; keywords: string[] }[] = [
-  { path: '/', title: 'Notes', keywords: ['notes', 'home', 'cards', '笔记'] },
+  { path: '/?path=agenda', title: 'Agenda', keywords: ['agenda', 'plans', 'notes', 'tasks', 'home', '日程', '议程'] },
+  { path: '/?path=agenda&type=note', title: 'Agenda notes', keywords: ['notes', 'cards', '笔记'] },
+  { path: '/?path=agenda&type=todo', title: 'Agenda plans', keywords: ['plans', 'todo', 'tasks', '计划'] },
   { path: '/all', title: 'All notes', keywords: ['all', 'everything', '全部'] },
   { path: '/dashboard', title: 'Dashboard', keywords: ['dashboard', 'overview', '仪表盘'] },
   { path: '/resources', title: 'Resources', keywords: ['resources', 'files', 'attachments', '资源', '文件'] },
   { path: '/tickets', title: 'Tickets', keywords: ['tickets', 'tasks', '工单'] },
-  { path: '/study', title: 'Study', keywords: ['study', 'flashcards', '学习'] },
+  { path: '/study', title: 'Study', keywords: ['study', 'flashcards', 'questions', '学习'] },
+  { path: '/skills', title: 'Skills', keywords: ['skills', 'mastery', 'expert', '技能'] },
   { path: '/graph', title: 'Graph', keywords: ['graph', 'links', 'backlinks', '图谱', '关系'] },
   { path: '/review', title: 'Review', keywords: ['review', 'daily', '回顾'] },
   { path: '/ai', title: 'AI chat', keywords: ['ai', 'chat', 'assistant', '对话'] },
   { path: '/hub', title: 'Hub', keywords: ['hub', 'feeds', 'rss'] },
-  { path: '/analytics', title: 'Analytics', keywords: ['analytics', 'metrics', '统计'] },
+  { path: '/insights', title: 'Insights', keywords: ['insights', 'analytics', 'reports', 'metrics', '统计'] },
+  { path: '/?path=trash', title: 'Recycle Bin', keywords: ['trash', 'bin', 'recycle', 'deleted'] },
   { path: '/plugin', title: 'Plugins', keywords: ['plugins', 'extensions', '插件'] },
   { path: '/settings', title: 'Settings', keywords: ['settings', 'preferences', '设置'] },
 ];

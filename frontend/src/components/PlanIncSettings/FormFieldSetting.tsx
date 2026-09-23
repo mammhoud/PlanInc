@@ -14,6 +14,7 @@ import { PromiseCall } from '@/store/standard/PromiseState';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { CollapsibleCard } from '../Common/CollapsibleCard';
 import { showTipsDialog } from '@/components/Common/TipsDialog';
+import { LoadingAndEmpty } from '@/components/Common/LoadingAndEmpty';
 
 type FieldKind = 'ticket' | 'study';
 type FieldType = 'text' | 'textarea' | 'number' | 'select' | 'toggle' | 'date' | 'url';
@@ -56,6 +57,7 @@ export const FormFieldSetting = observer(() => {
   const [fields, setFields] = useState<FormField[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [draft, setDraft] = useState({ ...emptyDraft });
   const [error, setError] = useState('');
 
@@ -63,8 +65,10 @@ export const FormFieldSetting = observer(() => {
     setIsLoading(true);
     try {
       setFields(await api.planningFields.list.query({ includeDisabled: true }) as FormField[]);
+      setError('');
     } catch (cause) {
       console.error('Failed to load form fields', cause);
+      setError((cause as Error)?.message ?? t('operation-failed'));
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +100,7 @@ export const FormFieldSetting = observer(() => {
   };
 
   const save = async () => {
-    if (!draft.label.trim() || !draft.key.trim()) return;
+    if (!draft.label.trim() || !draft.key.trim() || isSaving) return;
     const payload = {
       kind: draft.kind,
       key: draft.key.trim().toLowerCase(),
@@ -110,6 +114,7 @@ export const FormFieldSetting = observer(() => {
       enabled: draft.enabled,
       sortOrder: Number(draft.sortOrder) || 0,
     };
+    setIsSaving(true);
     try {
       if (draft.id == null) await api.planningFields.create.mutate(payload);
       else await api.planningFields.update.mutate({ id: draft.id, ...payload });
@@ -118,6 +123,15 @@ export const FormFieldSetting = observer(() => {
     } catch (cause) {
       console.error('Failed to save form field', cause);
       setError((cause as Error)?.message ?? t('operation-failed'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const labelKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (draft.label.trim() && draft.key.trim() && !isSaving) void save();
     }
   };
 
@@ -147,8 +161,15 @@ export const FormFieldSetting = observer(() => {
           </Button>
         </div>
 
-        {isLoading && <p className="py-4 text-center text-sm text-default-400">{t('in-progress')}</p>}
-        {!isLoading && !fields.length && <p className="py-6 text-center text-sm text-default-400">{t('no-form-fields')}</p>}
+        {(isLoading || (!isLoading && !fields.length)) && (
+          <LoadingAndEmpty
+            isLoading={isLoading}
+            isEmpty={!isLoading && !fields.length}
+            emptyMessage={t('no-form-fields')}
+            isAbsolute={false}
+            className="py-2"
+          />
+        )}
 
         {!isLoading && fields.map((field) => (
           <div key={field.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-default-100/60 p-3">
@@ -177,23 +198,23 @@ export const FormFieldSetting = observer(() => {
               </TooltipTrigger>
               <TooltipContent>{field.enabled ? t('disable') : t('enable')}</TooltipContent>
             </Tooltip>
-            <Button size="icon" variant="ghost" aria-label={t('edit')} onClick={() => openEdit(field)}>
+            <Button size="icon" className="min-h-[44px] min-w-[44px]" variant="ghost" aria-label={t('edit')} onClick={() => openEdit(field)}>
               <Icon icon="hugeicons:edit-02" width="16" height="16" />
             </Button>
-            <Button size="icon" variant="ghost" aria-label={t('delete')} onClick={() => remove(field)} className="text-destructive hover:text-destructive">
+            <Button size="icon" variant="ghost" aria-label={t('delete')} onClick={() => remove(field)} className="text-destructive hover:text-destructive min-h-[44px] min-w-[44px]">
               <Icon icon="hugeicons:delete-02" width="16" height="16" />
             </Button>
           </div>
         ))}
       </div>
 
-      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) setIsOpen(false); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) setIsOpen(false); }}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90dvh] overflow-y-auto" onPointerDownOutside={(e) => { if (isSaving) e.preventDefault(); }}>
           <DialogHeader><DialogTitle>{draft.id == null ? t('add-form-field') : t('edit-form-field')}</DialogTitle></DialogHeader>
           <div className="flex flex-col gap-3">
             <div className="space-y-1.5">
               <Label>{t('form')}</Label>
-              <Select value={draft.kind} onValueChange={(value) => setDraft((current) => ({ ...current, kind: value as FieldKind }))}>
+              <Select value={draft.kind} onValueChange={(value) => setDraft((current) => ({ ...current, kind: value as FieldKind }))} disabled={isSaving}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {kinds.map((kind) => <SelectItem key={kind} value={kind}>{t(kind === 'ticket' ? 'tickets' : 'study')}</SelectItem>)}
@@ -202,13 +223,15 @@ export const FormFieldSetting = observer(() => {
             </div>
             <div className="space-y-1.5">
               <Label>{t('field-label')}</Label>
-              <Input value={draft.label} onChange={(e) => setDraft((current) => ({ ...current, label: e.target.value }))} />
+              <Input autoFocus value={draft.label} onChange={(e) => setDraft((current) => ({ ...current, label: e.target.value }))} onKeyDown={labelKeyDown} disabled={isSaving} />
             </div>
             <div className="space-y-1.5">
               <Label>{t('field-key')}</Label>
               <Input
                 value={draft.key}
                 onChange={(e) => setDraft((current) => ({ ...current, key: e.target.value }))}
+                onKeyDown={labelKeyDown}
+                disabled={isSaving}
               />
               <p className="text-xs text-muted-foreground">{t('field-key-description')}</p>
             </div>
@@ -247,8 +270,8 @@ export const FormFieldSetting = observer(() => {
             {error && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsOpen(false)}>{t('cancel')}</Button>
-            <Button disabled={!draft.label.trim() || !draft.key.trim()} onClick={save}>{t('save')}</Button>
+            <Button variant="ghost" onClick={() => setIsOpen(false)} disabled={isSaving}>{t('cancel')}</Button>
+            <Button disabled={!draft.label.trim() || !draft.key.trim() || isSaving} loading={isSaving} onClick={save}>{t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

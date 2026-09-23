@@ -243,8 +243,18 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
           });
 
           if (res?.published) {
-            const planincEndpoint = getPlanIncEndpoint() ?? window.location.origin;
-            this.setShareUrl(planincEndpoint + 'share/' + (res?.shareUrl ?? '') + (this.isPublic ? '' : '?password=' + (this.settings.password ?? '')));
+            const shareId = res.shareUrl ?? '';
+            const base = getPlanIncEndpoint('share/');
+            let url: string;
+            try {
+              url = new URL(shareId, base).toString();
+            } catch {
+              url = `${base.replace(/\/?$/, '/')}${shareId}`;
+            }
+            if (!this.isPublic && this.settings.password) {
+              url += (url.includes('?') ? '&' : '?') + 'password=' + encodeURIComponent(this.settings.password);
+            }
+            this.setShareUrl(url);
           } else {
             this.setStatusMessage(t('share-pending-admin-approval'));
           }

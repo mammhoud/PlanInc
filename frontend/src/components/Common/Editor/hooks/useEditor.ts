@@ -554,12 +554,16 @@ export const useEditorInit = (
 
   useEffect(() => {
     if (mode == 'create') {
-      if (searchParams.get('path') == 'notes') {
-        store.noteType = NoteType.NOTE
-      } else if (searchParams.get('path') == 'todo') {
-        store.noteType = NoteType.TODO
+      const path = searchParams.get('path');
+      const typeParam = searchParams.get('type');
+      if (typeParam === 'note' || path === 'notes') {
+        store.noteType = NoteType.NOTE;
+      } else if (typeParam === 'todo' || path === 'todo') {
+        store.noteType = NoteType.TODO;
+      } else if (typeParam === 'planinc') {
+        store.noteType = NoteType.PLANINC;
       } else {
-        store.noteType = NoteType.PLANINC
+        store.noteType = NoteType.PLANINC;
       }
       if (searchParams.get('tagId')) {
         try {

@@ -14,6 +14,9 @@ import { PromiseCall } from '@/store/standard/PromiseState';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { CollapsibleCard } from '../Common/CollapsibleCard';
 import { showTipsDialog } from '@/components/Common/TipsDialog';
+import { LoadingAndEmpty } from '@/components/Common/LoadingAndEmpty';
+import { RootStore } from '@/store';
+import { ToastPlugin } from '@/store/module/Toast/Toast';
 import { CATEGORY_COLOR_PRESETS as COLOR_PRESETS } from '@/lib/colorSeries';
 
 const ICON_PRESETS = [
@@ -24,7 +27,7 @@ const ICON_PRESETS = [
   'tabler:clock-hour-4',
   'tabler:book',
   'tabler:rocket',
-  'tabler:archive',
+  'tabler:folder',
 ];
 
 type PlanCategory = {
@@ -61,6 +64,7 @@ export const CategorySetting = observer(() => {
   const [categories, setCategories] = useState<PlanCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [draft, setDraft] = useState({ ...emptyDraft });
   const [error, setError] = useState('');
 
@@ -68,8 +72,10 @@ export const CategorySetting = observer(() => {
     setIsLoading(true);
     try {
       setCategories(await api.planningCategories.list.query({ includeDisabled: true }) as PlanCategory[]);
+      setError('');
     } catch (cause) {
       console.error('Failed to load plan categories', cause);
+      setError((cause as Error)?.message ?? t('operation-failed'));
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +104,7 @@ export const CategorySetting = observer(() => {
   };
 
   const save = async () => {
-    if (!draft.name.trim()) return;
+    if (!draft.name.trim() || isSaving) return;
     const payload = {
       name: draft.name.trim(),
       color: draft.color,
@@ -106,6 +112,7 @@ export const CategorySetting = observer(() => {
       isDefault: draft.isDefault,
       enabled: draft.enabled,
     };
+    setIsSaving(true);
     try {
       if (draft.id == null) await api.planningCategories.create.mutate(payload);
       else await api.planningCategories.update.mutate({ id: draft.id, ...payload });
@@ -114,6 +121,15 @@ export const CategorySetting = observer(() => {
     } catch (cause) {
       console.error('Failed to save plan category', cause);
       setError((cause as Error)?.message ?? t('operation-failed'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const nameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (draft.name.trim() && !isSaving) void save();
     }
   };
 
@@ -139,6 +155,7 @@ export const CategorySetting = observer(() => {
       await api.planningCategories.reorder.mutate({ orderedIds: next.map((item) => item.id) });
     } catch (cause) {
       console.error('Failed to reorder plan categories', cause);
+      RootStore.Get(ToastPlugin).error((cause as Error)?.message ?? t('operation-failed'));
       await load();
     }
   };
@@ -157,7 +174,10 @@ export const CategorySetting = observer(() => {
     <CollapsibleCard icon="tabler:category" title={t('plan-categories')}>
       <div className="flex flex-col gap-3 p-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-default-500">{t('plan-categories-description')}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-default-500">{t('plan-categories-description')}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('done-status-hint')}</p>
+          </div>
           <div className="flex gap-2">
             {!categories.length && (
               <Button size="sm" variant="ghost" onClick={seedDefaults}><Icon icon="tabler:sparkles" width="16" height="16" />
@@ -170,13 +190,20 @@ export const CategorySetting = observer(() => {
           </div>
         </div>
 
-        {isLoading && <p className="py-4 text-center text-sm text-default-400">{t('in-progress')}</p>}
-        {!isLoading && !categories.length && <p className="py-6 text-center text-sm text-default-400">{t('no-categories')}</p>}
+        {(isLoading || (!isLoading && !categories.length)) && (
+          <LoadingAndEmpty
+            isLoading={isLoading}
+            isEmpty={!isLoading && !categories.length}
+            emptyMessage={t('no-categories')}
+            isAbsolute={false}
+            className="py-2"
+          />
+        )}
 
         {!isLoading && categories.map((category, index) => (
           <div key={category.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-default-100/60 p-3">
             <span
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-white"
+              className="flex h-11 w-11 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg text-white"
               style={{ backgroundColor: category.color }}
             >
               <Icon icon={category.icon} width="17" height="17" className="text-white" />
@@ -190,11 +217,11 @@ export const CategorySetting = observer(() => {
               <p className="text-xs text-default-400">{category.slug} · {category.color}</p>
             </div>
 
-            <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" disabled={index === 0} aria-label={t('move-up')} onClick={() => move(category, -1)}>
+            <div className="flex items-center gap-1 ml-auto">
+              <Button size="icon" className="min-h-[44px] min-w-[44px]" variant="ghost" disabled={index === 0} aria-label={t('move-up')} onClick={() => move(category, -1)}>
                 <Icon icon="mdi:arrow-up" width="16" height="16" />
               </Button>
-              <Button size="icon" variant="ghost" disabled={index === categories.length - 1} aria-label={t('move-down')} onClick={() => move(category, 1)}>
+              <Button size="icon" className="min-h-[44px] min-w-[44px]" variant="ghost" disabled={index === categories.length - 1} aria-label={t('move-down')} onClick={() => move(category, 1)}>
                 <Icon icon="mdi:arrow-down" width="16" height="16" />
               </Button>
             </div>
@@ -207,25 +234,28 @@ export const CategorySetting = observer(() => {
               </TooltipTrigger>
               <TooltipContent>{category.enabled ? t('disable') : t('enable')}</TooltipContent>
             </Tooltip>
-            <Button size="icon" variant="ghost" aria-label={t('edit')} onClick={() => openEdit(category)}>
+            <Button size="icon" className="min-h-[44px] min-w-[44px]" variant="ghost" aria-label={t('edit')} onClick={() => openEdit(category)}>
               <Icon icon="hugeicons:edit-02" width="16" height="16" />
             </Button>
-            <Button size="icon" variant="destructive" aria-label={t('delete')} onClick={() => remove(category)}>
+            <Button size="icon" className="min-h-[44px] min-w-[44px]" variant="destructive" aria-label={t('delete')} onClick={() => remove(category)}>
               <Icon icon="hugeicons:delete-02" width="16" height="16" />
             </Button>
           </div>
         ))}
       </div>
 
-      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) setIsOpen(false); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) setIsOpen(false); }}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90dvh] overflow-y-auto" onPointerDownOutside={(e) => { if (isSaving) e.preventDefault(); }}>
           <DialogHeader><DialogTitle>{draft.id == null ? t('add-category') : t('edit-category')}</DialogTitle></DialogHeader>
           <div className="flex flex-col gap-3">
             <div className="space-y-1.5">
               <Label>{t('category-name')}</Label>
               <Input
+                autoFocus
                 value={draft.name}
                 onChange={(e) => setDraft((current) => ({ ...current, name: e.target.value }))}
+                onKeyDown={nameKeyDown}
+                disabled={isSaving}
               />
             </div>
             <div className="space-y-1.5">
@@ -247,7 +277,7 @@ export const CategorySetting = observer(() => {
                     aria-label={preset.key}
                     aria-pressed={draft.color === preset.value}
                     onClick={() => setDraft((current) => ({ ...current, color: preset.value }))}
-                    className={`h-8 w-8 rounded-lg border-2 ${draft.color === preset.value ? 'border-foreground' : 'border-transparent'}`}
+                    className={`h-11 w-11 sm:h-8 sm:w-8 rounded-lg border-2 ${draft.color === preset.value ? 'border-foreground' : 'border-transparent'}`}
                     style={{ backgroundColor: preset.value }}
                   />
                 ))}
@@ -288,8 +318,8 @@ export const CategorySetting = observer(() => {
             {error && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsOpen(false)}>{t('cancel')}</Button>
-            <Button disabled={!draft.name.trim()} onClick={save}>{t('save')}</Button>
+            <Button variant="ghost" onClick={() => setIsOpen(false)} disabled={isSaving}>{t('cancel')}</Button>
+            <Button disabled={!draft.name.trim() || isSaving} loading={isSaving} onClick={save}>{t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

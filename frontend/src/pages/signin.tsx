@@ -136,7 +136,7 @@ export default function Component() {
       <div className="flex h-full w-screen items-center justify-center p-2 sm:p-4 lg:p-8">
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large glass-effect px-8 pb-10 pt-6 shadow-large">
           <div className="flex items-center justify-center gap-2 pb-2 text-xl font-medium">
-            Login With <img src={theme === 'light' ? '/logo-light-title.png' : '/logo-dark-title.png'} alt="PlanInc" width={100} className="rounded-none" />
+            Login With <img src="/planinc-lockup-h.svg" alt="PlanInc" width={120} className="rounded-none" />
           </div>
 
           {providers.length > 0 && (

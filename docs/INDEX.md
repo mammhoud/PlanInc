@@ -31,6 +31,7 @@
 | PI-019 | [`docs/plans/django-bolt/04-realtime-operations-and-verification.md`](./plans/django-bolt/04-realtime-operations-and-verification.md) | Channels, workers, analytics, deployment, observability, and release gates | ✅ Exists |
 | PI-020 | [`docs/plans/django-bolt/05-server-architecture-and-erd.md`](./plans/django-bolt/05-server-architecture-and-erd.md) | Formint Cloud-inspired PlanInc server boundaries, integrated flows, settings, and complete ERD | ✅ Exists |
 | PI-021 | [`docs/plans/django-bolt/06-implementation-task-board.md`](./plans/django-bolt/06-implementation-task-board.md) | Executable implementation tasks, dependencies, evidence, and external gates | ✅ Exists |
+| PI-022 | [`docs/14-agenda.md`](./14-agenda.md) | Merged Notes + Plans Agenda stream, type filters, legacy path aliases, share links, default seed pack | ✅ Exists |
 
 ## Per-directory documentation
 

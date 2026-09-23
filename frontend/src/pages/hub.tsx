@@ -17,6 +17,7 @@ import { HubStore } from "@/store/hubStore";
 import { LoadingAndEmpty } from "@/components/Common/LoadingAndEmpty";
 import { _ } from "@/lib/lodash";
 import { ResponsiveTabs } from "@/components/Common/ResponsiveTabs";
+import { PlanningViewSwitch, usePlanningView } from "@/components/PlanincPlanning/PlanningViewSwitch";
 import { usePlatform, useSideNav } from '@/platform/PlatformProvider';
 import { cardColumnsFor, preferredCardColumns } from '@/platform/responsive';
 
@@ -27,6 +28,7 @@ const Hub = observer(({ className }: { className?: string }) => {
   const isPc = useSideNav()
   const { tier, viewportWidth } = usePlatform()
   const store = RootStore.Get(HubStore)
+  const [hubView, setHubView] = usePlanningView('planinc:hub:view', 'cards');
   const debounceLoadData = _.debounce(() => {
     store.loadAllData()
   }, 1000)
@@ -183,10 +185,11 @@ const Hub = observer(({ className }: { className?: string }) => {
               tab: "max-w-fit px-2 h-8 text-sm md:px-3 md:h-10 md:text-base"
             }}
           >
-            <div className="flex items-center justify-end mb-4">
+            <div className="flex items-center justify-end gap-2 mb-4">
+              <PlanningViewSwitch value={hubView} onChange={setHubView} modes={['list', 'cards', 'grid']} />
               <Button variant="secondary" onClick={() => {
                 store.forceBlog.save(!store.forceBlog.value)
-              }} className="shrink-0">
+              }} className="shrink-0 min-h-[44px] min-w-[44px]" aria-label="Toggle expanded view">
                 <Icon icon="fluent:arrow-expand-all-16-filled" width="20" height="20" className={`transition-transform duration-300 ${store.forceBlog.value ? "rotate-180" : ""}`} />
               </Button>
             </div>
@@ -194,6 +197,7 @@ const Hub = observer(({ className }: { className?: string }) => {
             <LoadingAndEmpty
               isLoading={store.shareNoteList.isLoading}
               isEmpty={store.shareNoteList.isEmpty}
+              emptyMessage={t('no-share-requests')}
             />
             <Masonry
               // The feed used its own "3 columns, or 1 below 500px" pair, which
@@ -201,7 +205,7 @@ const Hub = observer(({ className }: { className?: string }) => {
               // entirely. It now derives from the same tier the rest of the app
               // uses, so a wide window and a phone each get a sensible count and
               // the responsive override applies here too.
-              breakpointCols={cardColumnsFor(
+              breakpointCols={hubView === 'list' ? 1 : hubView === 'grid' ? 2 : cardColumnsFor(
                 viewportWidth,
                 preferredCardColumns(tier.name, {
                   small: Number(planinc.config.value?.smallDeviceCardColumns ?? 1),

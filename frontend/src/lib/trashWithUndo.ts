@@ -12,12 +12,17 @@ import i18n from '@/lib/i18n';
  * hard-delete path, which stays behind its own confirm. Every trash call site goes through here so
  * the undo affordance exists uniformly instead of only where someone remembered to add it.
  */
+const inFlightTrashIds = new Set<number>();
+
 export async function trashNotesWithUndo(ids: Array<number | undefined | null>): Promise<void> {
-  const noteIds = ids.filter((id): id is number => typeof id === 'number' && id > 0);
+  const noteIds = ids.filter(
+    (id): id is number => typeof id === 'number' && id > 0 && !inFlightTrashIds.has(id)
+  );
   if (noteIds.length === 0) return;
 
   const planinc = RootStore.Get(PlanIncStore);
   const toast = RootStore.Get(ToastPlugin);
+  noteIds.forEach((id) => inFlightTrashIds.add(id));
 
   try {
     await api.notes.trashMany.mutate({ ids: noteIds });
@@ -36,5 +41,7 @@ export async function trashNotesWithUndo(ids: Array<number | undefined | null>):
     });
   } catch (error) {
     toast.error((error as Error).message);
+  } finally {
+    noteIds.forEach((id) => inFlightTrashIds.delete(id));
   }
 }

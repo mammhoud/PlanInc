@@ -16,6 +16,9 @@ import { api } from '@/lib/trpc';
 import { ScrollArea } from '@/components/Common/ScrollArea';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { showTipsDialog } from '@/components/Common/TipsDialog';
+import { LoadingAndEmpty } from '@/components/Common/LoadingAndEmpty';
+import { RootStore } from '@/store';
+import { ToastPlugin } from '@/store/module/Toast/Toast';
 import { PlanningCrudModal } from '@/components/PlanincPlanning/PlanningCrudModal';
 import type { PlanningFormValues } from '@/components/PlanincPlanning/PlanningCrudModal';
 import { PlanningViewSwitch, usePlanningView, planningViewGridClass } from '@/components/PlanincPlanning/PlanningViewSwitch';
@@ -55,8 +58,10 @@ export default function TicketsPage() {
   const [notes, setNotes] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [detailItem, setDetailItem] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pendingStatusId, setPendingStatusId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewMode, setViewMode] = usePlanningView('planinc:tickets:view', 'cards');
@@ -158,7 +163,7 @@ export default function TicketsPage() {
       await refreshLinks(ticket.id);
     } catch (cause) {
       console.error('Failed to load ticket links', cause);
-      setError(t('operation-failed'));
+      RootStore.Get(ToastPlugin).error(t('operation-failed'));
     }
   };
 
@@ -178,7 +183,7 @@ export default function TicketsPage() {
       setLinkLabel('');
     } catch (cause) {
       console.error('Failed to create ticket link', cause);
-      setError(t('operation-failed'));
+      RootStore.Get(ToastPlugin).error(t('operation-failed'));
     }
   };
 
@@ -188,7 +193,7 @@ export default function TicketsPage() {
       setLinks((current) => current.map((item) => (item.id === link.id ? { ...item, showInGraph } : item)));
     } catch (cause) {
       console.error('Failed to update ticket link', cause);
-      setError(t('operation-failed'));
+      RootStore.Get(ToastPlugin).error(t('operation-failed'));
     }
   };
 
@@ -198,7 +203,7 @@ export default function TicketsPage() {
       setLinks((current) => current.filter((item) => item.id !== link.id));
     } catch (cause) {
       console.error('Failed to delete ticket link', cause);
-      setError(t('operation-failed'));
+      RootStore.Get(ToastPlugin).error(t('operation-failed'));
     }
   };
 
@@ -218,13 +223,40 @@ export default function TicketsPage() {
         <Button onClick={() => { setEditingItem(null); setIsCrudOpen(true); }}><Icon icon="material-symbols:add" width="16" height="16" />{t('create-ticket')}</Button>
       </div>
       {error && <p className="rounded-xl bg-destructive/10 p-3 text-destructive">{error}</p>}
-      {isLoading && <p className="py-8 text-center text-muted-foreground">{t('in-progress')}</p>}
+      <LoadingAndEmpty
+        isLoading={isLoading}
+        isEmpty={!isLoading && !visibleTickets.length}
+        emptyMessage={t('no-tickets')}
+        isAbsolute={false}
+        className="py-4"
+      />
       <div className={planningViewGridClass(viewMode)}>
         {!isLoading && pagedTickets.map((ticket) => <Card key={ticket.id}><CardContent className="gap-3">
-          <div className="flex items-start justify-between gap-2"><div><h2 className="font-semibold">{ticket.title}</h2><p className="text-sm text-muted-foreground">{ticket.description}</p><p className="mt-1 text-xs text-muted-foreground">{ticket.category || t('uncategorized')}</p></div><Badge variant={ticket.priority === 'critical' ? 'destructive' : 'default'}>{t(ticket.priority)}</Badge></div>
+          <div className="flex items-start justify-between gap-2">
+            <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setDetailItem(ticket)}>
+              <h2 className="font-semibold hover:text-primary">{ticket.title}</h2>
+              <p className="text-sm text-muted-foreground">{ticket.description}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{ticket.category || t('uncategorized')}</p>
+            </button>
+            <Badge variant={ticket.priority === 'critical' ? 'destructive' : 'default'}>{t(ticket.priority)}</Badge>
+          </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className="flex w-full gap-1 overflow-x-auto">{(ticket.tags ?? []).map((tag) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}</div>
-            <Select value={ticket.status} onValueChange={(value) => api.tickets.update.mutate({ id: ticket.id, status: value as (typeof statuses)[number] }).then(load)}>
+            <Select
+              value={ticket.status}
+              disabled={pendingStatusId === ticket.id}
+              onValueChange={(value) => {
+                if (pendingStatusId) return;
+                setPendingStatusId(ticket.id);
+                api.tickets.update.mutate({ id: ticket.id, status: value as (typeof statuses)[number] })
+                  .then(load)
+                  .catch((cause) => {
+                    console.error('Failed to update ticket status', cause);
+                    RootStore.Get(ToastPlugin).error((cause as Error)?.message || t('operation-failed'));
+                  })
+                  .finally(() => setPendingStatusId(null));
+              }}
+            >
               <SelectTrigger className="flex-1 h-9">
                 <SelectValue placeholder={t('status')} />
               </SelectTrigger>
@@ -238,12 +270,36 @@ export default function TicketsPage() {
           </div>
         </CardContent></Card>)}
       </div>
-      {!isLoading && !visibleTickets.length && <p className="py-10 text-center text-muted-foreground">{t('no-tickets')}</p>}
       {!isLoading && visibleTickets.length > 0 && (
         <PlanningPagination page={page} pageSize={pageSize} total={visibleTickets.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       )}
       <PlanningFab label={t('create-ticket')} onPress={() => { setEditingItem(null); setIsCrudOpen(true); }} />
       <PlanningCrudModal kind="ticket" isOpen={isCrudOpen} item={editingItem} onClose={() => { setIsCrudOpen(false); setEditingItem(null); }} onSave={save} />
+      <Dialog open={!!detailItem} onOpenChange={(open) => { if (!open) setDetailItem(null); }}>
+        <DialogContent className="max-h-[90dvh] w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{detailItem?.title}</DialogTitle>
+          </DialogHeader>
+          {detailItem && (
+            <div className="space-y-3 text-sm">
+              <div className="flex flex-wrap gap-2">
+                <Badge>{t(detailItem.status)}</Badge>
+                <Badge variant={detailItem.priority === 'critical' ? 'destructive' : 'secondary'}>{t(detailItem.priority)}</Badge>
+                <Badge variant="outline">{detailItem.category || t('uncategorized')}</Badge>
+              </div>
+              <p className="whitespace-pre-wrap text-muted-foreground">{detailItem.description || t('no-description')}</p>
+              <div className="flex flex-wrap gap-1">
+                {(detailItem.tags ?? []).map((tag: string) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button size="sm" onClick={() => { setEditingItem(detailItem); setDetailItem(null); setIsCrudOpen(true); }}>{t('edit')}</Button>
+                <Button size="sm" variant="secondary" onClick={() => { void openLinks(detailItem); setDetailItem(null); }}>{t('related-items')}</Button>
+                <Button size="sm" variant="ghost" onClick={() => setDetailItem(null)}>{t('close')}</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <Modal isOpen={isLinksOpen} onClose={() => setIsLinksOpen(false)} scrollBehavior="inside">
         <ModalContent>
           <ModalHeader>{t('related-items')}{linkTicket ? `: ${linkTicket.title}` : ''}</ModalHeader>

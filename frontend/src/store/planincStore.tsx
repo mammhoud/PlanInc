@@ -358,6 +358,26 @@ export class PlanIncStore implements Store {
     }
   })
 
+  // Merged Notes + Plans stream (`?path=agenda`). `type` is -1 (all) or a NoteType.
+  agendaList = new PromisePageState({
+    function: async ({ page, size, type = -1 }: { page: number; size: number; type?: number }) => {
+      const wanted = Number(type);
+      return this.getFilteredNotes({
+        page,
+        size,
+        filterConfig: {
+          type: Number.isFinite(wanted) ? wanted : -1,
+          isArchived: false,
+          isRecycle: false
+        },
+        offlineFilter: (note: OfflineNote) => {
+          if (note.isArchived || note.isRecycle) return false;
+          return wanted === -1 || note.type === wanted;
+        }
+      });
+    }
+  })
+
   archivedList = new PromisePageState({
     function: async ({ page, size }) => {
       return this.getFilteredNotes({
@@ -515,11 +535,10 @@ export class PlanIncStore implements Store {
 
   async onBottom() {
     const currentPath = new URLSearchParams(window.location.search).get('path');
-    
-    if (currentPath === 'notes') {
-      await this.noteOnlyList.callNextPage({});
-    } else if (currentPath === 'todo') {
-      await this.todoList.callNextPage({});
+    const currentType = new URLSearchParams(window.location.search).get('type');
+
+    if (currentPath === 'agenda' || currentPath === 'notes' || currentPath === 'todo') {
+      await this.agendaList.callNextPage({ type: this.agendaTypeFromParam(currentPath === 'notes' ? 'note' : currentPath === 'todo' ? 'todo' : currentType) });
     } else if (currentPath === 'archived') {
       await this.archivedList.callNextPage({});
     } else if (currentPath === 'trash') {
@@ -529,6 +548,18 @@ export class PlanIncStore implements Store {
     } else {
       await this.planincList.callNextPage({});
     }
+  }
+
+  /** Maps `?type=` on the agenda stream to a NoteType, or -1 for all. */
+  agendaTypeFromParam(typeParam: string | null): number {
+    if (typeParam === 'planinc') return NoteType.PLANINC;
+    if (typeParam === 'note') return NoteType.NOTE;
+    if (typeParam === 'todo') return NoteType.TODO;
+    return -1;
+  }
+
+  resetAgendaList(typeParam: string | null) {
+    void this.agendaList.resetAndCall({ type: this.agendaTypeFromParam(typeParam) });
   }
 
   onMultiSelectNote(id: number) {
@@ -565,11 +596,10 @@ export class PlanIncStore implements Store {
     this.tagList.call()
 
     const currentPath = new URLSearchParams(window.location.search).get('path');
-    
-    if (currentPath === 'notes') {
-      this.noteOnlyList.resetAndCall({});
-    } else if (currentPath === 'todo') {
-      this.todoList.resetAndCall({});
+    const currentType = new URLSearchParams(window.location.search).get('type');
+
+    if (currentPath === 'agenda' || currentPath === 'notes' || currentPath === 'todo') {
+      this.resetAgendaList(currentPath === 'notes' ? 'note' : currentPath === 'todo' ? 'todo' : currentType);
     } else if (currentPath === 'archived') {
       this.archivedList.resetAndCall({});
     } else if (currentPath === 'trash') {
@@ -579,7 +609,7 @@ export class PlanIncStore implements Store {
     } else {
       this.planincList.resetAndCall({});
     }
-    
+
     this.config.call()
     this.dailyReviewNoteList.call()
   }
@@ -619,6 +649,7 @@ export class PlanIncStore implements Store {
       const searchText = searchParams.get('searchText') || this.searchText;
       const hasTodo = searchParams.get('hasTodo');
       const path = searchParams.get('path');
+      const typeParam = searchParams.get('type');
 
       this.noteListFilterConfig.type = NoteType.PLANINC
       this.noteTypeDefault = NoteType.PLANINC
@@ -637,20 +668,30 @@ export class PlanIncStore implements Store {
       this.curMultiSelectIds = [];
       this.isMultiSelectMode = false;
 
-      if (path == 'notes') {
-        this.noteListFilterConfig.type = NoteType.NOTE
-        this.noteOnlyList.resetAndCall({});
-      } else if (path == 'todo') {
-        this.noteListFilterConfig.type = NoteType.TODO
-        this.todoList.resetAndCall({});
-      } else if (path == 'all') {
+      // Legacy deep links land on the merged Agenda stream with a type filter.
+      const legacyAgendaPath =
+        path === 'notes' ? 'note' :
+        path === 'todo' ? 'todo' :
+        null;
+      const effectivePath = legacyAgendaPath ? 'agenda' : path;
+      const effectiveType = legacyAgendaPath ?? typeParam;
+
+      if (effectivePath == 'agenda') {
+        const agendaType = this.agendaTypeFromParam(effectiveType);
+        this.noteListFilterConfig.type = agendaType === -1 ? -1 : agendaType;
+        if (agendaType === NoteType.NOTE) this.noteTypeDefault = NoteType.NOTE;
+        else if (agendaType === NoteType.TODO) this.noteTypeDefault = NoteType.TODO;
+        else if (agendaType === NoteType.PLANINC) this.noteTypeDefault = NoteType.PLANINC;
+        else this.noteTypeDefault = NoteType.PLANINC;
+        this.resetAgendaList(effectiveType);
+      } else if (effectivePath == 'all') {
         this.noteListFilterConfig.type = -1
         this.noteList.resetAndCall({});
-      } else if (path == 'archived') {
+      } else if (effectivePath == 'archived') {
         this.noteListFilterConfig.type = -1
         this.noteListFilterConfig.isArchived = true
         this.archivedList.resetAndCall({});
-      } else if (path == 'trash') {
+      } else if (effectivePath == 'trash') {
         this.noteListFilterConfig.type = -1
         this.noteListFilterConfig.isRecycle = true
         this.trashList.resetAndCall({});

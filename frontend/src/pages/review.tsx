@@ -130,7 +130,7 @@ const App = observer(() => {
                         store.isPlanInc ?
                           <div className='flex items-center justify-start ml-auto'>
                             <Icon className='text-yellow-500' icon="basil:lightning-solid" width="12" height="12" />
-                            <div className='text-desc text-xs font-bold ml-1'>{t('planinc')}</div>
+                            <div className='text-desc text-xs font-bold ml-1'>{t('type-plan')}</div>
                           </div> :
                           <div className='flex items-center justify-start  ml-auto'>
                             <Icon className='text-blue-500' icon="solar:notes-minimalistic-bold-duotone" width="12" height="12" />

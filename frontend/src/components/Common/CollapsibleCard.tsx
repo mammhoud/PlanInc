@@ -92,13 +92,15 @@ export const CollapsibleCard = ({
       </div>
 
       <div className='flex min-w-0 items-center justify-between gap-2'>
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <Icon icon={icon} width="20" height="20" />
-          <div className="truncate font-bold">{title}</div>
+          <div className="min-w-0 flex-1 truncate font-bold text-[15px] sm:text-base break-words">{title}</div>
         </div>
         <Button
           size="icon-sm"
           variant="ghost"
+          aria-label={isCollapsed ? "Expand" : "Collapse"}
+          className="shrink-0 min-h-[44px] min-w-[44px] sm:min-h-8 sm:min-w-8"
           onClick={() => handleCollapse(!isCollapsed)}
         >
           <Icon

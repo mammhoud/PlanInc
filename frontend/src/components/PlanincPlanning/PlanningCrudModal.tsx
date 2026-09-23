@@ -31,6 +31,8 @@ type PlanningItem = {
   category?: string;
   tags?: string[];
   customFields?: Record<string, unknown>;
+  question?: string;
+  answer?: string;
 };
 
 export type PlanningFormValues = {
@@ -41,6 +43,8 @@ export type PlanningFormValues = {
   category: string;
   tags: string[];
   customFields: Record<string, unknown>;
+  question?: string;
+  answer?: string;
 };
 
 type CustomField = {
@@ -76,6 +80,8 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
   const [priority, setPriority] = useState<string>('medium');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
   const [customValues, setCustomValues] = useState<Record<string, unknown>>({});
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [error, setError] = useState('');
@@ -86,7 +92,10 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
     let cancelled = false;
     void api.planningFields.list.query({ kind })
       .then((fields) => { if (!cancelled) setCustomFields(fields as CustomField[]); })
-      .catch((cause) => console.error('Failed to load custom form fields', cause));
+      .catch((cause) => {
+        console.error('Failed to load custom form fields', cause);
+        setError((cause as Error)?.message || 'Failed to load custom fields');
+      });
     return () => { cancelled = true; };
   }, [isOpen, kind]);
 
@@ -98,6 +107,8 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
     setPriority(item?.priority ?? 'medium');
     setCategory(item?.category ?? '');
     setTags((item?.tags ?? []).join(', '));
+    setQuestion(item?.question ?? '');
+    setAnswer(item?.answer ?? '');
     setCustomValues({ ...(item?.customFields ?? {}) });
     setError('');
   }, [isOpen, item, kind]);
@@ -108,6 +119,17 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
 
   const setCustomValue = (key: string, value: unknown) => {
     setCustomValues((current) => ({ ...current, [key]: value }));
+  };
+
+  // Category changes mirror into tags: drop the previous category tag, add the new one.
+  const handleCategoryChange = (next: string) => {
+    const previous = category.trim();
+    const trimmed = next.trim();
+    const list = tags.split(',').map((tag) => tag.trim()).filter(Boolean);
+    const withoutPrevious = previous ? list.filter((tag) => tag !== previous) : list;
+    const merged = trimmed && !withoutPrevious.includes(trimmed) ? [...withoutPrevious, trimmed] : withoutPrevious;
+    setCategory(next);
+    setTags(merged.join(', '));
   };
 
   const save = async () => {
@@ -133,6 +155,7 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
         category: category.trim(),
         tags: [...new Set(tags.split(',').map((tag) => tag.trim()).filter(Boolean))],
         customFields: customValues,
+        ...(kind === 'study' ? { question: question.trim(), answer: answer.trim() } : {}),
       }, item?.id);
       onClose();
     } catch (cause) {
@@ -258,14 +281,28 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => { if (!o) close(); }}>
-      <DialogContent className="max-w-xl" onPointerDownOutside={(e) => { if (isSaving) e.preventDefault(); }}>
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl max-h-[90dvh] overflow-y-auto" onPointerDownOutside={(e) => { if (isSaving) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle>{item ? t('edit') : kind === 'ticket' ? t('create-ticket') : t('add-study-item')}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3">
           <div className="space-y-1">
-            <Label>{kind === 'ticket' ? t('title') : t('study-title')}</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSaving} />
+            <Label htmlFor="planning-title">{kind === 'ticket' ? t('title') : t('study-title')}</Label>
+            <Input
+              id="planning-title"
+              autoFocus
+              value={title}
+              maxLength={200}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (title.trim() && !isSaving) void save();
+                }
+              }}
+              disabled={isSaving}
+              aria-invalid={!title.trim() ? true : undefined}
+            />
           </div>
           {kind === 'ticket' && (
             <div className="space-y-1">
@@ -301,12 +338,38 @@ export function PlanningCrudModal({ kind, isOpen, item, onClose, onSave }: Plann
           </div>
           <div className="space-y-1">
             <Label>{t('category')}</Label>
-            <Input placeholder={t('category-placeholder')} value={category} onChange={(e) => setCategory(e.target.value)} disabled={isSaving} />
+            <Input placeholder={t('category-placeholder')} value={category} onChange={(e) => handleCategoryChange(e.target.value)} disabled={isSaving} />
           </div>
           <div className="space-y-1">
-            <Label>{t('tags')}</Label>
-            <Input placeholder={t('tags-placeholder')} value={tags} onChange={(e) => setTags(e.target.value)} disabled={isSaving} />
+            <Label htmlFor="planning-tags">{t('tags')}</Label>
+            <Input id="planning-tags" placeholder={t('tags-placeholder')} value={tags} onChange={(e) => setTags(e.target.value)} disabled={isSaving} />
           </div>
+          {kind === 'study' && (
+            <>
+              <div className="space-y-1">
+                <Label htmlFor="planning-question">{t('question')}</Label>
+                <Textarea
+                  id="planning-question"
+                  placeholder={t('question-placeholder')}
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  disabled={isSaving}
+                  maxLength={20000}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="planning-answer">{t('answer')}</Label>
+                <Textarea
+                  id="planning-answer"
+                  placeholder={t('answer-placeholder')}
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  disabled={isSaving}
+                  maxLength={20000}
+                />
+              </div>
+            </>
+          )}
           {customFields.length > 0 && (
             <div className="mt-1 flex flex-col gap-3 border-t border-border pt-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('custom-fields')}</p>

@@ -89,7 +89,7 @@ const KIND_BG: Record<GraphKind, string> = {
 
 const KIND_HREF: Record<GraphKind, string> = {
   root: '/graph',
-  note: '/?path=notes',
+  note: '/?path=agenda&type=note',
   ticket: '/tickets',
   study: '/study',
   resource: '/resources',

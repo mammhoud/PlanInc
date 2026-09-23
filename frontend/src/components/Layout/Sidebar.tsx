@@ -1,17 +1,18 @@
 import { Icon } from '@/components/Common/Iconify/icons';
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { RootStore } from '@/store';
 import { BaseStore } from '@/store/baseStore';
 import { SideBarItem } from './index';
 import { useTranslation } from 'react-i18next';
 import { usePlatform } from '@/platform/PlatformProvider';
 import { UserAvatarDropdown } from '../Common/UserAvatarDropdown';
-import { TagListPanel } from '../Common/TagListPanel';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PlanIncStore } from '@/store/planincStore';
 import { useLocation, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { eventBus } from '@/lib/event';
+import { api } from '@/lib/trpc';
 
 interface SidebarProps {
   onItemClick?: () => void;
@@ -29,6 +30,42 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isHovering, setIsHovering] = useState(false);
+  const [navQuery, setNavQuery] = useState('');
+  const [brandLogo, setBrandLogo] = useState('');
+  const [collapsedLanes, setCollapsedLanes] = useState<Record<string, boolean>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sidebar-collapsed-lanes') ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleLane = (lane: string) => {
+    setCollapsedLanes((prev) => {
+      const next = { ...prev, [lane]: !prev[lane] };
+      try {
+        localStorage.setItem('sidebar-collapsed-lanes', JSON.stringify(next));
+      } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const branding = await api.branding.get.query();
+        if (!cancelled && branding?.url) setBrandLogo(branding.url);
+      } catch { /* branding is optional */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const filteredRouterList = useMemo(() => {
+    const q = navQuery.trim().toLowerCase();
+    if (!q) return base.routerList;
+    return base.routerList.filter((i) => i.title.toLowerCase().includes(q) || (i.lane ?? '').toLowerCase().includes(q));
+  }, [base.routerList, navQuery, t]);
 
   const routerInfo = {
     pathname: location.pathname,
@@ -64,6 +101,21 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
 
       <div className={`flex items-center ${base.isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
         <div className={`flex w-full ${base.isSidebarCollapsed ? 'flex-col-reverse gap-2 justify-center items-center mr-2 mb-2' : 'items-center '}`}>
+          {/* Brand mark: custom workspace logo wins, canonical amber mark otherwise */}
+          <Link
+            to="/dashboard"
+            onClick={() => onItemClick?.()}
+            aria-label="PlanInc home"
+            className={`flex shrink-0 items-center gap-2 ${base.isSidebarCollapsed ? 'justify-center' : ''}`}
+          >
+            {base.isSidebarCollapsed ? (
+              <img src={brandLogo || '/planinc-mark.svg'} alt="PlanInc" className="h-8 w-8 rounded-lg object-contain" />
+            ) : (
+              brandLogo
+                ? <img src={brandLogo} alt="PlanInc" className="h-8 max-w-[140px] rounded-lg object-contain" />
+                : <img src="/planinc-lockup-h.svg" alt="PlanInc" className="h-7 w-auto" />
+            )}
+          </Link>
           {/* Mobile: Display avatar dropdown at the top */}
           <div className={`${base.isSidebarCollapsed ? 'w-full flex justify-center' : ''}`}>
             <UserAvatarDropdown onItemClick={onItemClick} collapsed={base.isSidebarCollapsed} showOverlay={isHovering} />
@@ -100,19 +152,42 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
       </div>
 
       <div className="-mr-[16px] mt-[-5px] h-full max-h-full overflow-y-auto pr-6 hide-scrollbar">
+        {!base.isSidebarCollapsed && (
+          <div className="sticky top-0 z-10 bg-background pb-2 pt-1">
+            <Input
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder={`${t('search')}…`}
+              aria-label="Filter navigation"
+              className="h-9"
+            />
+          </div>
+        )}
         <div className={`flex flex-col gap-1 mt-4 font-semibold ${base.isSidebarCollapsed ? 'items-center gap-4' : ''}`}>
           {base.laneOrder.map((lane) => {
-            const items = base.routerList.filter((i) => !i.hiddenSidebar && (i.lane ?? 'work') === lane);
+            const items = filteredRouterList.filter((i) => !i.hiddenSidebar && (i.lane ?? 'planning') === lane);
             if (!items.length) return null;
+            const collapsed = !!collapsedLanes[lane];
             return (
               <div key={lane} className="flex flex-col gap-1">
-                {!base.isSidebarCollapsed && <div className="px-2 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-foreground-500">{t(lane)}</div>}
-                {items.map((i) => (
+                {!base.isSidebarCollapsed && (
+                  <button
+                    type="button"
+                    onClick={() => toggleLane(lane)}
+                    aria-expanded={!collapsed}
+                    className="flex min-h-[32px] items-center gap-1 px-2 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-foreground-500 hover:text-foreground"
+                  >
+                    <Icon icon={collapsed ? 'gravity-ui:caret-right' : 'gravity-ui:caret-down'} width="14" height="14" />
+                    {t(lane)}
+                  </button>
+                )}
+                {!collapsed && items.map((i) => (
                   <Link
                     key={i.title}
                     to={i.href}
                     onClick={() => { base.currentRouter = i; onItemClick?.(); }}
-                    className={`flex items-center gap-1 group ${SideBarItem} ${base.isSideBarActive(routerInfo, i) ? '!bg-primary !text-primary-foreground' : ''}`}
+                    aria-current={base.isSideBarActive(routerInfo, i) ? 'page' : undefined}
+                    className={`flex min-h-[44px] items-center gap-1 group ${SideBarItem} ${base.isSideBarActive(routerInfo, i) ? '!bg-primary !text-primary-foreground' : ''}`}
                   >
                     <Icon className={`${base.isSidebarCollapsed ? 'mx-auto' : ''}`} icon={i.icon} width="20" height="20" />
                     {!base.isSidebarCollapsed && <span className="!transition-all">{t(i.title)}</span>}
@@ -121,7 +196,6 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
               </div>
             );
           })}
-          {!base.isSidebarCollapsed && planincStore.tagList.value?.listTags.length != 0 && planincStore.tagList.value?.listTags && <TagListPanel />}
         </div>
       </div>
 

@@ -60,6 +60,13 @@ export const ScrollableTabs = ({ items, selectedKey, onSelectionChange, color = 
     };
   }, []);
 
+  // Keep the active tab visible when selection changes (phone tab bar).
+  useEffect(() => {
+    const tabList = containerRef.current?.querySelector('[role="tablist"]');
+    const active = tabList?.querySelector<HTMLElement>(`[data-state="active"]`);
+    active?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  }, [selectedKey]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (!containerRef.current) return;
     const tabList = containerRef.current.querySelector('[role="tablist"]');
@@ -82,14 +89,14 @@ export const ScrollableTabs = ({ items, selectedKey, onSelectionChange, color = 
             <AvatarImage src={item.avatar} />
             <AvatarFallback className="text-[10px]" />
           </Avatar>
-          <span className="text-sm truncate">{titleText}</span>
+          <span className="text-[13px] sm:text-sm truncate">{titleText}</span>
         </div>
       );
     } else if (item.icon) {
       return (
         <div className="flex min-w-0 items-center space-x-1.5 sm:space-x-2">
           <Icon icon={item.icon} width="18" />
-          <span className="text-sm truncate">{titleText}</span>
+          <span className="text-[13px] sm:text-sm truncate">{titleText}</span>
         </div>
       );
     } else {
@@ -98,9 +105,9 @@ export const ScrollableTabs = ({ items, selectedKey, onSelectionChange, color = 
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative pb-[env(safe-area-inset-bottom,0px)]" ref={containerRef}>
       {showLeftArrow && (
-        <Button variant="ghost" size="icon-sm" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/60 backdrop-blur-sm" onClick={() => scroll('left')}>
+        <Button variant="ghost" size="icon-sm" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/60 backdrop-blur-sm min-h-[44px] min-w-[44px]" onClick={() => scroll('left')} aria-label="Scroll tabs left">
           <Icon icon="tabler:chevron-left" width="18" />
         </Button>
       )}
@@ -117,7 +124,7 @@ export const ScrollableTabs = ({ items, selectedKey, onSelectionChange, color = 
             <TabsTrigger
               key={item.key}
               value={item.key}
-              className={cn('max-w-fit min-h-[var(--pi-tap-target,40px)] px-2.5 sm:px-3 h-10 rounded-xl text-sm whitespace-nowrap', classNames.tab)}
+              className={cn('max-w-fit min-h-[44px] sm:min-h-[var(--pi-tap-target,40px)] px-2 sm:px-3 h-11 sm:h-10 rounded-xl text-[13px] sm:text-sm whitespace-nowrap', classNames.tab)}
             >
               {renderTabTitle(item)}
             </TabsTrigger>
@@ -125,7 +132,7 @@ export const ScrollableTabs = ({ items, selectedKey, onSelectionChange, color = 
         </TabsList>
       </Tabs>
       {showRightArrow && (
-        <Button variant="ghost" size="icon-sm" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/60 backdrop-blur-sm" onClick={() => scroll('right')}>
+        <Button variant="ghost" size="icon-sm" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/60 backdrop-blur-sm min-h-[44px] min-w-[44px]" onClick={() => scroll('right')} aria-label="Scroll tabs right">
           <Icon icon="tabler:chevron-right" width="18" />
         </Button>
       )}

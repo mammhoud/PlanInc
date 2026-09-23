@@ -76,7 +76,7 @@ export const ConvertTypeButton = ({
           <div className="flex items-center justify-start cursor-pointer" onClick={handleClick}>
             <Icon className="text-yellow-500" icon="basil:lightning-solid" width="12" height="12" />
             <div className="text-desc text-xs font-bold ml-1 select-none">
-              {t('planinc')}
+              {t('type-plan')}
               {planincItem.isBlog ? ` · ${t('article')}` : ''}
               {planincItem.isArchived ? ` · ${t('archived')}` : ''}
               {planincItem.isOffline ? ` · ${t('offline')}` : ''}

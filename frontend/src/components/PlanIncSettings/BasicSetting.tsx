@@ -90,7 +90,7 @@ export const BasicSetting = observer(() => {
       <Item
         leftContent={<>{t('name')}</>}
         rightContent={
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center">
             <div className="text-desc">{user.name}</div>
             <div className="relative group">
               <UploadFileWrapper
@@ -113,7 +113,7 @@ export const BasicSetting = observer(() => {
                     className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
                   />
                 ) : (
-                  <img src="/logo.png" width={30} alt="logo" />
+                  <img src="/planinc-mark.svg" width={30} alt="logo" />
                 )}
               </UploadFileWrapper>
             </div>
@@ -216,13 +216,13 @@ export const BasicSetting = observer(() => {
                   {t('generate-low-permission-token')}
                 </div>
               </TooltipTrigger>
-              <TooltipContent><div className="text-sm max-w-[300px]">{t('low-permission-token-desc')}</div></TooltipContent>
+              <TooltipContent><div className="text-sm max-w-[calc(100vw-3rem)] sm:max-w-[300px] break-words">{t('low-permission-token-desc')}</div></TooltipContent>
             </Tooltip>
           </div>
         }
         rightContent={
-          <div className="flex gap-2 items-center">
-            <div className="relative w-[150px] md:w-[300px]">
+          <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+            <div className="relative w-full sm:w-[300px] min-w-0">
               <Input
                 disabled
                 className="w-full pr-10"
@@ -274,7 +274,7 @@ export const BasicSetting = observer(() => {
             >
               <Item
                 leftContent={
-                  <div className="w-full flex-1 relative">
+                  <div className="w-full flex-1 relative min-w-0 overflow-x-auto">
                     <Copy size={20} content={CODE} className="absolute top-4 right-2" />
                     <MarkdownRender content={CODE_SNIPPET} />
                   </div>
@@ -314,7 +314,7 @@ export const BasicSetting = observer(() => {
                   value: store.webhookEndpoint
                 }))
               }}
-              className="w-[150px] md:w-[300px]"
+              className="w-full sm:w-[300px] break-all"
             />
           </>} />
       }

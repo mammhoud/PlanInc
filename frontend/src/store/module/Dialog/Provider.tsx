@@ -14,7 +14,7 @@ const CloseButton = ({ onClose }: { onClose: () => void }) => (
   <motion.div
     onClick={onClose}
     className={`cursor-pointer absolute
-    md:top-[-12px] md:right-[-12px] top-[-20px] right-[calc(50%-17.5px)] bg-background border-2 border-border z-[2002] text-foreground p-2 rounded-full
+    top-2 right-2 bg-background border-2 border-border z-[2002] text-foreground p-2 rounded-full
     !w-[35px] !h-[35px] flex items-center justify-center shadow-lg`}
     whileTap={{
       scale: 0.85,
@@ -210,7 +210,7 @@ const Dialog = observer(() => {
           onlyContent ?
             <DialogContent
               style={{ zIndex: 2000 }}
-              className={cn("max-h-[85vh] overflow-y-auto overflow-visible relative modal-content", className, transparent && 'bg-transparent border-none shadow-none')}
+              className={cn(dialogMaxWidth, "max-h-[85vh] overflow-y-auto overflow-visible relative modal-content", className, transparent && 'bg-transparent border-none shadow-none')}
               onEscapeKeyDown={handleInteractOutside}
               onPointerDownOutside={handleInteractOutside}
             >

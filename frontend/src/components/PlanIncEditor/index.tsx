@@ -154,12 +154,16 @@ export const PlanIncEditor = observer(({ mode, onSended, onHeightChange, isInDia
           await planinc.upsertNote.call({ type: noteType, references, refresh: false, content: planinc.noteContent, attachments: files.map(i => { return { name: i.name, path: i.uploadPath, size: i.size, type: i.type } }), metadata })
           planinc.createAttachmentsStorage.clear()
           planinc.createContentStorage.clear()
-          if (planinc.noteTypeDefault == NoteType.NOTE && searchParams.get('path') != 'notes') {
-            await navigate('/?path=notes')
+          if (planinc.noteTypeDefault == NoteType.NOTE && !['agenda', 'notes'].includes(searchParams.get('path') ?? '')) {
+            await navigate('/?path=agenda&type=note')
+            planinc.forceQuery++
+          }
+          if (planinc.noteTypeDefault == NoteType.TODO && searchParams.get('path') != 'agenda') {
+            await navigate('/?path=agenda&type=todo')
             planinc.forceQuery++
           }
           if (planinc.noteTypeDefault == NoteType.PLANINC && location.pathname != '/') {
-            await navigate('/')
+            await navigate('/?path=agenda&type=planinc')
             planinc.forceQuery++
           }
           planinc.updateTicker++

@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Icon } from '@/components/Common/Iconify/icons';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ import { observer } from 'mobx-react-lite';
 import { _ } from '@/lib/lodash';
 import { cn } from '@/lib/utils';
 import { Note, ResourceType, Tag } from '@/lib/apiTypes';
+import { api } from '@/lib/trpc';
 import { ScrollArea } from '../Common/ScrollArea';
 import { ResourceItemPreview } from '@/components/PlanIncResource/ResourceItem';
 import { allSettings } from '@/pages/settings';
@@ -94,6 +96,7 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
       resources: [] as ResourceType[],
       settings: [] as any[],
       tags: [] as Tag[],
+      study: [] as any[],
     },
 
     // Methods
@@ -112,7 +115,7 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
         this.isSearching = true;
         debouncedSearch.current(value);
       } else if (!value) {
-        this.searchResults = { notes: [], resources: [], settings: [], tags: [] };
+        this.searchResults = { notes: [], resources: [], settings: [], tags: [], study: [] };
         clearSearchState(planincStore);
         clearSearchFiltersFromUrl();
         planincStore.noteList.resetAndCall({ page: 1, size: 20 });
@@ -140,7 +143,8 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
         this.searchResults.notes.length > 0 ||
         this.searchResults.resources.length > 0 ||
         this.searchResults.settings.length > 0 ||
-        this.searchResults.tags.length > 0
+        this.searchResults.tags.length > 0 ||
+        this.searchResults.study.length > 0
       );
     },
   }));
@@ -163,7 +167,7 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
   const debouncedSearch = useRef(
     _.debounce(async (query) => {
       if (!query) {
-        store.searchResults = { notes: [], resources: [], settings: [], tags: [] };
+        store.searchResults = { notes: [], resources: [], settings: [], tags: [], study: [] };
         store.isSearching = false;
         return;
       }
@@ -200,12 +204,21 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
           .filter((setting) => setting.key !== 'all')
           .slice(0, 5);
 
+        // Study items (topics + question cards) — student-facing search surface.
+        let study: any[] = [];
+        try {
+          study = await api.study.list.query({ searchText: query.replace(/^[@#]/, '') });
+        } catch (cause) {
+          console.error('Study search error:', cause);
+        }
+
         // 5. Update search results (filter out .folder placeholder files)
         store.searchResults = {
           notes: notes || [],
           resources: (resources || []).filter(r => r.name !== '.folder'),
           settings: matchingSettings,
           tags: [],
+          study: (study || []).slice(0, 8),
         };
 
         planincStore.forceQuery++
@@ -246,6 +259,28 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
     navigate(`/settings?section=${settingKey}`);
     onOpenChange(false);
   };
+
+  const navigateToStudy = () => {
+    navigate('/study');
+    onOpenChange(false);
+  };
+
+  const renderStudyItem = (item: any) => (
+    <div key={item.id} className="flex gap-2 items-center p-2 hover:bg-default-100 rounded-md cursor-pointer transition-colors" onClick={navigateToStudy}>
+      <div className="p-2 rounded-md bg-primary/10 shrink-0">
+        <Icon icon="hugeicons:book-edit" className="text-primary" width="16" height="16" />
+      </div>
+      <div className="flex-1 overflow-hidden min-w-0">
+        <div className="font-medium text-sm truncate">
+          <HighlightText text={item.title || item.question || ''} searchTerm={store.searchQuery} />
+        </div>
+        <div className="text-xs text-default-500 truncate">
+          {item.question || item.description || t('study')}
+        </div>
+      </div>
+      <Badge variant="secondary" className="shrink-0 text-xs">{t(item.status)}</Badge>
+    </div>
+  );
 
   const handleAiQuestion = () => {
     if (!store.searchQuery) return;
@@ -392,6 +427,20 @@ export const GlobalSearch = observer(({ isOpen, onOpenChange }: GlobalSearchProp
                           </div>
                         </div>
                         <div className="flex flex-col">{store.searchResults.notes.map(renderNoteItem)}</div>
+                      </div>
+                    )}
+
+                    {/* Study section — topics and question cards */}
+                    {store.searchResults.study.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <Separator className="my-2" />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <Icon icon="hugeicons:book-edit" className="h-4 w-4 mr-2 text-primary" />
+                            <h3 className="text-sm font-medium text-default-700">{t('study')}</h3>
+                          </div>
+                        </div>
+                        <div className="flex flex-col">{store.searchResults.study.map(renderStudyItem)}</div>
                       </div>
                     )}
 

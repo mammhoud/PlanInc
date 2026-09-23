@@ -7,9 +7,10 @@ interface LoadingAndEmptyProps {
   emptyMessage?: string;
   className?: string;
   isAbsolute?: boolean;
+  action?: React.ReactNode;
 }
 
-export const LoadingAndEmpty = ({ isLoading, isEmpty, emptyMessage, className, isAbsolute = true }: LoadingAndEmptyProps) => {
+export const LoadingAndEmpty = ({ isLoading, isEmpty, emptyMessage, className, isAbsolute = true, action }: LoadingAndEmptyProps) => {
   const { t } = useTranslation();
 
   return (
@@ -21,11 +22,14 @@ export const LoadingAndEmpty = ({ isLoading, isEmpty, emptyMessage, className, i
         height="40"
       />
       {isEmpty && (
-        <div className={`${isAbsolute ? 'absolute top-[40%]' : ''} select-none text-ignore flex items-center justify-center gap-2 w-full mt-2 md:mt-10`}>
-          <Icon icon="line-md:coffee-half-empty-twotone-loop" width="24" height="24" />
-          <div className='text-md text-ignore font-bold'>
-            {emptyMessage || t('no-data-here-well-then-time-to-write-a-note')}
+        <div className={`${isAbsolute ? 'absolute top-[40%]' : ''} select-none text-ignore flex flex-col items-center justify-center gap-2 w-full mt-2 md:mt-10 px-4 text-center`}>
+          <div className="flex items-center justify-center gap-2">
+            <Icon icon="line-md:coffee-half-empty-twotone-loop" width="24" height="24" />
+            <div className='text-md text-ignore font-bold break-words'>
+              {emptyMessage || t('no-data-here-well-then-time-to-write-a-note')}
+            </div>
           </div>
+          {action && <div className="mt-1 flex flex-wrap items-center justify-center gap-2">{action}</div>}
         </div>
       )}
     </div>

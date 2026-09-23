@@ -28,6 +28,7 @@ import { useLocation } from "react-router-dom";
 import { ShowCommentDialog } from "../PlanIncCard/commentButton";
 import { FocusEditorFixMobile } from "@/components/Common/Editor/editorUtils";
 import { useSideNav } from '@/platform/PlatformProvider';
+import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
 
 
 export const ShowEditTimeModel = (showExpired: boolean = false) => {
@@ -221,10 +222,8 @@ const handleSelectAll = () => {
   const currentPath = new URLSearchParams(window.location.search).get('path');
   let items: Array<{ id?: number | null }> | undefined;
 
-  if (currentPath === 'notes') {
-    items = planinc.noteOnlyList.value;
-  } else if (currentPath === 'todo') {
-    items = planinc.todoList.value;
+  if (currentPath === 'agenda' || currentPath === 'notes' || currentPath === 'todo') {
+    items = planinc.agendaList.value;
   } else if (currentPath === 'archived') {
     items = planinc.archivedList.value;
   } else if (currentPath === 'trash') {
@@ -259,7 +258,7 @@ const handlePublic = () => {
     title: i18n.t('share'),
     isDismissable: false,
     content: <PlanIncShareDialog defaultSettings={{
-      shareUrl: planinc.curSelectedNote?.shareEncryptedUrl ? window.location.origin + '/share/' + planinc.curSelectedNote?.shareEncryptedUrl : undefined,
+      shareUrl: planinc.curSelectedNote?.shareEncryptedUrl ? getPlanIncEndpoint(`share/${planinc.curSelectedNote.shareEncryptedUrl}`) : undefined,
       expiryDate: planinc.curSelectedNote?.shareExpiryDate ?? undefined,
       password: planinc.curSelectedNote?.sharePassword ?? '',
       isShare: planinc.curSelectedNote?.isShare
@@ -397,7 +396,7 @@ export const ConvertItem = observer(() => {
   return <div className="flex items-start gap-2">
     <Icon icon="ri:exchange-2-line" width="20" height="20" />
     <div>{t('convert-to')} {planinc.curSelectedNote?.type == NoteType.NOTE ?
-      <span className='text-yellow-500'>{t('planinc')}</span> : <span className='text-blue-500'>{t('note')}</span>}</div>
+      <span className='text-yellow-500'>{t('type-plan')}</span> : <span className='text-blue-500'>{t('type-note')}</span>}</div>
   </div>
 })
 
@@ -582,86 +581,87 @@ export const LeftCickMenu = observer(({ onTrigger, className }: { onTrigger: () 
     setIsDetailPage(location.pathname.includes('/detail'))
   }, [location.pathname])
 
-  const disabledKeys = isDetailPage ? ['MutiSelectItem'] : []
-
-  return <Dropdown onOpenChange={e => onTrigger()}>
-    <DropdownTrigger >
-      <div onClick={onTrigger} className={`${className} text-desc hover:text-primary cursor-pointer hover:scale-1.3 !transition-all`}>
-        <Icon icon="fluent:more-vertical-16-regular" width="16" height="16" />
-      </div>
-    </DropdownTrigger>
-    <DropdownMenu aria-label="Static Actions" disabledKeys={disabledKeys}>
-      <DropdownItem key="EditItem" onPress={() => handleEdit(isDetailPage)}><EditItem /></DropdownItem>
-      {!isDetailPage ? (
-        <>
-          <DropdownItem key="MutiSelectItem" onPress={() => handleMultiSelect()}>
-            <MutiSelectItem />
-          </DropdownItem>
-          <DropdownItem key="SelectAllItem" onPress={() => handleSelectAll()}>
-            <SelectAllItem />
-          </DropdownItem>
-        </>
-      ) : null}
-      <DropdownItem key="EditTimeItem" onPress={() => ShowEditTimeModel()}> <EditTimeItem /></DropdownItem>
-      <DropdownItem key="ConvertItem" onPress={ConvertItemFunction}> <ConvertItem /></DropdownItem>
-      <DropdownItem key="TopItem" onPress={handleTop}> <TopItem />  </DropdownItem>
-      <DropdownItem key="ArchivedItem" onPress={handleArchived}>
-        <ArchivedItem />
-      </DropdownItem>
-
-      {!planinc.curSelectedNote?.isRecycle ? (
-        <DropdownItem key="ShareItem" onPress={handlePublic}> 
-          <PublicItem />  
-        </DropdownItem>
-      ) : <></>}
-
-      {!isPc ? (
-        <DropdownItem key="CommentItem" onPress={handleComment}>
-          <CommentItem />
-        </DropdownItem>
-      ) : <></>}
-
-      {planinc.config.value?.mainModelId ? (
-        <DropdownItem key="AITagItem" onPress={handleAITag}>
-          <AITagItem />
-        </DropdownItem>
-      ) : <></>}
-
-      {planinc.config.value?.mainModelId ? (
-        <DropdownItem key="RelatedNotesItem" onPress={handleRelatedNotes}>
-          <RelatedNotesItem />
-        </DropdownItem>
-      ) : <></>}
-
-      {
-        pluginApi.customRightClickMenus.length > 0 ?
+  return (
+    // shadcn/Radix dropdown (HeroUI `Dropdown`/`DropdownItem` were undefined here
+    // and the card header menu threw at render).
+    <DropdownMenu onOpenChange={() => onTrigger()}>
+      <DropdownMenuTrigger asChild>
+        <div onClick={onTrigger} className={`${className} text-desc hover:text-primary cursor-pointer hover:scale-1.3 !transition-all`}>
+          <Icon icon="fluent:more-vertical-16-regular" width="16" height="16" />
+        </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" aria-label="Static Actions">
+        <DropdownMenuItem disabled={isDetailPage} onSelect={() => handleEdit(isDetailPage)}>
+          <EditItem />
+        </DropdownMenuItem>
+        {!isDetailPage ? (
           <>
-            {
-              pluginApi.customRightClickMenus.map((menu) => (
-                <DropdownItem key={menu.name} onPress={() => menu.onClick(planinc.curSelectedNote!)}>
-                  <div className="flex items-start gap-2">
-                    {menu.icon && <Icon icon={menu.icon} width="20" height="20" />}
-                    <div>{menu.label}</div>
-                  </div>
-                </DropdownItem>
-              ))
-            }
-          </> :
-          <></>
-      }
+            <DropdownMenuItem onSelect={() => handleMultiSelect()}>
+              <MutiSelectItem />
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => handleSelectAll()}>
+              <SelectAllItem />
+            </DropdownMenuItem>
+          </>
+        ) : null}
+        <DropdownMenuItem onSelect={() => ShowEditTimeModel()}>
+          <EditTimeItem />
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={ConvertItemFunction}>
+          <ConvertItem />
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={handleTop}>
+          <TopItem />
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={handleArchived}>
+          <ArchivedItem />
+        </DropdownMenuItem>
 
-      {!planinc.curSelectedNote?.isRecycle ? (
-        <DropdownItem key="TrashItem" onPress={handleTrash}>
-          <TrashItem />
-        </DropdownItem>
-      ) : <></>}
+        {!planinc.curSelectedNote?.isRecycle ? (
+          <DropdownMenuItem onSelect={handlePublic}>
+            <PublicItem />
+          </DropdownMenuItem>
+        ) : null}
 
-      {planinc.curSelectedNote?.isRecycle ? (
-        <DropdownItem key="DeleteItem" className="text-danger" onPress={handleDelete}>
-          <DeleteItem />
-        </DropdownItem>
-      ) : <></>}
+        {!isPc ? (
+          <DropdownMenuItem onSelect={handleComment}>
+            <CommentItem />
+          </DropdownMenuItem>
+        ) : null}
 
+        {planinc.config.value?.mainModelId ? (
+          <DropdownMenuItem onSelect={handleAITag}>
+            <AITagItem />
+          </DropdownMenuItem>
+        ) : null}
+
+        {planinc.config.value?.mainModelId ? (
+          <DropdownMenuItem onSelect={handleRelatedNotes}>
+            <RelatedNotesItem />
+          </DropdownMenuItem>
+        ) : null}
+
+        {pluginApi.customRightClickMenus.map((menu) => (
+          <DropdownMenuItem key={menu.name} onSelect={() => menu.onClick(planinc.curSelectedNote!)}>
+            <div className="flex items-start gap-2">
+              {menu.icon && <Icon icon={menu.icon} width="20" height="20" />}
+              <div>{menu.label}</div>
+            </div>
+          </DropdownMenuItem>
+        ))}
+
+        {!planinc.curSelectedNote?.isRecycle ? (
+          <DropdownMenuItem onSelect={handleTrash}>
+            <TrashItem />
+          </DropdownMenuItem>
+        ) : null}
+
+        {planinc.curSelectedNote?.isRecycle ? (
+          <DropdownMenuItem className="text-destructive" onSelect={() => handleDelete()}>
+            <DeleteItem />
+          </DropdownMenuItem>
+        ) : null}
+      </DropdownMenuContent>
     </DropdownMenu>
-  </Dropdown>
+  );
 })

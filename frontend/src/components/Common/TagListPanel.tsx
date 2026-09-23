@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
 import { useTheme } from "next-themes";
 import { ShowUpdateTagDialog } from "./UpdateTagPop";
+import { showTipsDialog } from "./TipsDialog";
 import { api } from "@/lib/trpc";
 import { PromiseCall } from "@/store/standard/PromiseState";
 import { BaseStore } from "@/store/baseStore";
@@ -95,18 +96,41 @@ export const TagListPanel = observer(() => {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const [tagQuery, setTagQuery] = useState('');
   const isSelected = (id) => {
     return planinc.noteListFilterConfig.tagId == id && searchParams.get('path') == 'all'
   }
+  const filterTags = (tags: any[], q: string): any[] => {
+    if (!q) return tags ?? [];
+    const lower = q.toLowerCase();
+    return (tags ?? [])
+      .map((tag) => {
+        const children = tag.children ? filterTags(tag.children, q) : [];
+        const match = String(tag.name ?? '').toLowerCase().includes(lower);
+        if (match || children.length) return { ...tag, children };
+        return null;
+      })
+      .filter(Boolean);
+  };
+  const visibleTags = filterTags(planinc.tagList.value?.listTags ?? [], tagQuery.trim());
   useEffect(() => { }, [planinc.noteListFilterConfig.tagId])
   return (
     <>
       <div className="ml-2 my-2 text-xs font-bold text-primary">{t('total-tags')}</div>
+      <div className="mb-2 px-1">
+        <Input
+          value={tagQuery}
+          onChange={(e) => setTagQuery(e.target.value)}
+          placeholder={`${t('filter-by-tag')}…`}
+          aria-label="Filter tags"
+          className="h-9"
+        />
+      </div>
       <TreeView
         className="mb-4"
         data={flattenTree({
           name: "",
-          children: planinc.tagList.value?.listTags,
+          children: visibleTags,
         })}
         aria-label="directory tree"
         togglableSelect
@@ -133,13 +157,13 @@ export const TagListPanel = observer(() => {
             >
               {isBranch ? (
                 <div className="flex items-center justify-center h-[24px]">
-                  <div className="flex items-center justify-center group-hover:opacity-100 opacity-0 w-0 h-0 group-hover:w-[24px] group-hover:h-[24px] !transition-all" >
+                  <div className="flex items-center justify-center focus-within:opacity-100 focus-visible:opacity-100 group-hover:opacity-100 opacity-0 w-0 h-0 focus-within:w-[24px] focus-within:h-[24px] group-hover:w-[24px] group-hover:h-[24px] !transition-all" >
                     {isExpanded ?
                       <Icon icon="gravity-ui:caret-down" className="!transition-all" width="20" height="20" />
                       : <Icon icon="gravity-ui:caret-right" className="!transition-all" width="20" height="20" />
                     }
                   </div>
-                  <div className="group-hover:opacity-0 opacity-100 w-[24px] group-hover:w-0 !transition-all">
+                  <div className="focus-within:opacity-0 group-hover:opacity-0 opacity-100 w-[24px] group-hover:w-0 !transition-all">
                     {
                       element.metadata?.icon ? <Emoji icon={element.metadata?.icon as string} />
                         : <Icon icon="mingcute:hashtag-line" width="20" height="20" />
@@ -160,7 +184,7 @@ export const TagListPanel = observer(() => {
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="ml-auto group-hover:opacity-100 opacity-0 !transition-all group-hover:translate-x-0 translate-x-2 cursor-pointer">
+                  <div className="ml-auto min-h-[32px] min-w-[32px] flex items-center justify-center focus-visible:opacity-100 focus-within:opacity-100 group-hover:opacity-100 opacity-0 !transition-all group-hover:translate-x-0 translate-x-2 cursor-pointer" role="button" tabIndex={0} aria-label="Tag actions">
                     <Icon icon="ri:more-fill" width="20" height="20" />
                   </div>
                 </DropdownMenuTrigger>
@@ -292,7 +316,13 @@ export const TagListPanel = observer(() => {
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem key="deletetag" className="text-destructive" onSelect={async () => {
-                    PromiseCall(api.tags.deleteOnlyTag.mutate(({ id: element.id as number })))
+                    showTipsDialog({
+                      title: t('confirm-to-delete'),
+                      content: t('this-operation-will-be-delete-resource-are-you-sure'),
+                      onConfirm: async () => {
+                        await PromiseCall(api.tags.deleteOnlyTag.mutate(({ id: element.id as number })))
+                      },
+                    })
                   }}>
                     <div className="flex items-center gap-2">
                       <Icon icon="hugeicons:delete-02" width="20" height="20" />
@@ -300,7 +330,13 @@ export const TagListPanel = observer(() => {
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem key="delete" className="text-destructive" onSelect={async () => {
-                    PromiseCall(api.tags.deleteTagWithAllNote.mutate(({ id: element.id as number })))
+                    showTipsDialog({
+                      title: t('confirm-to-delete'),
+                      content: t('this-operation-will-be-delete-resource-are-you-sure'),
+                      onConfirm: async () => {
+                        await PromiseCall(api.tags.deleteTagWithAllNote.mutate(({ id: element.id as number })))
+                      },
+                    })
                   }}>
                     <div className="flex items-center gap-2">
                       <Icon icon="hugeicons:delete-02" width="20" height="20" />
