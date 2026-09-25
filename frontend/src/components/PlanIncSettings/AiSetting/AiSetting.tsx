@@ -21,6 +21,7 @@ import { EmbeddingSettingsSection } from './EmbeddingSettingsSection';
 import ModelDialogContent from './ModelDialogContent';
 import { McpServersSection } from './McpServersSection';
 import { AgentDirectorySetting } from '../AgentDirectorySetting';
+import { HttpProxySetting } from '../HttpProxySetting';
 import { AiSettingStore } from '@/store/aiSettingStore';
 import { Copy } from '../../Common/Copy';
 import { MarkdownRender } from '../../Common/MarkdownRender';
@@ -87,6 +88,10 @@ export default observer(function AiSetting() {
 
       <EmbeddingSettingsSection />
 
+      {/* Network follows retrieval tuning (§1.1 order). The proxy is global keys,
+          applied to provider calls via fetchWithProxy — surfaced here so the AI
+          surface is configure → verify → tune → rebuild without leaving it. */}
+      <HttpProxySetting />
 
       <GlobalPromptSection />
 

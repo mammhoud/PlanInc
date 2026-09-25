@@ -1212,5 +1212,14 @@
   "agenda-directory": "Directorio de agenda",
   "directory-types": "Tipos",
   "directory-categories": "Categorías",
-  "done-status-hint": "Hecho es un estado de tarjeta (marcar como completado), no una categoría. Las categorías son carriles como Ahora, Después y Más tarde."
+  "done-status-hint": "Hecho es un estado de tarjeta (marcar como completado), no una categoría. Las categorías son carriles como Ahora, Después y Más tarde.",
+  "agenda-lanes": "Agenda lanes",
+  "agenda-lanes-description": "Lanes for the Agenda board. New plans land in the default lane.",
+  "agenda-preferences": "Agenda preferences",
+  "agenda-default-lane": "Default lane for new plans",
+  "agenda-default-lane-hint": "New plans are filed here automatically.",
+  "agenda-default-lane-none": "None (uncategorised)",
+  "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
+  "agenda-show-uncategorised": "Show uncategorised lane",
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
 }

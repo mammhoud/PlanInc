@@ -1209,5 +1209,14 @@
   "agenda-directory": "Katalog agendy",
   "directory-types": "Typy",
   "directory-categories": "Kategorie",
-  "done-status-hint": "Gotowe to status karty (oznacz jako ukończone), nie kategoria. Kategorie to ścieżki jak Now, Next i Later."
+  "done-status-hint": "Gotowe to status karty (oznacz jako ukończone), nie kategoria. Kategorie to ścieżki jak Now, Next i Later.",
+  "agenda-lanes": "Agenda lanes",
+  "agenda-lanes-description": "Lanes for the Agenda board. New plans land in the default lane.",
+  "agenda-preferences": "Agenda preferences",
+  "agenda-default-lane": "Default lane for new plans",
+  "agenda-default-lane-hint": "New plans are filed here automatically.",
+  "agenda-default-lane-none": "None (uncategorised)",
+  "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
+  "agenda-show-uncategorised": "Show uncategorised lane",
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
 }

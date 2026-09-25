@@ -71,13 +71,13 @@ export const allSettings: SettingItem[] = [
     keywords: ['hotkey', 'shortcut', 'keyboard', 'desktop', '快捷键', '热键', '桌面'],
   },
   {
-    key: 'plan-categories',
-    title: ('plan-categories'),
-    icon: 'tabler:category',
+    key: 'agenda-lanes',
+    title: ('agenda-lanes'),
+    icon: 'solar:calendar-mark-linear',
     component: <CategorySetting />,
     requireAdmin: false,
     group: 'forms',
-    keywords: ['category', 'categories', 'lane', 'board', 'kanban', '分类', '看板'],
+    keywords: ['agenda', 'lanes', 'category', 'categories', 'lane', 'board', 'kanban', 'plans', '议程', '看板', '分类'],
   },
   {
     key: 'form-fields',

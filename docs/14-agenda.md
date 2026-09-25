@@ -74,6 +74,19 @@ has app-related material with no external services.
 Seed runs from `bootstrap()` for every existing account and on first
 registration. Fixed seed ids (`101`–`113`) use `skipDuplicates`.
 
+## Lanes (plan categories)
+
+Settings → **Agenda lanes** owns the board lanes (account-unique slugs).
+Done is a card status (mark complete / archived), never a lane.
+
+Related preferences in the same section (per-account config keys):
+
+| Preference | Key | Default | Effect |
+|---|---|---|---|
+| Default lane for new plans | lane `isDefault` flag | first lane | `notes.upsert` files a new plan (type TODO) into the default enabled lane |
+| Show completed | `agendaShowCompleted` | `false` | merges the archived stream into the board as a Done lane |
+| Show uncategorised lane | `agendaShowUncategorised` | `true` | catch-all column, directory row and move-target so no plan falls out |
+
 ## Log fixes
 
 - `tagsToNote` create re-allocates on id clash (seq vs seed collision).

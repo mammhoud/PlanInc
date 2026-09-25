@@ -88,6 +88,33 @@ const Home = observer(() => {
     setSearchParams(params, { replace: false });
   };
 
+  // Folder directory documents: every loaded plan/note as a tree row in its
+  // category folder (titles plain-text for the narrow lane).
+  const directoryItems = useMemo(
+    () =>
+      loadedNotes.map((note: any) => ({
+        id: note.id as number,
+        categoryId: (note.categoryId ?? null) as number | null,
+        title: String(note.content ?? ''),
+        createdAt: note.createdAt,
+      })),
+    [loadedNotes],
+  );
+
+  // Opening a directory document narrows the board to its folder and jumps to
+  // the card via the existing noteId scroll restoration.
+  const openAgendaItem = (noteId: number, categoryId: number | null) => {
+    if (showPlanControls) setCategoryFilter(categoryId ?? 'none');
+    const params = new URLSearchParams(searchParams);
+    params.set('noteId', String(noteId));
+    setSearchParams(params, { replace: false });
+  };
+  const selectedAgendaItemId = (() => {
+    const raw = searchParams.get('noteId');
+    const parsed = raw == null ? NaN : Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  })();
+
   const [viewMode, setViewMode] = usePlanningView('planinc:notes:view', 'cards');
   // Plans keep their own persisted view: a board is the useful default there,
   // while the note streams still open as cards.
@@ -103,7 +130,25 @@ const Home = observer(() => {
   const [kanbanGroup, setKanbanGroup] = useState<'category' | 'status'>(() =>
     typeof window !== 'undefined' && window.localStorage.getItem('planinc:plans:kanban-group') === 'status' ? 'status' : 'category');
   // Completed plans live in the archived stream; opt-in to merge them into the board.
+  // The choice persists per account (Settings → Agenda lanes) instead of
+  // resetting on every visit.
   const [showCompleted, setShowCompleted] = useState(false);
+  const showCompletedSynced = useRef(false);
+  useEffect(() => {
+    if (!showCompletedSynced.current && planinc.config.value && 'agendaShowCompleted' in planinc.config.value) {
+      showCompletedSynced.current = true;
+      setShowCompleted(!!planinc.config.value.agendaShowCompleted);
+    }
+  }, [planinc.config.value]);
+  const setShowCompletedPersisted = (next: boolean) => {
+    showCompletedSynced.current = true;
+    setShowCompleted(next);
+    api.config.update.mutate({ key: 'agendaShowCompleted', value: next })
+      .then(() => planinc.config.call())
+      .catch((cause) => console.error('Failed to persist show-completed preference', cause));
+  };
+  // Catch-all lane visibility, also per account (Settings → Agenda lanes).
+  const showUncategorised = (planinc.config.value as any)?.agendaShowUncategorised ?? true;
 
   useEffect(() => {
     api.planningCategories.list.query()
@@ -269,8 +314,8 @@ const Home = observer(() => {
     }
   }, [location.key]);
 
-  // Board columns: every enabled category plus an implicit uncategorised one,
-  // so nothing can fall out of the board.
+  // Board columns: every enabled category plus an implicit uncategorised one
+  // (when enabled), so nothing can fall out of the board.
   const categoryColumns = useMemo(() => {
     const columns = categories.map((category) => ({
       id: category.id as number | null,
@@ -278,12 +323,14 @@ const Home = observer(() => {
       color: String(category.color),
       icon: String(category.icon),
     }));
-    columns.push({ id: null, name: t('uncategorised'), color: '#5A6B7B', icon: 'tabler:folder' });
+    if (showUncategorised) {
+      columns.push({ id: null, name: t('uncategorised'), color: '#5A6B7B', icon: 'tabler:folder' });
+    }
     return columns.map((column) => ({
       ...column,
       plans: pagedNotes.filter((note) => (note.categoryId ?? null) === column.id),
     }));
-  }, [categories, pagedNotes, t]);
+  }, [categories, pagedNotes, showUncategorised, t]);
 
   const assignCategory = async (noteId: number, categoryId: number | null) => {
     try {
@@ -447,7 +494,7 @@ const Home = observer(() => {
                   size="sm"
                   variant={showCompleted ? 'solid' : 'ghost'}
                   aria-pressed={showCompleted}
-                  onPress={() => setShowCompleted((value) => !value)}
+                  onPress={() => setShowCompletedPersisted(!showCompleted)}
                 >
                   <Icon icon={showCompleted ? 'mdi:check-circle' : 'mdi:circle-outline'} width="16" height="16" />
                   {t('show-completed')}
@@ -552,7 +599,7 @@ const Home = observer(() => {
                               void assignCategory(plan.id, target === 'none' ? null : Number(target));
                             }}
                           >
-                            <SelectItem key="none">{t('uncategorised')}</SelectItem>
+                            {showUncategorised && <SelectItem key="none">{t('uncategorised')}</SelectItem>}
                             {categories.map((category) => (
                               <SelectItem key={String(category.id)}>{category.name}</SelectItem>
                             ))}
@@ -745,6 +792,10 @@ const Home = observer(() => {
             categoryFilter={categoryFilter}
             onCategoryChange={setCategoryFilter}
             showCategories={showPlanControls}
+            showUncategorised={showUncategorised}
+            items={directoryItems}
+            onOpenItem={openAgendaItem}
+            selectedItemId={selectedAgendaItemId}
           />
           <div className="flex min-w-0 flex-1 flex-col">{body}</div>
         </div>

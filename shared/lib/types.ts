@@ -65,6 +65,9 @@ export const ZUserPerferConfigKey = z.union([
   z.literal('responsiveLayout'),
   z.literal('sideNavMode'),
   z.literal('touchTargets'),
+  // agenda lanes (PI-022) — Settings → Agenda lanes; read by the agenda views
+  z.literal('agendaShowCompleted'),
+  z.literal('agendaShowUncategorised'),
 ]);
 
 export const ZConfigKey = z.union([
@@ -213,6 +216,9 @@ export const ZConfigSchema = z.object({
   contrastBoost: z.any().optional(),
   shadowStyle: z.any().optional(),
   cornerStyle: z.any().optional(),
+  // agenda lanes (PI-022): Done-lane opt-in and the uncategorised catch-all.
+  agendaShowCompleted: z.boolean().optional(),
+  agendaShowUncategorised: z.boolean().optional(),
 });
 
 export type GlobalConfig = z.infer<typeof ZConfigSchema>;

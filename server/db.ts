@@ -676,7 +676,7 @@ function pickFields(row: any, select: any): any {
 }
 
 // ---------------------------------------------------------------------
-// Table delegate
+// Table store
 // ---------------------------------------------------------------------
 
 function applySelect(rows: any[], select: any): any[] {
@@ -690,8 +690,8 @@ function applySelect(rows: any[], select: any): any[] {
   });
 }
 
-function createDelegate(table: string): any {
-  const delegate = {
+function createTableStore(table: string): any {
+  const store = {
     async findMany(args: FindArgs = {}): Promise<any[]> {
       let sql = `SELECT * FROM ${table}`;
       const whereSql = compileWhere(table, args.where);
@@ -707,7 +707,7 @@ function createDelegate(table: string): any {
     },
 
     async findFirst(args: FindArgs = {}): Promise<any | null> {
-      const rows = await delegate.findMany({ ...args, take: 1 });
+      const rows = await store.findMany({ ...args, take: 1 });
       return rows[0] ?? null;
     },
 
@@ -717,12 +717,12 @@ function createDelegate(table: string): any {
       if (id == null) {
         // e.g. cache unique key
         if (args.where?.key != null && table === 'cache') {
-          const rows = await delegate.findMany({ where: { key: args.where.key }, take: 1, include: args.include });
+          const rows = await store.findMany({ where: { key: args.where.key }, take: 1, include: args.include });
           return rows[0] ?? null;
         }
         return null;
       }
-      const rows = await delegate.findMany({ where: { id }, include: args.include, select: args.select, take: 1 });
+      const rows = await store.findMany({ where: { id }, include: args.include, select: args.select, take: 1 });
       return rows[0] ?? null;
     },
 
@@ -816,16 +816,16 @@ function createDelegate(table: string): any {
         const id = stripIdPrefix(args.where.id);
         const exists = await select(`SELECT id FROM ${table} WHERE id = ${table}:${id};`);
         if (exists[0]) {
-          return delegate.update({ where: { id }, data: args.update });
+          return store.update({ where: { id }, data: args.update });
         }
-        return delegate.create({ data: { ...args.create, id } });
+        return store.create({ data: { ...args.create, id } });
       }
       // Compound unique keys used in the codebase
-      const existing = await delegate.findFirst({ where: args.where });
+      const existing = await store.findFirst({ where: args.where });
       if (existing) {
-        return delegate.update({ where: { id: existing.id }, data: args.update });
+        return store.update({ where: { id: existing.id }, data: args.update });
       }
-      return delegate.create({ data: args.create });
+      return store.create({ data: args.create });
     },
 
     async delete(args: { where: any }): Promise<any> {
@@ -863,15 +863,15 @@ function createDelegate(table: string): any {
       throw new SurrealError(`aggregate not implemented for ${table}`);
     },
   };
-  return delegate;
+  return store;
 }
 
 // ---------------------------------------------------------------------
-// Special delegates
+// Special table stores
 // ---------------------------------------------------------------------
 
 /** cache table: unique `key` field used with findUnique/upsert. */
-function cacheDelegate(base: any): any {
+function cacheTableStore(base: any): any {
   return {
     ...base,
     async findUnique(args: { where: any }): Promise<any | null> {
@@ -895,7 +895,7 @@ function cacheDelegate(base: any): any {
 }
 
 /** tagsToNote: compound PK (noteId, tagId) — upsert keyed on the pair. */
-function tagsToNoteDelegate(base: any): any {
+function tagsToNoteTableStore(base: any): any {
   return {
     ...base,
     async upsert(args: UpsertArgs & { where: any }): Promise<any> {
@@ -919,7 +919,7 @@ function tagsToNoteDelegate(base: any): any {
 }
 
 /** noteInternalShare: compound unique (noteId, accountId). */
-function noteInternalShareDelegate(base: any): any {
+function noteInternalShareTableStore(base: any): any {
   return {
     ...base,
     async upsert(args: UpsertArgs & { where: any }): Promise<any> {
@@ -948,17 +948,17 @@ async function transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
 // Exported db facade
 // ---------------------------------------------------------------------
 
-const delegates: Record<string, any> = {};
+const tableStores: Record<string, any> = {};
 for (const table of TABLES) {
-  let d = createDelegate(table);
-  if (table === 'cache') d = cacheDelegate(d);
-  if (table === 'tagsToNote') d = tagsToNoteDelegate(d);
-  if (table === 'noteInternalShare') d = noteInternalShareDelegate(d);
-  delegates[table] = d;
+  let d = createTableStore(table);
+  if (table === 'cache') d = cacheTableStore(d);
+  if (table === 'tagsToNote') d = tagsToNoteTableStore(d);
+  if (table === 'noteInternalShare') d = noteInternalShareTableStore(d);
+  tableStores[table] = d;
 }
 
 export const db: any = {
-  ...delegates,
+  ...tableStores,
   $transaction: transaction,
   /**
    * Direct SurrealQL escape hatch (replaces db.$queryRaw).
@@ -982,7 +982,7 @@ export const db: any = {
  */
 export async function ensureSurrealSchema(): Promise<void> {
   const statements: string[] = [];
-  // Unique index for cache keys (used by cacheDelegate fast paths)
+  // Unique index for cache keys (used by cacheTableStore fast paths)
   statements.push(`DEFINE INDEX IF NOT EXISTS uniq_cache_key ON TABLE cache COLUMNS key UNIQUE;`);
   // tag.name has no unique constraint, so the name index stays non-unique —
   // it exists for lookup speed only.

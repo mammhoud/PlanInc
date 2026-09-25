@@ -1149,6 +1149,20 @@ export const noteRouter = router({
         return note;
       } else {
         try {
+          // New plans land in the account's default agenda lane (Settings →
+          // Agenda lanes). Lanes are plan-only; notes keep no lane. The lookup
+          // is best-effort so a missing/disabled lane never blocks creation.
+          let defaultCategoryId: number | undefined;
+          if (type === NoteType.TODO) {
+            try {
+              const def = await db.planningCategories.findFirst({
+                where: { accountId: Number(ctx.id), isDefault: true, enabled: true },
+              });
+              if (def) defaultCategoryId = def.id;
+            } catch (cause) {
+              console.error('Failed to resolve default agenda lane', cause);
+            }
+          }
           const note = await db.notes.create({
             data: {
               content: content ?? '',
@@ -1156,6 +1170,7 @@ export const noteRouter = router({
               accountId: Number(ctx.id),
               isShare: isShare ? true : false,
               isTop: isTop ? true : false,
+              ...(defaultCategoryId != null && { categoryId: defaultCategoryId }),
               ...(input.createdAt && { createdAt: input.createdAt }),
               ...(input.updatedAt && { updatedAt: input.updatedAt }),
               ...(input.metadata && { metadata: input.metadata }),
@@ -1367,6 +1382,21 @@ export const noteRouter = router({
     .output(z.any())
     .mutation(async function ({ input, ctx }) {
       return await insertNoteReference({ ...input, accountId: Number(ctx.id) });
+    }),
+  removeReference: authProcedure
+    .meta({ openapi: { method: 'POST', path: '/v1/note/remove-reference', summary: 'Remove note reference', protect: true, tags: ['Note'] } })
+    .input(
+      z.object({
+        fromNoteId: z.number(),
+        toNoteId: z.number(),
+      }),
+    )
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async function ({ input, ctx }) {
+      const fromNote = await db.notes.findFirst({ where: { id: input.fromNoteId, accountId: Number(ctx.id) } });
+      if (!fromNote) throw new Error('Note not found');
+      await db.noteReference.deleteMany({ where: { fromNoteId: input.fromNoteId, toNoteId: input.toNoteId } });
+      return { success: true };
     }),
   noteReferenceList: authProcedure
     .meta({ openapi: { method: 'POST', path: '/v1/note/reference-list', summary: 'Query note references', protect: true, tags: ['Note'] } })

@@ -1212,5 +1212,14 @@
   "agenda-directory": "دليل الأجندة",
   "directory-types": "الأنواع",
   "directory-categories": "الفئات",
-  "done-status-hint": "الإنجاز حالة للبطاقة (إكمال)، وليس فئة. الفئات مسارات مثل الآن واللاحق ولاحقًا."
+  "done-status-hint": "الإنجاز حالة للبطاقة (إكمال)، وليس فئة. الفئات مسارات مثل الآن واللاحق ولاحقًا.",
+  "agenda-lanes": "Agenda lanes",
+  "agenda-lanes-description": "Lanes for the Agenda board. New plans land in the default lane.",
+  "agenda-preferences": "Agenda preferences",
+  "agenda-default-lane": "Default lane for new plans",
+  "agenda-default-lane-hint": "New plans are filed here automatically.",
+  "agenda-default-lane-none": "None (uncategorised)",
+  "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
+  "agenda-show-uncategorised": "Show uncategorised lane",
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
 }

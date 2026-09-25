@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, CardBody, Chip, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
+import { Button, Card, CardBody, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/trpc';
 import { RootStore } from '@/store';
@@ -9,6 +9,7 @@ import { Icon } from '@/components/Common/Iconify/icons';
 import { PlanningViewSwitch } from '@/components/PlanincPlanning/PlanningViewSwitch';
 import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPagination';
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
+import { FolderTree, type FolderTreeFolder } from '@/components/PlanincPlanning/FolderTree';
 import { PlanincGraph } from '@/components/PlanIncGraph/PlanincGraph';
 import { getPlanIncEndpoint } from '@/lib/planincEndpoint';
 
@@ -148,6 +149,26 @@ export default function GraphPage() {
   const [view, setView] = useState(FULL_VIEW);
   const [nodeHistory, setNodeHistory] = useState<GraphNode[]>([]);
   const [helpOpen, setHelpOpen] = useState(false);
+  // Node picker: hand-picked node ids (persisted) that are always added to the
+  // graph, grouped by folder in the picker modal. Lets the user choose exactly
+  // which nodes appear instead of only the first 24 of each kind.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickedIds, setPickedIds] = useState<Set<string>>(() => {
+    try {
+      const saved = window.localStorage.getItem('planinc:graph:picked');
+      return new Set<string>(saved ? (JSON.parse(saved) as string[]) : []);
+    } catch {
+      return new Set<string>();
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('planinc:graph:picked', JSON.stringify([...pickedIds]));
+    } catch {
+      // Storage may be unavailable (private mode); picking still works in memory.
+    }
+  }, [pickedIds]);
   const viewRef = useRef(view);
   const rafRef = useRef<number | null>(null);
   // Node id the camera last animated to. Guards against re-running the focus
@@ -177,9 +198,10 @@ export default function GraphPage() {
   }, [t]);
   planinc.use();
 
-  const nodes = useMemo<GraphNode[]>(() => [
-    { id: 'root', label: t('graph'), kind: 'root', color: KIND_COLORS.root },
-    ...(planinc.noteList.value ?? []).slice(0, 24).map((item: any) => ({
+  // Every entity as a graph candidate (no cap); the default view still shows
+  // the first 24 per kind, and hand-picked nodes are merged in below.
+  const allCandidates = useMemo<GraphNode[]>(() => [
+    ...(planinc.noteList.value ?? []).map((item: any) => ({
       id: `note-${item.id}`,
       entityId: item.id,
       label: stripHtml(item.content).slice(0, 28) || t('note'),
@@ -189,7 +211,7 @@ export default function GraphPage() {
       href: KIND_HREF.note,
       previewImage: imagePreview(item.attachments?.find((attachment: any) => attachment.previewType === 'image')),
     })),
-    ...tickets.slice(0, 24).map((item) => ({
+    ...tickets.map((item) => ({
       id: `ticket-${item.id}`,
       entityId: item.id,
       label: item.title,
@@ -204,7 +226,7 @@ export default function GraphPage() {
       href: KIND_HREF.ticket,
       previewImage: imagePreview(item.attachments?.find((attachment: any) => attachment.previewType === 'image')),
     })),
-    ...study.slice(0, 24).map((item) => ({
+    ...study.map((item) => ({
       id: `study-${item.id}`,
       entityId: item.id,
       label: item.title,
@@ -219,7 +241,7 @@ export default function GraphPage() {
       href: KIND_HREF.study,
       previewImage: imagePreview(item.attachments?.find((attachment: any) => attachment.previewType === 'image')),
     })),
-    ...resources.slice(0, 24).map((item) => ({
+    ...resources.map((item) => ({
       id: `resource-${item.id}`,
       entityId: item.id,
       label: item.name,
@@ -229,26 +251,71 @@ export default function GraphPage() {
       href: KIND_HREF.resource,
       previewImage: imagePreview(item.previewType === 'image' ? item : item.image),
     })),
-    // Agent destinations are AI chat conversations; fall back to a single hub
-    // when the account has no conversations yet.
-    ...(agents.length
-      ? agents.slice(0, 24).map((item) => ({
-        id: `agent-${item.id}`,
-        entityId: item.id,
-        label: item.title || t('agents'),
-        description: item.title ?? '',
-        kind: 'agent' as const,
-        color: KIND_COLORS.agent,
-        href: KIND_HREF.agent,
-        previewImage: imagePreview(item.account?.image),
-      }))
-      : [{ id: 'agents', label: t('agents'), kind: 'agent' as const, color: KIND_COLORS.agent, href: KIND_HREF.agent }]),
+    ...agents.map((item) => ({
+      id: `agent-${item.id}`,
+      entityId: item.id,
+      label: item.title || t('agents'),
+      description: item.title ?? '',
+      kind: 'agent' as const,
+      color: KIND_COLORS.agent,
+      href: KIND_HREF.agent,
+      previewImage: imagePreview(item.account?.image),
+    })),
   ], [planinc.noteList.value, tickets, study, resources, agents, t]);
 
+  const nodes = useMemo<GraphNode[]>(() => {
+    const take = (kind: GraphKind) => allCandidates.filter((node) => node.kind === kind).slice(0, 24);
+    const agentNodes = agents.length
+      ? take('agent')
+      : [{ id: 'agents', label: t('agents'), kind: 'agent' as const, color: KIND_COLORS.agent, href: KIND_HREF.agent }];
+    return [
+      { id: 'root', label: t('graph'), kind: 'root', color: KIND_COLORS.root },
+      ...take('note'),
+      ...take('ticket'),
+      ...take('study'),
+      ...take('resource'),
+      ...agentNodes,
+    ];
+  }, [allCandidates, agents.length, t]);
+
+  // Hand-picked nodes beyond the 24-per-kind default, so the picker modal can
+  // add any entity to the graph.
+  const extraNodes = useMemo(() => {
+    const defaultIds = new Set(nodes.map((node) => node.id));
+    return allCandidates.filter((node) => pickedIds.has(node.id) && !defaultIds.has(node.id));
+  }, [allCandidates, pickedIds, nodes]);
+
   const visibleNodes = useMemo(
-    () => nodes.filter((node) => node.kind === 'root' || visibleKinds.has(node.kind)),
-    [nodes, visibleKinds],
+    () => [...nodes, ...extraNodes].filter((node) => node.kind === 'root' || visibleKinds.has(node.kind)),
+    [nodes, extraNodes, visibleKinds],
   );
+
+  // Picker folders: one folder per kind holding every candidate document.
+  const pickerFolders = useMemo<FolderTreeFolder[]>(
+    () =>
+      (['note', 'ticket', 'study', 'resource', 'agent'] as GraphKind[]).map((kind) => ({
+        id: kind,
+        name: t(KIND_LABELS[kind]),
+        icon: 'tabler:folder',
+        children: allCandidates
+          .filter((node) => node.kind === kind)
+          .map((node) => ({
+            id: node.id,
+            name: node.label,
+            meta: node.category ?? node.status,
+          })),
+      })),
+    [allCandidates, t],
+  );
+
+  const togglePicked = (_folderId: string, childId: string, checked: boolean) => {
+    setPickedIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(childId);
+      else next.delete(childId);
+      return next;
+    });
+  };
 
   const endpointToNode = useMemo(() => {
     const map = new Map<string, GraphNode>();
@@ -360,7 +427,7 @@ export default function GraphPage() {
 
   const listNodes = useMemo(() => visibleNodes.filter((node) => node.kind !== 'root'), [visibleNodes]);
   const pagedListNodes = useMemo(() => listNodes.slice((page - 1) * pageSize, page * pageSize), [listNodes, page, pageSize]);
-  useEffect(() => { setPage(1); }, [pageSize, viewMode, visibleKinds]);
+  useEffect(() => { setPage(1); }, [pageSize, viewMode, visibleKinds, pickedIds]);
   const navigate = (href: string) => { window.location.href = href; };
 
   const fieldDefinitions = (node: GraphNode) => customFields.filter((field) => field.kind === node.customFieldKind);
@@ -372,11 +439,12 @@ export default function GraphPage() {
         const otherType = link.sourceType === node.kind && link.sourceId === node.entityId ? link.targetType : link.sourceType;
         const otherId = link.sourceType === node.kind && link.sourceId === node.entityId ? link.targetId : link.sourceId;
         const other = endpointToNode.get(endpointKey(otherType, otherId))
+          ?? visibleNodes.find((candidate) => candidate.kind === otherType && candidate.entityId === otherId)
           ?? nodes.find((candidate) => candidate.kind === otherType && candidate.entityId === otherId);
         return { ...link, otherType, otherId, other, otherLabel: other?.label ?? `${otherType}:${otherId}` };
       });
   };
-  const selectedRelations = useMemo<GraphRelation[]>(() => (selectedNode ? nodeRelations(selectedNode) : []), [selectedNode, links, nodes, endpointToNode]);
+  const selectedRelations = useMemo<GraphRelation[]>(() => (selectedNode ? nodeRelations(selectedNode) : []), [selectedNode, links, nodes, visibleNodes, endpointToNode]);
   const relatedNodes = useMemo(
     () => selectedRelations.map((relation) => relation.other).filter((node): node is GraphNode => node != null),
     [selectedRelations],
@@ -470,6 +538,11 @@ export default function GraphPage() {
         {(['note', 'ticket', 'study', 'resource', 'agent'] as GraphKind[]).map((kind) => <Button key={kind} size="sm" variant={visibleKinds.has(kind) ? 'solid' : 'flat'} onPress={() => toggleKind(kind)}>{t(KIND_LABELS[kind])}</Button>)}
       </div>
       <div className="flex items-center gap-2">
+        <Button size="sm" variant="flat" onPress={() => { setPickerSearch(''); setPickerOpen(true); }}>
+          <Icon icon="mdi:plus-circle-outline" width="16" height="16" />
+          {t('add-nodes')}
+          {pickedIds.size > 0 && <Chip size="sm" variant="flat">{pickedIds.size}</Chip>}
+        </Button>
         <PlanningViewSwitch
           value={viewMode}
           onChange={setViewMode}
@@ -623,6 +696,41 @@ export default function GraphPage() {
         <ModalFooter>
           {selectedNode && selectedNode.kind !== 'root' && <Button color="primary" onPress={() => navigate(selectedNode.href ?? KIND_HREF[selectedNode.kind])}>{t('open')}</Button>}
           <Button variant="flat" onPress={() => setSelectedNode(null)}>{t('close')}</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+
+    <Modal isOpen={pickerOpen} onClose={() => setPickerOpen(false)} scrollBehavior="inside" size="lg">
+      <ModalContent>
+        <ModalHeader>{t('choose-nodes')}</ModalHeader>
+        <ModalBody className="gap-3">
+          <p className="text-sm text-foreground-500">{t('choose-nodes-description')}</p>
+          <Input
+            aria-label={t('search-nodes')}
+            placeholder={t('search-nodes')}
+            value={pickerSearch}
+            onValueChange={setPickerSearch}
+            startContent={<Icon icon="lets-icons:search" width="16" height="16" className="text-foreground-500" />}
+            isClearable
+          />
+          <FolderTree
+            folders={pickerFolders}
+            selectedFolderId={null}
+            onSelectFolder={() => {}}
+            checkable
+            checkedChildIds={pickedIds}
+            onToggleChildCheck={togglePicked}
+            filterText={pickerSearch}
+            maxChildren={200}
+            persistKey="planinc:graph:picker-expanded"
+          />
+        </ModalBody>
+        <ModalFooter className="justify-between">
+          <span className="text-sm text-foreground-500">{t('nodes-selected', { count: pickedIds.size })}</span>
+          <div className="flex gap-2">
+            <Button variant="flat" onPress={() => setPickedIds(new Set())} isDisabled={pickedIds.size === 0}>{t('clear')}</Button>
+            <Button color="primary" onPress={() => setPickerOpen(false)}>{t('done')}</Button>
+          </div>
         </ModalFooter>
       </ModalContent>
     </Modal>

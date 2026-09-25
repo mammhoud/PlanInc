@@ -288,6 +288,7 @@ export const aiRouter = router({
 
         // Test inference capability (chat)
         if (capabilities.inference) {
+          const startedAt = Date.now();
           try {
             const { LLMProvider } = await import('@server/aiServer/providers');
             const llmProvider = new LLMProvider();
@@ -305,14 +306,15 @@ export const aiRouter = router({
               model: languageModel,
               prompt: 'Say "Hello" to test connection'
             });
-            testResults.inference = { success: true, response: result.text };
+            testResults.inference = { success: true, response: result.text, latencyMs: Date.now() - startedAt };
           } catch (error) {
-            testResults.inference = { success: false, error: error.message };
+            testResults.inference = { success: false, error: error.message, latencyMs: Date.now() - startedAt };
           }
         }
 
         // Test embedding capability
         if (capabilities.embedding) {
+          const startedAt = Date.now();
           try {
             const { EmbeddingProvider } = await import('@server/aiServer/providers');
             const embeddingProvider = new EmbeddingProvider();
@@ -329,9 +331,9 @@ export const aiRouter = router({
               model: embeddingModel as any,
               value: 'test embedding'
             });
-            testResults.embedding = { success: true, dimensions: result.embedding?.length || 0 };
+            testResults.embedding = { success: true, dimensions: result.embedding?.length || 0, latencyMs: Date.now() - startedAt };
           } catch (error) {
-            testResults.embedding = { success: false, error: error.message };
+            testResults.embedding = { success: false, error: error.message, latencyMs: Date.now() - startedAt };
           }
         }
 

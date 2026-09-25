@@ -1212,5 +1212,14 @@
   "agenda-directory": "Gündem dizini",
   "directory-types": "Türler",
   "directory-categories": "Kategoriler",
-  "done-status-hint": "Tamamlandı bir kart durumudur (tamamlandı olarak işaretle), kategori değildir. Kategoriler Now, Next ve Later gibi şeritlerdir."
+  "done-status-hint": "Tamamlandı bir kart durumudur (tamamlandı olarak işaretle), kategori değildir. Kategoriler Now, Next ve Later gibi şeritlerdir.",
+  "agenda-lanes": "Agenda lanes",
+  "agenda-lanes-description": "Lanes for the Agenda board. New plans land in the default lane.",
+  "agenda-preferences": "Agenda preferences",
+  "agenda-default-lane": "Default lane for new plans",
+  "agenda-default-lane-hint": "New plans are filed here automatically.",
+  "agenda-default-lane-none": "None (uncategorised)",
+  "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
+  "agenda-show-uncategorised": "Show uncategorised lane",
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
 }

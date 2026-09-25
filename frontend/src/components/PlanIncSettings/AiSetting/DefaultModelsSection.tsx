@@ -273,6 +273,65 @@ export const DefaultModelsSection = observer(() => {
               ))}
             </Select>
           </div>
+
+          {/* Rerank Model */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Icon icon="hugeicons:arrow-up-down" width="16" height="16" />
+              <label className="text-sm font-medium">{t('rerank-model', 'Rerank Model')}</label>
+            </div>
+            <Select
+              classNames={{
+                trigger: "h-12",
+              }}
+              placeholder={t('rerank-model-placeholder', 'Select rerank model (optional)')}
+              selectedKeys={(planinc.config.value as any)?.rerankModelId ? [String((planinc.config.value as any).rerankModelId)] : []}
+              renderValue={(items) => {
+                return items.map((item) => {
+                  const model = aiSettingStore.rerankModels.find(m => m.id === Number(item.key));
+                  if (!model) return null;
+                  return (
+                    <div key={item.key} className="flex items-center gap-2">
+                      <ModelIcon modelName={model.modelKey} className="shrink-0 w-6 h-6" />
+                      <div className="flex flex-col">
+                        <span className="text-sm">{model.title}</span>
+                        <div className="flex items-center gap-1">
+                          <ProviderIcon provider={model.provider?.provider || ''} className="shrink-0 w-3 h-3" />
+                          <span className="text-xs text-default-500">{model.provider?.title}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              }}
+              onSelectionChange={(keys) => {
+                const value = Array.from(keys)[0];
+                if (value) {
+                  PromiseCall(api.config.update.mutate({
+                    key: 'rerankModelId',
+                    value: Number(value)
+                  }), { autoAlert: false }).then(() => {
+                    planinc.config.call();
+                  });
+                }
+              }}
+            >
+              {aiSettingStore.rerankModels.map(model => (
+                <SelectItem key={String(model.id)} textValue={model.title}>
+                  <div className="flex gap-2 items-center">
+                    <ModelIcon modelName={model.modelKey} className="shrink-0 w-6 h-6" />
+                    <div className="flex flex-col">
+                      <span className="text-sm">{model.title}</span>
+                      <div className="flex items-center gap-1">
+                        <ProviderIcon provider={model.provider?.provider || ''} className="shrink-0 w-3 h-3" />
+                        <span className="text-xs text-default-400">{model.provider?.title}</span>
+                      </div>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
         </div>
       </div>
     </CollapsibleCard>

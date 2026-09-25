@@ -14,6 +14,8 @@ import type { PlanningFormValues } from '@/components/PlanincPlanning/PlanningCr
 import { PlanningViewSwitch, usePlanningView, planningViewGridClass } from '@/components/PlanincPlanning/PlanningViewSwitch';
 import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPagination';
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
+import { FolderTree } from '@/components/PlanincPlanning/FolderTree';
+import { PlanningLinksModal } from '@/components/PlanincPlanning/PlanningLinksModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import dayjs from '@/lib/dayjs';
 
@@ -52,6 +54,9 @@ export default function StudyPage() {
   const [reviewIndex, setReviewIndex] = useState(0);
   const [reviewRevealed, setReviewRevealed] = useState(false);
   const [isRating, setIsRating] = useState(false);
+  // Reference links (notes, tickets, resources, agents) for the selected item.
+  const [linkItem, setLinkItem] = useState<any | null>(null);
+  const [isLinksOpen, setIsLinksOpen] = useState(false);
 
   const load = async () => {
     setIsLoading(true);
@@ -70,13 +75,62 @@ export default function StudyPage() {
 
   const availableTags = [...new Set(items.flatMap((item) => item.tags ?? []))].sort();
   const availableCategories = [...new Set(items.map((item) => item.category).filter(Boolean))].sort();
+  const uncategorisedCount = useMemo(() => items.filter((item) => !item.category).length, [items]);
   const dueCount = useMemo(() => items.filter(isDue).length, [items]);
   const questionCount = useMemo(() => items.filter(isQuestionCard).length, [items]);
+
+  // Folder-style directory: All + one folder per category + Uncategorized,
+  // each holding its documents as an expandable tree with counts.
+  // selectedCategory '' = all, '__none__' = uncategorised.
+  const studyFolders = useMemo(() => {
+    const toDoc = (item: any) => ({
+      id: String(item.id),
+      name: item.title || `#${item.id}`,
+      meta: item.status,
+    });
+    return [
+      {
+        id: 'all',
+        name: t('all'),
+        icon: 'tabler:folder',
+        count: items.length,
+        children: items.slice(0, 30).map(toDoc),
+      },
+      ...availableCategories.map((categoryName) => {
+        const docs = items.filter((item) => item.category === categoryName);
+        return {
+          id: `cat:${categoryName}`,
+          name: categoryName,
+          icon: 'tabler:folder',
+          count: docs.length,
+          children: docs.slice(0, 30).map(toDoc),
+        };
+      }),
+      {
+        id: '__none__',
+        name: t('uncategorized'),
+        icon: 'tabler:folder-off',
+        count: uncategorisedCount,
+        children: items.filter((item) => !item.category).slice(0, 30).map(toDoc),
+      },
+    ];
+  }, [items, availableCategories, uncategorisedCount, t]);
+  const selectedFolderId = selectedCategory === '' ? 'all' : selectedCategory === '__none__' ? '__none__' : `cat:${selectedCategory}`;
+  const openStudyDoc = (docId: string) => {
+    const found = items.find((item) => String(item.id) === docId);
+    if (found) setDetailItem(found);
+  };
+  const openLinks = (item: any) => {
+    setLinkItem(item);
+    setIsLinksOpen(true);
+  };
 
   const visibleItems = useMemo(
     () => items.filter((item) => {
       if (selectedTag && !(item.tags ?? []).includes(selectedTag)) return false;
-      if (selectedCategory && item.category !== selectedCategory) return false;
+      if (selectedCategory === '__none__') {
+        if (item.category) return false;
+      } else if (selectedCategory && item.category !== selectedCategory) return false;
       if (statusFilter !== 'all' && item.status !== statusFilter) return false;
       if (kindFilter === 'question' && !isQuestionCard(item)) return false;
       if (kindFilter === 'note' && isQuestionCard(item)) return false;
@@ -190,6 +244,22 @@ export default function StudyPage() {
         </Button>
       </div>
 
+      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+        <aside className="w-full shrink-0 md:sticky md:top-0 md:w-56" aria-label={t('folders')}>
+          <div className="mb-1 ml-1 text-xs font-bold text-primary">{t('folders')}</div>
+          <FolderTree
+            folders={studyFolders}
+            selectedFolderId={selectedFolderId}
+            onSelectFolder={(id) => {
+              if (id === 'all') setSelectedCategory('');
+              else if (id === '__none__') setSelectedCategory('__none__');
+              else if (id.startsWith('cat:')) setSelectedCategory(id.slice(4));
+            }}
+            onSelectChild={(_folderId, childId) => openStudyDoc(childId)}
+            persistKey="planinc:study:folders-expanded"
+          />
+        </aside>
+        <div className="min-w-0 flex-1 space-y-4">
       <div className="flex flex-wrap gap-2" aria-label={t('status')}>
         {(['all', 'planned', 'active', 'complete'] as const).map((value) => (
           <Button key={value} size="sm" variant={statusFilter === value ? 'default' : 'secondary'} onClick={() => setStatusFilter(value)}>
@@ -245,6 +315,9 @@ export default function StudyPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge>{t(item.status)}</Badge>
+                  <Button size="icon" variant="ghost" aria-label={t('related-items')} onClick={() => openLinks(item)}>
+                    <Icon icon="hugeicons:share-05" width="18" height="18" />
+                  </Button>
                   <Button size="icon" variant="ghost" aria-label={t('edit')} onClick={() => { setEditingItem(item); setIsCrudOpen(true); }}>
                     <Icon icon="hugeicons:edit-02" width="18" height="18" />
                   </Button>
@@ -291,8 +364,17 @@ export default function StudyPage() {
       {!isLoading && visibleItems.length > 0 && (
         <PlanningPagination page={page} pageSize={pageSize} total={visibleItems.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       )}
+        </div>
+      </div>
       <PlanningFab label={t('add-study-item')} onPress={() => { setEditingItem(null); setIsCrudOpen(true); }} />
       <PlanningCrudModal kind="study" isOpen={isCrudOpen} item={editingItem} onClose={() => { setIsCrudOpen(false); setEditingItem(null); }} onSave={save} />
+      <PlanningLinksModal
+        isOpen={isLinksOpen}
+        onClose={() => { setIsLinksOpen(false); setLinkItem(null); }}
+        sourceType="study"
+        sourceId={linkItem?.id ?? null}
+        sourceTitle={linkItem?.title}
+      />
       <Dialog open={!!detailItem} onOpenChange={(open) => { if (!open) setDetailItem(null); }}>
         <DialogContent className="max-h-[90dvh] w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
@@ -324,6 +406,7 @@ export default function StudyPage() {
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button size="sm" onClick={() => { setEditingItem(detailItem); setDetailItem(null); setIsCrudOpen(true); }}>{t('edit')}</Button>
+                <Button size="sm" variant="secondary" onClick={() => { openLinks(detailItem); setDetailItem(null); }}>{t('related-items')}</Button>
                 <Button size="sm" variant="ghost" onClick={() => setDetailItem(null)}>{t('close')}</Button>
               </div>
             </div>

@@ -16,6 +16,7 @@ import { CollapsibleCard } from '../Common/CollapsibleCard';
 import { showTipsDialog } from '@/components/Common/TipsDialog';
 import { LoadingAndEmpty } from '@/components/Common/LoadingAndEmpty';
 import { RootStore } from '@/store';
+import { PlanIncStore } from '@/store/planincStore';
 import { ToastPlugin } from '@/store/module/Toast/Toast';
 import { CATEGORY_COLOR_PRESETS as COLOR_PRESETS } from '@/lib/colorSeries';
 
@@ -52,15 +53,17 @@ const emptyDraft = {
 };
 
 /**
- * Predefined plan categories.
+ * Agenda lanes (plan categories).
  *
- * Categories are unique per account (enforced by their slug) and feed the plans
- * board columns, the category filter, and the category picker in the CRUD modal.
- * Editing here never breaks existing plans: renaming keeps the slug, and deleting
- * moves affected plans to a replacement category.
+ * Lanes are unique per account (enforced by their slug) and feed the Agenda
+ * board columns, the directory filter, and the lane picker in the CRUD modal.
+ * New plans land in the default lane automatically. Editing here never breaks
+ * existing plans: renaming keeps the slug, and deleting moves affected plans
+ * to a replacement lane (or uncategorised).
  */
 export const CategorySetting = observer(() => {
   const { t } = useTranslation();
+  const planinc = RootStore.Get(PlanIncStore);
   const [categories, setCategories] = useState<PlanCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -170,12 +173,39 @@ export const CategorySetting = observer(() => {
     await load();
   };
 
+  const defaultCategory = categories.find((category) => category.isDefault) ?? null;
+
+  /** Point the "new plans land here" lane at another category (or none). */
+  const setDefaultLane = async (id: number | null) => {
+    try {
+      if (defaultCategory && defaultCategory.id !== id) {
+        await api.planningCategories.update.mutate({ id: defaultCategory.id, isDefault: false });
+      }
+      if (id != null && defaultCategory?.id !== id) {
+        await api.planningCategories.update.mutate({ id, isDefault: true });
+      }
+      setError('');
+      await load();
+    } catch (cause) {
+      console.error('Failed to set default agenda lane', cause);
+      setError((cause as Error)?.message ?? t('operation-failed'));
+    }
+  };
+
+  const persistAgendaPref = async (key: 'agendaShowCompleted' | 'agendaShowUncategorised', value: boolean) => {
+    await PromiseCall(api.config.update.mutate({ key, value }), { autoAlert: false });
+    await planinc.config.call();
+  };
+
+  const showCompleted = planinc.config.value?.agendaShowCompleted ?? false;
+  const showUncategorised = planinc.config.value?.agendaShowUncategorised ?? true;
+
   return (
-    <CollapsibleCard icon="tabler:category" title={t('plan-categories')}>
+    <CollapsibleCard icon="solar:calendar-mark-linear" title={t('agenda-lanes')}>
       <div className="flex flex-col gap-3 p-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm text-default-500">{t('plan-categories-description')}</p>
+            <p className="text-sm text-default-500">{t('agenda-lanes-description')}</p>
             <p className="mt-1 text-xs text-muted-foreground">{t('done-status-hint')}</p>
           </div>
           <div className="flex gap-2">
@@ -242,6 +272,52 @@ export const CategorySetting = observer(() => {
             </Button>
           </div>
         ))}
+
+        <div className="mt-1 flex flex-col gap-2 border-t border-divider pt-3">
+          <p className="text-sm font-semibold">{t('agenda-preferences')}</p>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-default-100/60 px-3 py-2">
+            <div className="min-w-[150px] flex-1">
+              <p className="text-sm">{t('agenda-default-lane')}</p>
+              <p className="text-xs text-default-400">{t('agenda-default-lane-hint')}</p>
+            </div>
+            <Select
+              value={defaultCategory ? String(defaultCategory.id) : 'none'}
+              onValueChange={(value) => void setDefaultLane(value === 'none' ? null : Number(value))}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('agenda-default-lane-none')}</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    <span className="flex items-center gap-2">
+                      <Icon icon={category.icon} width="14" height="14" />
+                      {category.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-default-100/60 px-3 py-2">
+            <div className="min-w-[150px] flex-1">
+              <p className="text-sm">{t('show-completed')}</p>
+              <p className="text-xs text-default-400">{t('agenda-show-completed-hint')}</p>
+            </div>
+            <Switch checked={showCompleted} onCheckedChange={(next) => void persistAgendaPref('agendaShowCompleted', next)} aria-label={t('show-completed')} />
+          </div>
+
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-default-100/60 px-3 py-2">
+            <div className="min-w-[150px] flex-1">
+              <p className="text-sm">{t('agenda-show-uncategorised')}</p>
+              <p className="text-xs text-default-400">{t('agenda-show-uncategorised-hint')}</p>
+            </div>
+            <Switch checked={showUncategorised} onCheckedChange={(next) => void persistAgendaPref('agendaShowUncategorised', next)} aria-label={t('agenda-show-uncategorised')} />
+          </div>
+        </div>
       </div>
 
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) setIsOpen(false); }}>

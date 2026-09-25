@@ -19,15 +19,16 @@ import { useIsPhone } from '@/platform/PlatformProvider';
 // Utility function to format test connection results
 const formatTestResults = (result: any, t: (key: string) => string): string => {
   const details: string[] = [];
+  const latency = (ms: unknown) => (typeof ms === 'number' ? ` (${ms}ms)` : '');
 
   if (result?.capabilities?.inference?.success) {
     const response = result.capabilities.inference.response || '';
-    details.push(`${response}`);
+    details.push(`${response}${latency(result.capabilities.inference.latencyMs)}`);
   }
 
   if (result?.capabilities?.embedding?.success) {
     const dimensions = result.capabilities.embedding.dimensions || 0;
-    details.push(`${dimensions} dimensions`);
+    details.push(`${dimensions} dimensions${latency(result.capabilities.embedding.latencyMs)}`);
   }
 
   if (result?.capabilities?.audio?.success) {

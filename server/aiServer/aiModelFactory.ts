@@ -154,6 +154,11 @@ export class AiModelFactory {
 
     const model = embeddingModel.modelKey.toLowerCase();
     let userConfigDimensions = (embeddingModel.config as any)?.embeddingDimensions || 0;
+    // Global manual override (AI Settings > Embedding Management > Dimensions):
+    // used when the model itself carries no dimension (custom / unknown models),
+    // so the failure surfaces as inline validation instead of a rebuild-time throw.
+    const globalOverrideDimensions = Number((config as any)?.embeddingDimensions) || 0;
+    const effectiveUserDimensions = userConfigDimensions || globalOverrideDimensions;
     let dimensions: number = 0;
     switch (true) {
       case model.includes('text-embedding-3-small'):
@@ -187,12 +192,12 @@ export class AiModelFactory {
         dimensions = 1024;
         break;
       default:
-        if (userConfigDimensions == 0 || userConfigDimensions == undefined || !userConfigDimensions) {
+        if (effectiveUserDimensions == 0 || effectiveUserDimensions == undefined || !effectiveUserDimensions) {
           throw new Error('Must set the embedding dimension in ai Settings > Embed Settings > Advanced Settings');
         }
     }
-    if (userConfigDimensions != 0 && userConfigDimensions != undefined) {
-      dimensions = userConfigDimensions;
+    if (effectiveUserDimensions != 0 && effectiveUserDimensions != undefined) {
+      dimensions = effectiveUserDimensions;
     }
     await vectorStore.createIndex({ indexName: 'planinc', dimension: dimensions, metric: 'cosine' });
   }

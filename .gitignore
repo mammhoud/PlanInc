@@ -1,8 +1,7 @@
-# PlanInc root .gitignore
+# PlanInc local-only ignore
 
 # Runtime data (databases, uploads — local only)
 planinc-data/
-data/
 data/planinc.db/
 server/data/planinc.db/
 django_server/data/
@@ -24,39 +23,22 @@ Thumbs.db
 
 # Node dependencies
 node_modules/
-
-# Legacy vendored fork (its own git repo, node_modules and turbo cache).
-planing/
-
-# Build and test artefacts produced inside the tracked trees.
-dist/
-dist-ssr/
-.turbo/
-test-results/
-playwright-report/
-frontend/node_modules/
-frontend/dist-ssr/
-frontend/.planinc/
-frontend/target/
-server/public/
-e2e/.artifacts/
-*.local
-out/
-.next/
-yarn-error.log
-package-lock.json
+bun.lockb
+pnpm-lock.yaml
 yarn.lock
-*.tsbuildinfo
-.tsbuildinfo
-.scannerwork/
-public/robots.txt
-public/sitemap*
-public/assets/
-public/sw*
-public/workbox*.*
-public/plugins/
-keystore.properties
-dev-dist/
-.claudeconfig
-.claude/
-target/
+
+# Build output
+dist/
+frontend/dist/
+server/dist/
+e2e/.artifacts/
+
+# TypeScript probe configs (dev-only)
+tsconfig.probe*.json
+tsconfig.r_*.json
+
+# Temporary probe dirs
+server/__tsprobe__/
+
+# PlanInc global
+.planinc/

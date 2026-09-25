@@ -127,9 +127,9 @@ export class AIScheduledTaskJob {
    * Schedule all enabled AI tasks from database
    */
   static async scheduleAllTasks(): Promise<void> {
-    // The SurrealDB data layer must expose the aiScheduledTask delegate.
+    // The SurrealDB data layer must expose the aiScheduledTask table store.
     if (!db.aiScheduledTask) {
-      console.warn('[AI Scheduled Task] aiScheduledTask delegate unavailable — the SurrealDB data layer did not initialise; skipping scheduleAllTasks.');
+      console.warn('[AI Scheduled Task] aiScheduledTask table store unavailable — the SurrealDB data layer did not initialise; skipping scheduleAllTasks.');
       return;
     }
 
