@@ -26,7 +26,7 @@ class MiddlewareTests(SimpleTestCase):
         self.assertEqual(context.slug, "demo")
         self.assertEqual(context.source, "header")
 
-    def test_invalid_tenant_slug_is_rejected(self):
+    def test_invalid_tenant_header_is_rejected(self):
         request = RequestFactory().get(
             "/api/example",
             HTTP_X_PLANINC_TENANT="INVALID",
@@ -53,3 +53,14 @@ class MiddlewareTests(SimpleTestCase):
 
         self.assertEqual(context.slug, "demo")
         self.assertEqual(context.source, "hostname")
+
+        # and it must not respawn from the raw hostname
+        self.assertEqual(context.slug, "demo")
+
+    def test_canonical_host_does_not_become_a_tenant(self):
+        request = RequestFactory().get(
+            "/health",
+            HTTP_HOST="notes.structa.cloud",
+        )
+
+        self.assertIsNone(resolve_tenant(request))
