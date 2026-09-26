@@ -12,11 +12,11 @@ Isomorphic helpers: cache, dates, lodash subset, schemas and constants.
 - `helper.ts`
 - `lodash.ts`
 - `modelTemplates.ts` - Model capabilities interface (duplicated here to avoid circular dependencies)
-- `pathConstant.ts`
+- `pathConstant.ts` - Runtime data lives next to the process by default. `PLANINC_DATA_DIR` relocates
 - `recordSchemas.ts` - Zod schemas for the data records (validation + tRPC input/output types).
 - `settingsRegistry.ts` - Settings registry (PI-011 · P2).
 - `sharedConstant.ts`
-- `types.ts`
+- `types.ts` - NOTE: the `RouterOutput`-derived aliases (Note, Attachment, Tag, ResourceType, …)
 
 ## Public API
 

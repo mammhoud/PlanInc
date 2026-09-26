@@ -9,7 +9,7 @@ Tauri desktop shell: Rust host, capabilities and per-platform generated projects
 - `capabilities/` - 3 files
 - `gen/` - 57 files
 - `icons/` - 35 files
-- `src/` - 9 files
+- `src/` - 14 files
 - `build.rs`
 - `Cargo.lock`
 - `Cargo.toml`

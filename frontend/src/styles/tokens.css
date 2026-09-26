@@ -86,6 +86,24 @@
     --pi-color-azure-400: oklch(0.6962 0.1465 247.9985);
     --pi-color-accent-100: oklch(0.9683 0.0014 286.3748);
 
+    /* planinc brand gradients (brandkit/logo/planinc-mark.svg) */
+    --pi-color-primary-0: #00C6FF;
+    --pi-color-primary-100: #00F2FE;
+    --pi-color-primary-200: #0077B6;
+    --pi-color-primary-300: #0B2545;
+    --pi-color-accent-400: #00F2FE;
+    --pi-color-accent-500: #0077B6;
+    --pi-color-accent-600: #0B2545;
+
+    /* planinc brand static ink (light mode)
+     * The mark's white circuit-node fills are the base brand ink; the gradient
+     * stops are drawn from tier 1 vs tier 2 alias tokens because the accent
+     * stops sit on the primary→ink axis. */
+    --pi-color-brand-ink-50: oklch(0.9933 0.0025 257.2682);
+    --pi-color-brand-ink-100: oklch(0.9771 0.0031 253.1121);
+    --pi-color-brand-ink-200: oklch(0.948 0.0068 257.3663);
+    --pi-color-brand-ink-300: oklch(0.879 0.0094 264.5408);
+
     /* brand-adjacent hues */
     --pi-color-violet-500: oklch(0.5641 0.1646 290.0754);
     --pi-color-red-500: oklch(0.628 0.2577 29.2339);

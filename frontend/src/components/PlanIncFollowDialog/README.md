@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincFollowDialog`
+# `frontend/src/components/PlanIncFollowDialog`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -17,7 +17,7 @@ Modules: `index.tsx`.
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincFollowDialog
+// from frontend/src/components/PlanIncFollowDialog
 import { PlanIncSiteUser } from "./index";
 ```
 

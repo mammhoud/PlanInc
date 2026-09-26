@@ -1,4 +1,4 @@
-# `src/frontend/src-tauri/gen/android/app/src/main/res/mipmap-xhdpi`
+# `frontend/src-tauri/gen/android/app/src/main/res/mipmap-xhdpi`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 

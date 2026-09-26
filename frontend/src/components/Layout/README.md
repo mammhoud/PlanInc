@@ -2,12 +2,13 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `BarSearchInput.tsx`, `GlobalSearch.tsx`, `MobileNavBar.tsx`, `Sidebar.tsx`, `cn.ts`, `index.tsx`.
+Modules: `BarSearchInput.tsx`, `CommandPalette.tsx`, `GlobalSearch.tsx`, `MobileNavBar.tsx`, `Sidebar.tsx`, `cn.ts`, and 1 more.
 
 ## Contents
 
 - `BarSearchInput.tsx`
 - `cn.ts`
+- `CommandPalette.tsx`
 - `GlobalSearch.tsx`
 - `index.tsx`
 - `MobileNavBar.tsx`

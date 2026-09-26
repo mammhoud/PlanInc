@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincEditor`
+# `frontend/src/components/PlanIncEditor`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -15,7 +15,7 @@ Modules: `index.tsx`.
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincEditor
+// from frontend/src/components/PlanIncEditor
 import { PlanIncEditor } from "./index";
 ```
 

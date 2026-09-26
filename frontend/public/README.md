@@ -7,22 +7,32 @@ Static assets copied verbatim into the Vite build.
 ## Contents
 
 - `fonts/` - 1 file
-- `icons/` - 9 files
+- `icons/` - 14 files
 - `locales/` - 17 files
+- `enhanced.svg`
 - `fallback.png`
 - `favicon.ico`
 - `home.png`
 - `home.webp`
 - `image-fallback.svg`
+- `loading-dark.svg`
 - `loading.gif`
+- `loading.svg`
 - `logo-dark-title.png`
 - `logo-light-title.png`
 - `logo.png`
-- `planinc-logo-source.jpg` - Read-only source reference copied from the supplied PlanInc mark.
-- `planinc-logo-light.jpg` - Cropped and resized light-surface wordmark.
-- `planinc-logo-dark.jpg` - Dark-surface application variant.
-- `planinc-logo-square.jpg` - Square application asset for compact surfaces.
 - `manifest.json`
+- `planinc-lockup-h.svg`
+- `planinc-lockup-v.svg`
+- `planinc-logo-dark.jpg`
+- `planinc-logo-light.jpg`
+- `planinc-logo-mark.svg`
+- `planinc-logo-source.jpg`
+- `planinc-logo-square.jpg`
+- `planinc-logo-transparent.svg`
+- `planinc-mark-white.svg`
+- `planinc-mark.svg`
+- `planinc-wordmark.svg`
 - `run-on-pikapods.svg`
 
 ## Public API

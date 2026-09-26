@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincSettings`
+# `frontend/src/components/PlanIncSettings`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 

@@ -14,10 +14,20 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PlanInc" />
 
-  <link rel="apple-touch-icon" sizes="120x120" href="/icons/Square142x142Logo.png" />
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/Square150x150Logo.png" />
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/Square284x284Logo.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/Square284x284Logo.png" />
+  <!-- App icon / favicon — the brand NEW mark is an inline SVG, so no PNG ever
+       has to be generated to keep the icon crisp at 16px, 32px and on masks.
+       `rel=icon` + `rel=shortcut icon` share the same source; the second one
+       is the legacy IE/shotcut shorthand. -->
+  <link rel="icon" href="/planinc-mark.svg" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/planinc-mark.svg" type="image/svg+xml" />
+
+  <!-- Apple touch icon: 120/152/167/180px are the sizes iOS actually asks for.
+       The PNGs are derived from `planinc-mark.svg`; the ordering below is the
+       fixed mapping (142px→120, 150px→152, 284px→167 + 180). -->
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/Square120x120Logo.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/Square152x152Logo.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/Square167x167Logo.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/Square180x180Logo.png" />
 
   <meta name="description" content="PlanInc self-hosted personal note" />
   <meta name="format-detection" content="telephone=no" />

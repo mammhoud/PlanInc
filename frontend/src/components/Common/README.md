@@ -10,6 +10,7 @@ Reusable UI primitives shared across features - editors, markdown rendering, dia
 - `AudioDialog/` - 1 file
 - `AudioRecorder/` - 3 files
 - `CameraDialog/` - 1 file
+- `CategorySelector/` - 1 file
 - `Copy/` - 1 file
 - `CustomCheckbox/` - 1 file
 - `Div/` - 1 file
@@ -41,12 +42,11 @@ Reusable UI primitives shared across features - editors, markdown rendering, dia
 - `UpdateTagPop/` - 1 file
 - `UploadFile/` - 1 file
 - `CollapsibleCard.tsx`
+- `ConfigModal.tsx` - tokens-ignore-file: ConfigModal uses Tailwind utility classes for layout
 - `ContextMenu.tsx`
 - `GradientBackground.tsx`
-- `LoadingAndEmpty.tsx`
-- `LoadingPage.tsx`
-- `MultiSelectToolbar.tsx`
-- _...and 5 more entries_
+- `GuidedTooltip.tsx`
+- _...and 9 more entries_
 
 ## Public API
 

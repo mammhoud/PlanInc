@@ -28,6 +28,7 @@ tRPC router - the primary typed API surface.
 - `plugin.ts`
 - `public.ts`
 - `shareApproval.ts`
+- `skill.ts`
 - `study.ts`
 - `tag.ts`
 - `task.ts`

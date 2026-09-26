@@ -104,8 +104,13 @@ const Home = observer(() => {
   // Opening a directory document narrows the board to its folder and jumps to
   // the card via the existing noteId scroll restoration.
   const openAgendaItem = (noteId: number, categoryId: number | null) => {
-    if (showPlanControls) setCategoryFilter(categoryId ?? 'none');
     const params = new URLSearchParams(searchParams);
+    if (showPlanControls) {
+      // A directory row under "uncategorised" narrows to that lane, matching the
+      // chip behaviour; the sync effect turns the param back into filter state.
+      if (categoryId == null) params.set('categoryId', 'none');
+      else params.set('categoryId', String(categoryId));
+    }
     params.set('noteId', String(noteId));
     setSearchParams(params, { replace: false });
   };
@@ -124,7 +129,14 @@ const Home = observer(() => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(readStoredPageSize);
   const [categories, setCategories] = useState<any[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<number | 'all' | 'none'>('all');
+  // Lane filter. Seeded from `?categoryId=` so the sidebar lane selector (and a
+  // shared link) lands on the same filtered board the chips describe.
+  const [categoryFilter, setCategoryFilter] = useState<number | 'all' | 'none'>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const raw = new URLSearchParams(window.location.search).get('categoryId');
+    if (raw == null) return 'all';
+    return raw === 'none' ? 'none' : Number(raw);
+  });
   const [calendarMonth, setCalendarMonth] = useState(() => dayjs().startOf('month'));
   // Kanban grouping (category lanes vs finish-status lanes), persisted per device.
   const [kanbanGroup, setKanbanGroup] = useState<'category' | 'status'>(() =>
@@ -170,6 +182,28 @@ const Home = observer(() => {
 
   // Category filter only applies to plan-oriented Agenda surfaces (tasks / all).
   const showPlanControls = isAgendaView && (agendaTypeParam === 'todo' || agendaTypeParam === 'all');
+
+  // The sidebar lane selector writes `?categoryId=`; mirror it into the chip
+  // filter so both entry points agree on which lane is active.
+  useEffect(() => {
+    if (!showPlanControls) return;
+    const raw = searchParams.get('categoryId');
+    if (raw == null) {
+      setCategoryFilter('all');
+      return;
+    }
+    setCategoryFilter(raw === 'none' ? 'none' : Number(raw));
+  }, [searchParams, showPlanControls]);
+
+  // Clicking a chip writes the URL back, so a lane filter is linkable and the
+  // sidebar selector stays highlighted on the matching lane.
+  const setCategoryFilterPersisted = (next: number | 'all' | 'none') => {
+    setCategoryFilter(next);
+    const params = new URLSearchParams(searchParams);
+    if (next === 'all') params.delete('categoryId');
+    else params.set('categoryId', String(next));
+    setSearchParams(params, { replace: true });
+  };
 
   const loadedNotes = useMemo(() => currentListState.value ?? [], [currentListState.value]);
 
@@ -446,7 +480,7 @@ const Home = observer(() => {
                   size="sm"
                   variant={categoryFilter === 'all' ? 'solid' : 'flat'}
                   className="cursor-pointer"
-                  onClick={() => setCategoryFilter('all')}
+                  onClick={() => setCategoryFilterPersisted('all')}
                 >
                   {t('all-categories')}
                 </Chip>
@@ -457,7 +491,7 @@ const Home = observer(() => {
                     variant={categoryFilter === category.id ? 'solid' : 'flat'}
                     className="cursor-pointer"
                     style={categoryFilter === category.id ? undefined : { borderColor: category.color, color: category.color }}
-                    onClick={() => setCategoryFilter(category.id)}
+                    onClick={() => setCategoryFilterPersisted(category.id)}
                   >
                     {category.name}
                   </Chip>
@@ -466,7 +500,7 @@ const Home = observer(() => {
                   size="sm"
                   variant={categoryFilter === 'none' ? 'solid' : 'flat'}
                   className="cursor-pointer"
-                  onClick={() => setCategoryFilter('none')}
+                  onClick={() => setCategoryFilterPersisted('none')}
                 >
                   {t('uncategorised')}
                 </Chip>

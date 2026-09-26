@@ -2,12 +2,15 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `PlanningCrudModal.tsx`, `PlanningFab.tsx`, `PlanningPagination.tsx`, `PlanningViewSwitch.tsx`.
+Modules: `AgendaDirectory.tsx`, `FolderTree.tsx`, `PlanningCrudModal.tsx`, `PlanningFab.tsx`, `PlanningLinksModal.tsx`, `PlanningPagination.tsx`, and 1 more.
 
 ## Contents
 
+- `AgendaDirectory.tsx`
+- `FolderTree.tsx`
 - `PlanningCrudModal.tsx`
 - `PlanningFab.tsx`
+- `PlanningLinksModal.tsx`
 - `PlanningPagination.tsx`
 - `PlanningViewSwitch.tsx`
 

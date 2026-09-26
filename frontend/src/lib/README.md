@@ -7,6 +7,7 @@ Client-side library code: API clients, storage, i18n and helpers.
 ## Contents
 
 - `utils/` - 1 file
+- `apiTypes.ts` - Frontend-only aliases derived from the tRPC router output.
 - `appearance.ts` - Appearance state (PI-011 · P3).
 - `axios.ts` - Create axios instance
 - `cache.ts`
@@ -23,6 +24,7 @@ Client-side library code: API clients, storage, i18n and helpers.
 - `searchFilters.ts`
 - `tauriHelper.ts`
 - `themePalettes.ts` - Theme palettes.
+- `trashWithUndo.ts`
 - `trpc.ts`
 - `utils.ts`
 

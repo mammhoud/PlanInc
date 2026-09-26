@@ -27,6 +27,11 @@ import { useSideNav } from '@/platform/PlatformProvider';
 const App = observer(() => {
   const planinc = RootStore.Get(PlanIncStore)
   const swiperRef = useRef(null);
+  // The completion celebration is a *moment*, not a state. Without this latch
+  // the effect re-fired on every dependency change while the queue was empty —
+  // including the initial render before the review list had finished loading —
+  // so the confetti burst repeatedly instead of once.
+  const hasCelebrated = useRef(false);
   const { t } = useTranslation()
   const isPc = useSideNav()
   const store = RootStore.Local(() => ({
@@ -46,14 +51,23 @@ const App = observer(() => {
   }))
 
   useEffect(() => {
-    if (!store.isRandomReviewMode && planinc.dailyReviewNoteList.value?.length == 0) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6, x: isPc ? 0.6 : 0.5 }
-      });
+    // Reset the latch when leaving daily mode so a later return can celebrate
+    // again; only daily mode celebrates. Wait for the first load to settle so
+    // an empty pre-load list cannot look like a finished queue.
+    if (store.isRandomReviewMode) {
+      hasCelebrated.current = false
+      return
     }
-  }, [planinc.dailyReviewNoteList.value, planinc.randomReviewNoteList.value, store.isRandomReviewMode])
+    if (planinc.dailyReviewNoteList.isLoading) return
+    if (hasCelebrated.current) return
+    if (planinc.dailyReviewNoteList.value?.length != 0) return
+    hasCelebrated.current = true
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6, x: isPc ? 0.6 : 0.5 }
+    });
+  }, [planinc.dailyReviewNoteList.value, planinc.dailyReviewNoteList.isLoading, store.isRandomReviewMode])
 
   const reviewNotes = store.isRandomReviewMode
     ? planinc.randomReviewNoteList.value ?? []

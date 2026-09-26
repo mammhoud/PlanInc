@@ -7,28 +7,32 @@ React component library. Grouped as `Common/` (reusable primitives), `Layout/`, 
 ## Contents
 
 - `Auth/` - 1 file
-- `Common/` - 82 files
-- `Layout/` - 6 files
-- `PlanincAddButton/` - 1 file
-- `PlanincAi/` - 6 files
-- `PlanincAnalytics/` - 4 files
-- `PlanincCard/` - 10 files
-- `PlanincEditor/` - 1 file
-- `PlanincFollowDialog/` - 1 file
-- `PlanincMultiSelectPop/` - 1 file
-- `PlanincMusicPlayer/` - 1 file
-- `PlanincNoteHistory/` - 2 files
-- `PlanincNotification/` - 1 file
-- `PlanincPlanning/` - 4 files
-- `PlanincReference/` - 1 file
-- `PlanincResource/` - 3 files
-- `PlanincRightClickMenu/` - 1 file
-- `PlanincSettings/` - 34 files
-- `PlanincShareDialog/` - 1 file
+- `Common/` - 86 files
+- `Layout/` - 7 files
+- `PlanIncAddButton/` - 1 file
+- `PlanIncAi/` - 6 files
+- `PlanIncAnalytics/` - 4 files
+- `PlanIncCard/` - 10 files
+- `PlanIncEditor/` - 1 file
+- `PlanIncFollowDialog/` - 1 file
+- `PlanIncGraph/` - 1 file
+- `PlanincLogo/` - 6 files
+- `PlanIncMultiSelectPop/` - 1 file
+- `PlanIncMusicPlayer/` - 1 file
+- `PlanIncNoteHistory/` - 2 files
+- `PlanIncNotification/` - 1 file
+- `PlanincPlanning/` - 7 files
+- `PlanIncReference/` - 1 file
+- `PlanIncResource/` - 3 files
+- `PlanIncRightClickMenu/` - 1 file
+- `PlanIncSettings/` - 34 files
+- `PlanIncShareDialog/` - 1 file
+- `ui/` - 21 files
+- `PlanincLoader.tsx`
 
 ## Public API
 
-- _(no exported symbols in this directory)_
+- _(no barrel export - import the individual modules listed in Contents)_
 
 ## Usage
 

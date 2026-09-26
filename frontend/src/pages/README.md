@@ -7,15 +7,15 @@ Route-level page components.
 ## Contents
 
 - `detail/` - 1 file
-- `share/` - 2 files
+- `share/` - 3 files
 - `ai-share.tsx`
 - `ai.tsx`
 - `all.tsx`
-- `insights.tsx`
 - `dashboard.tsx`
 - `graph.tsx`
 - `hub.tsx`
 - `index.tsx`
+- `insights.tsx`
 - `oauth-callback.tsx`
 - `plugin.tsx`
 - `quickai.tsx`
@@ -26,8 +26,9 @@ Route-level page components.
 - `settings.tsx`
 - `signin.tsx`
 - `signup.tsx`
+- `skills.tsx`
 - `study.tsx`
-- `tickets.tsx`
+- `tickets.tsx` - This page still uses the HeroUI modal for the "related items" dialog; the
 
 ## Public API
 

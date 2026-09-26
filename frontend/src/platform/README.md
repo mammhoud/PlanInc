@@ -2,11 +2,12 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `PlatformProvider.tsx`, `detect.ts`, `pwa.ts`, `responsive.ts`, `types.ts`.
+Modules: `PlatformProvider.tsx`, `detect.ts`, `overrides.ts`, `pwa.ts`, `responsive.ts`, `types.ts`.
 
 ## Contents
 
 - `detect.ts` - Platform detection (PI-014).
+- `overrides.ts` - Responsive overrides (PI-014).
 - `PlatformProvider.tsx`
 - `pwa.ts` - PWA wiring (PI-014).
 - `responsive.ts` - Responsive scale (PI-014).

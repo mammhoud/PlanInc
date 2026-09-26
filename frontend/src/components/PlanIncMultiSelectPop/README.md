@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincMultiSelectPop`
+# `frontend/src/components/PlanIncMultiSelectPop`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -15,7 +15,7 @@ Modules: `index.tsx`.
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincMultiSelectPop
+// from frontend/src/components/PlanIncMultiSelectPop
 import { PlanIncMultiSelectPop } from "./index";
 ```
 

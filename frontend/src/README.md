@@ -7,11 +7,11 @@ Client source tree.
 ## Contents
 
 - `assets/` - 1 file
-- `components/` - 161 files
+- `components/` - 198 files
 - `hooks/` - 4 files
-- `lib/` - 19 files
-- `pages/` - 23 files
-- `platform/` - 5 files
+- `lib/` - 21 files
+- `pages/` - 25 files
+- `platform/` - 6 files
 - `store/` - 27 files
 - `styles/` - 7 files
 - `App.tsx`

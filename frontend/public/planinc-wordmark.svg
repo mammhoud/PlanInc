@@ -1,3 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" width="200" height="48">
-  <text x="0" y="36" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="36" fill="#f59e0b">PlanInc</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" role="img" aria-labelledby="title">
+  <title id="title">PlanInc</title>
+
+  <defs>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0B2545"/>
+      <stop offset="70%" stop-color="#0077B6"/>
+      <stop offset="100%" stop-color="#00C6FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Wordmark only. The mark is 60% of the full lockup height; the text block
+       is 40%, matching the look of the supplied `planinc-logo-mark.svg`. -->
+  <text x="300" y="78"
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+        font-size="34" font-weight="800" fill="url(#textGrad)" text-anchor="middle" letter-spacing="8">PLANINC</text>
 </svg>

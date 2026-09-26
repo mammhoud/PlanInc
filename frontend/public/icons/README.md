@@ -6,9 +6,14 @@ Static resources for `icons`.
 
 ## Contents
 
+- `browserconfig.xml`
 - `Square107x107Logo.png`
+- `Square120x120Logo.png`
 - `Square142x142Logo.png`
 - `Square150x150Logo.png`
+- `Square152x152Logo.png`
+- `Square167x167Logo.png`
+- `Square180x180Logo.png`
 - `Square284x284Logo.png`
 - `Square30x30Logo.png`
 - `Square310x310Logo.png`

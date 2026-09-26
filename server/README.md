@@ -6,13 +6,14 @@ Backend: Express + tRPC API, AI provider abstraction and background jobs.
 
 ## Contents
 
+- `.planinc/` - 6 files
 - `__tests__/` - 10 files
 - `aiServer/` - 22 files
-- `jobs/` - 9 files
+- `jobs/` - 8 files
 - `lib/` - 8 files
 - `middleware/` - 1 file
 - `routerExpress/` - 12 files
-- `routerTrpc/` - 27 files
+- `routerTrpc/` - 28 files
 - `scripts/` - 2 files
 - `seedfiles/` - 6 files
 - `types/` - 2 files

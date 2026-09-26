@@ -1,4 +1,4 @@
-# `src/frontend/src-tauri/gen/android/app/src/main/res/xml`
+# `frontend/src-tauri/gen/android/app/src/main/res/xml`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 

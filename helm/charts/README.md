@@ -1,8 +1,8 @@
-# `src/helm/charts`
+# `helm/charts`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Chart dependencies.
+Infrastructure definitions under `helm/charts/`.
 
 ## Contents
 

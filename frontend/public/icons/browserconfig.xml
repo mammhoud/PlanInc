@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <browserconfig>
   <msapplication>
+    <!-- Current: 150px (`app` tile). The 4 derived 120/152/167/180px PNGs are the
+         Apple paths; Android only consumes the 150px tile plus the 310px maskable
+         icon, so the 120/152/167/180 set is deliberately not part of this file. -->
     <tile>
       <square150x150logo src="/icons/Square150x150Logo.png"/>
-      <TileColor>#f59e0b</TileColor>
+      <square310x310logo src="/icons/Square310x310Logo.png" purpose="any maskable"/>
     </tile>
   </msapplication>
 </browserconfig>

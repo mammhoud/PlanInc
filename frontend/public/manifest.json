@@ -53,5 +53,5 @@
   "background_color": "#FFFFFF",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "any"
 }

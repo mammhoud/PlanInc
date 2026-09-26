@@ -6,9 +6,14 @@ Rust host for the Tauri desktop shell.
 
 ## Contents
 
+- `commands/` - 1 file
 - `desktop/` - 7 files
+- `commands.rs`
+- `db.rs`
+- `error.rs`
 - `lib.rs`
 - `main.rs`
+- `models.rs`
 
 ## Public API
 

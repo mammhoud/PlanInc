@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincCard`
+# `frontend/src/components/PlanIncCard`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -25,7 +25,7 @@ Modules: `FullscreenEditor.tsx`, `SwipeableCard.tsx`, `cardBlogBox.tsx`, `cardFo
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincCard
+// from frontend/src/components/PlanIncCard
 import { PlanIncItem } from "./index";
 ```
 

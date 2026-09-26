@@ -1,8 +1,8 @@
-# `src/helm/templates`
+# `helm/templates`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Kubernetes manifests rendered by the chart.
+Infrastructure definitions under `helm/templates/`.
 
 ## Contents
 

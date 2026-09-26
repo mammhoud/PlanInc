@@ -2,8 +2,7 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `archive.ts`, `delete.ts`, `file.ts`, `plugin.ts`, `s3file.ts`,
-`upload-by-url.ts`, and `upload.ts`.
+Modules: `archive.ts`, `delete.ts`, `file.ts`, `plugin.ts`, `s3file.ts`, `upload-by-url.ts`, and 1 more.
 
 ## Contents
 

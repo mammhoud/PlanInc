@@ -741,7 +741,8 @@ export class PlanIncStore implements Store {
     this.updateTicker++;
   }
 
-  updateTagFilter(tagId: number) {
+  /** Set (or clear, with `null`) the active tag filter and reload the list. */
+  updateTagFilter(tagId: number | null) {
     this.noteListFilterConfig.tagId = tagId;
     this.noteListFilterConfig.type = -1
     this.noteList.resetAndCall({});

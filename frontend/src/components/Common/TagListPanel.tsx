@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TreeView, { flattenTree } from "react-accessible-treeview";
 import { observer } from "mobx-react-lite";
 import { RootStore } from "@/store";
@@ -27,6 +27,7 @@ import { DialogStore } from "@/store/module/Dialog";
 import { AiStore } from "@/store/aiStore";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useSideNav } from '@/platform/PlatformProvider';
+import { CategorySelector } from '@/components/Common/CategorySelector';
 
 const Emoji = ({ icon }: { icon: string }) => {
   return <>
@@ -112,19 +113,22 @@ export const TagListPanel = observer(() => {
       })
       .filter(Boolean);
   };
-  const visibleTags = filterTags(planinc.tagList.value?.listTags ?? [], tagQuery.trim());
+  const visibleTags = useMemo(() => filterTags(planinc.tagList.value?.listTags ?? [], tagQuery.trim()), [planinc.tagList.value?.listTags, tagQuery]);
   useEffect(() => { }, [planinc.noteListFilterConfig.tagId])
   return (
     <>
-      <div className="ml-2 my-2 text-xs font-bold text-primary">{t('total-tags')}</div>
-      <div className="mb-2 px-1">
-        <Input
-          value={tagQuery}
-          onChange={(e) => setTagQuery(e.target.value)}
-          placeholder={`${t('filter-by-tag')}…`}
-          aria-label="Filter tags"
-          className="h-9"
-        />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="ml-2 my-2 text-xs font-bold text-primary">{t('total-tags')}</div>
+        <div className="mb-2 px-1">
+          <Input
+            value={tagQuery}
+            onChange={(e) => setTagQuery(e.target.value)}
+            placeholder={`${t('filter-by-tag')}…`}
+            aria-label="Filter tags"
+            className="h-9"
+          />
+        </div>
+        <CategorySelector />
       </div>
       <TreeView
         className="mb-4"

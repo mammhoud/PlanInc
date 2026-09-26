@@ -1,8 +1,8 @@
-# `src/test-docker/mock-openai`
+# `test-docker/mock-openai`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Mock OpenAI-compatible endpoint used by containerised tests to exercise AI paths without spending quota.
+Modules: `server.js`.
 
 ## Contents
 

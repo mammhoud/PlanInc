@@ -21,6 +21,7 @@
 | PI-009 | [`docs/08-i18n.md`](./08-i18n.md) | Locales, parity rules, adding a language | ✅ Exists |
 | PI-010 | [`docs/09-troubleshooting.md`](./09-troubleshooting.md) | Symptom → cause → fix entries | ✅ Exists |
 | PI-011 | [`docs/10-blinko-parity-and-design-plan.md`](./10-blinko-parity-and-design-plan.md) | Blinko analysis, design-system base (HeroUI/shadcn/FlyonUI), skill + content map, UX/integration backlog, ordered P0–P11 programme, phase log (P1/P2/P3 shipped) | ✅ Exists |
+| PI-023 | [`docs/10-blinko-parity-and-design-plan.md`](./10-blinko-parity-and-design-plan.md) | Appendix B — Logo & Loading brand deliverable: brand-new SVG mark, 3 lockup variants, 5 SVG size tier, `loading.svg` + `loading-dark.svg`, `index.html`/`manifest.json`/component API | ✅ Appendix B (plan) + in place |
 | PI-012 | [`docs/11-parity-matrix.md`](./11-parity-matrix.md) | P0 parity matrix — one row per backlog item with Blinko evidence, file-verified PlanInc status, gap type and owning phase | ✅ Exists |
 | PI-013 | [`docs/12-settings-and-appearance-reference.md`](./12-settings-and-appearance-reference.md) | Settings registry reference (generated table), appearance v2 attributes/tokens, verification commands | ✅ Exists |
 | PI-014 | [`docs/13-single-frontend-platforms.md`](./13-single-frontend-platforms.md) | Single frontend directory for every platform/OS: platform model, capabilities, `useSideNav`/`useIsPhone`, responsive tiers, `<html>` attribute contract, shared token contract, build artifact wiring, and `check:platform` (12 groups) | ✅ Exists |
@@ -32,6 +33,7 @@
 | PI-020 | [`docs/plans/django-bolt/05-server-architecture-and-erd.md`](./plans/django-bolt/05-server-architecture-and-erd.md) | Formint Cloud-inspired PlanInc server boundaries, integrated flows, settings, and complete ERD | ✅ Exists |
 | PI-021 | [`docs/plans/django-bolt/06-implementation-task-board.md`](./plans/django-bolt/06-implementation-task-board.md) | Executable implementation tasks, dependencies, evidence, and external gates | ✅ Exists |
 | PI-022 | [`docs/14-agenda.md`](./14-agenda.md) | Merged Notes + Plans Agenda stream, type filters, legacy path aliases, share links, default seed pack | ✅ Exists |
+| PI-024 | [`docs/15-enhancements-and-recommendations.md`](./15-enhancements-and-recommendations.md) | Enhancement plan + module audit (settings, integrations, sharing, reviews, relations), parity-matrix corrections, tooltip map, prioritised roadmap | ✅ Exists |
 
 ## Per-directory documentation
 

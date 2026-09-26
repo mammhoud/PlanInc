@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincMusicPlayer`
+# `frontend/src/components/PlanIncMusicPlayer`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -15,7 +15,7 @@ Modules: `index.tsx`.
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincMusicPlayer
+// from frontend/src/components/PlanIncMusicPlayer
 import { PlanIncMusicPlayer } from "./index";
 ```
 

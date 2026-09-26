@@ -6,6 +6,7 @@ Long-form documentation, indexed by [`INDEX.md`](./INDEX.md). Start there for th
 
 ## Contents
 
+- `plans/` - 7 files
 - `00-package-guide.md`
 - `01-getting-started.md`
 - `02-architecture.md`
@@ -21,16 +22,9 @@ Long-form documentation, indexed by [`INDEX.md`](./INDEX.md). Start there for th
 - `12-settings-and-appearance-reference.md`
 - `13-single-frontend-platforms.md`
 - `14-agenda.md`
-- `plans/django-bolt/00-index.md`
-- `plans/django-bolt/01-foundation-and-tenancy.md`
-- `plans/django-bolt/02-domain-and-api.md`
-- `plans/django-bolt/03-data-migration-and-cutover.md`
-- `plans/django-bolt/04-realtime-operations-and-verification.md`
-- `plans/django-bolt/05-server-architecture-and-erd.md`
-- `plans/django-bolt/06-implementation-task-board.md`
+- `15-enhancements-and-recommendations.md`
 - `INDEX.md`
 - `shadcn-migration-guide.md`
-- `README.md`
 
 ## Public API
 

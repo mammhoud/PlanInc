@@ -1,4 +1,4 @@
-# `src/frontend/src-tauri/gen/android/gradle/wrapper`
+# `frontend/src-tauri/gen/android/gradle/wrapper`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 

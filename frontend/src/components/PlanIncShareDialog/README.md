@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincShareDialog`
+# `frontend/src/components/PlanIncShareDialog`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -16,7 +16,7 @@ Modules: `index.tsx`.
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincShareDialog
+// from frontend/src/components/PlanIncShareDialog
 import { ShareSettings } from "./index";
 ```
 

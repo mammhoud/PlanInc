@@ -2,12 +2,13 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `[id].tsx`, `index.tsx`.
+Modules: `[id].tsx`, `index.tsx`, `invite.tsx`.
 
 ## Contents
 
 - `[id].tsx`
 - `index.tsx`
+- `invite.tsx`
 
 ## Public API
 

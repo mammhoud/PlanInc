@@ -1,4 +1,4 @@
-# `frontend/src/components/PlanincRightClickMenu`
+# `frontend/src/components/PlanIncRightClickMenu`
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
@@ -32,7 +32,7 @@ Modules: `index.tsx`.
 ## Usage
 
 ```ts
-// from frontend/src/components/PlanincRightClickMenu
+// from frontend/src/components/PlanIncRightClickMenu
 import { ShowEditTimeModel } from "./index";
 ```
 

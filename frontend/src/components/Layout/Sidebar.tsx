@@ -13,10 +13,38 @@ import { PlanIncStore } from '@/store/planincStore';
 import { useLocation, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { eventBus } from '@/lib/event';
 import { api } from '@/lib/trpc';
+import { GuidedTooltip } from '../Common/GuidedTooltip';
 
 interface SidebarProps {
   onItemClick?: () => void;
 }
+
+/**
+ * One-line "why you'd click this" hints for the main nav, shown in the guided
+ * tooltip. Keyed by `href` so a route rename cannot silently orphan a hint; an
+ * unknown route simply renders the label without a hint.
+ */
+const NAV_HINTS: Record<string, string> = {
+  '/': 'Your notes and plans, newest first',
+  '/?path=agenda': 'One merged stream of notes, plans and tasks',
+  '/?path=agenda&type=note': 'Just the notes from the agenda stream',
+  '/?path=agenda&type=todo': 'Just the plans and tasks',
+  '/all': 'Every note, across every tag',
+  '/dashboard': 'Counts and recent activity at a glance',
+  '/resources': 'Files and attachments you have uploaded',
+  '/tickets': 'Support tickets and their approvals',
+  '/study': 'Study questions and spaced review',
+  '/skills': 'Skill tracks and mastery progress',
+  '/graph': 'How notes reference each other',
+  '/review': 'Daily and random review of your notes',
+  '/ai': 'Chat with your notes and agents',
+  '/hub': 'Feeds and RSS sources',
+  '/insights': 'Analytics and trend reports',
+  '/?path=archived': 'Plans you have completed',
+  '/?path=trash': 'Deleted notes, restorable',
+  '/plugin': 'Installed plugins and their permissions',
+  '/settings': 'Everything configurable in the workspace',
+};
 
 export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
   // Same tier fact as the layout, read from the platform layer so the two
@@ -127,14 +155,16 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
               it on hover with a mouse, on `:focus-visible` for the keyboard, and
               keeps it always visible wherever the pointer is coarse. */}
           {isPc ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              className={`hover-only-on-fine ml-auto ${!base.isSidebarCollapsed ? '-translate-x-1 ' : 'translate-x-0'}`}
-              onClick={base.toggleSidebar}
-            >
-              <Icon icon={base.isSidebarCollapsed ? 'mdi:chevron-right' : 'mdi:chevron-left'} width="20" height="20" />
-            </Button>
+            <GuidedTooltip label={t('collapse')} hint={t('side-nav-mode-hint')} side="right">
+              <Button
+                size="icon"
+                variant="ghost"
+                className={`hover-only-on-fine ml-auto ${!base.isSidebarCollapsed ? '-translate-x-1 ' : 'translate-x-0'}`}
+                onClick={base.toggleSidebar}
+              >
+                <Icon icon={base.isSidebarCollapsed ? 'mdi:chevron-right' : 'mdi:chevron-left'} width="20" height="20" />
+              </Button>
+            </GuidedTooltip>
           ) : (
             <Button
               size="icon"
@@ -182,16 +212,22 @@ export const Sidebar = observer(({ onItemClick }: SidebarProps) => {
                   </button>
                 )}
                 {!collapsed && items.map((i) => (
-                  <Link
+                  <GuidedTooltip
                     key={i.title}
-                    to={i.href}
-                    onClick={() => { base.currentRouter = i; onItemClick?.(); }}
-                    aria-current={base.isSideBarActive(routerInfo, i) ? 'page' : undefined}
-                    className={`flex min-h-[44px] items-center gap-1 group ${SideBarItem} ${base.isSideBarActive(routerInfo, i) ? '!bg-primary !text-primary-foreground' : ''}`}
+                    label={base.isSidebarCollapsed ? t(i.title) : undefined}
+                    hint={NAV_HINTS[i.href]}
+                    side={base.isSidebarCollapsed ? 'right' : 'bottom'}
                   >
-                    <Icon className={`${base.isSidebarCollapsed ? 'mx-auto' : ''}`} icon={i.icon} width="20" height="20" />
-                    {!base.isSidebarCollapsed && <span className="!transition-all">{t(i.title)}</span>}
-                  </Link>
+                    <Link
+                      to={i.href}
+                      onClick={() => { base.currentRouter = i; onItemClick?.(); }}
+                      aria-current={base.isSideBarActive(routerInfo, i) ? 'page' : undefined}
+                      className={`flex min-h-[44px] items-center gap-1 group ${SideBarItem} ${base.isSideBarActive(routerInfo, i) ? '!bg-primary !text-primary-foreground' : ''}`}
+                    >
+                      <Icon className={`${base.isSidebarCollapsed ? 'mx-auto' : ''}`} icon={i.icon} width="20" height="20" />
+                      {!base.isSidebarCollapsed && <span className="!transition-all">{t(i.title)}</span>}
+                    </Link>
+                  </GuidedTooltip>
                 ))}
               </div>
             );
