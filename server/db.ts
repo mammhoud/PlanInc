@@ -999,11 +999,16 @@ export async function ensureSurrealSchema(): Promise<void> {
     ['type', 'option<number>'],
     ['content', 'option<string>'],
     ['accountId', 'option<number>'],
+    // Cross-store sync identity (Postgres→Surreal leg): the Django
+    // idempotency_key, e.g. "note.created:12". Used for dedupe on ingest.
+    ['syncKey', 'option<string>'],
     ['isArchived', 'option<bool>'],
     ['isRecycle', 'option<bool>'],
     ['isShare', 'option<bool>'],
     ['isTop', 'option<bool>'],
     ['isReviewed', 'option<bool>'],
+    // Review habit tracking (R1): set by reviewNote; drives reviewStats.
+    ['reviewedAt', 'option<datetime>'],
     ['sharePassword', 'option<string>'],
     ['shareEncryptedUrl', 'option<string>'],
     ['shareExpiryDate', 'option<datetime>'],

@@ -17,14 +17,18 @@ class TenantContext:
 
 def _tenant_from_header(request):
     """Approved tenant header, if the header is allowed."""
-    header = request.META.get(settings.PLANINC_TENANT_HEADER, "").strip().lower()
-    if not header:
+    raw = request.META.get(settings.PLANINC_TENANT_HEADER, "").strip()
+    if not raw:
         return None
     if not settings.PLANINC_TENANT_HEADER_ALLOWED:
         return None
-    if not TENANT_SLUG_PATTERN.fullmatch(header):
+    # Slugs are lowercase-only: reject uppercase/mixed input instead of
+    # lowercasing it into a valid slug (keeps invalid headers rejected).
+    if raw != raw.lower():
         return None
-    return TenantContext(slug=header, source="header")
+    if not TENANT_SLUG_PATTERN.fullmatch(raw):
+        return None
+    return TenantContext(slug=raw, source="header")
 
 
 def resolve_tenant(request) -> TenantContext | None:
@@ -71,3 +75,35 @@ def require_tenant(request):
             status=400,
         )
     return None
+
+
+def resolve_workspace(request, workspace_id):
+    """Resolve one space inside the request tenant scope.
+
+    Returns ``(error_response, workspace)`` mirroring the ``_tenant_for_request``
+    view helper shape: 400 when no tenant, 404 when the space is unknown,
+    inactive, or belongs to another tenant's database scope.
+    """
+    from apps.workspaces.models import Workspace
+
+    if getattr(request, "tenant_context", None) is None:
+        return (
+            JsonResponse(
+                {
+                    "error": "tenant_required",
+                    "message": "Resolve a tenant by hostname or approved header.",
+                },
+                status=400,
+            ),
+            None,
+        )
+    try:
+        workspace = Workspace.objects.get(
+            id=workspace_id,
+            tenant__slug=request.tenant_context.slug,
+            tenant__is_active=True,
+            is_active=True,
+        )
+    except (Workspace.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({"error": "not_found"}, status=404), None
+    return None, workspace

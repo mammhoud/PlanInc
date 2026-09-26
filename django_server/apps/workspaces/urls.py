@@ -4,6 +4,16 @@ from . import views
 
 urlpatterns = [
     path("api/workspaces", views.collection, name="workspace-collection"),
+    path(
+        "api/workspaces/invites/accept",
+        views.accept_invite_view,
+        name="workspace-invite-accept",
+    ),
+    path(
+        "api/workspaces/<int:workspace_id>/invites",
+        views.invites,
+        name="workspace-invites",
+    ),
     path("api/workspaces/<int:workspace_id>", views.detail, name="workspace-detail"),
 ]
 

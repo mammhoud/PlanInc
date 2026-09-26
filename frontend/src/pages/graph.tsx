@@ -566,7 +566,19 @@ export default function GraphPage() {
     {isLoading && <p className="py-8 text-center text-foreground-500">{t('in-progress')}</p>}
 
     {!isLoading && viewMode === 'cards' && (
-      <Card><CardBody><PlanincGraph
+      <Card><CardBody>
+        {/* M2: module-coloured edge legend — the graph as cross-module map. */}
+        <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-foreground-500" aria-label="graph legend">
+          {(Object.keys(KIND_LABELS) as GraphKind[])
+            .filter((kind) => kind !== 'root')
+            .map((kind) => (
+              <span key={kind} className="flex items-center gap-1">
+                <span className={`inline-block h-2.5 w-2.5 rounded-full ${KIND_BG[kind]}`} />
+                {t(KIND_LABELS[kind])}
+              </span>
+            ))}
+        </div>
+        <PlanincGraph
         nodes={visibleNodes}
         edges={graphEdges}
         selectedNode={selectedNode}

@@ -57,3 +57,41 @@ class WorkspaceMember(models.Model):
             )
         ]
 
+
+class WorkspaceInvite(models.Model):
+    ROLE_CHOICES = [
+        ("editor", "Editor"),
+        ("viewer", "Viewer"),
+    ]
+
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+        related_name="invites",
+    )
+    token = models.CharField(max_length=64, unique=True)
+    role = models.CharField(max_length=16, choices=ROLE_CHOICES, default="editor")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="planinc_workspace_invites",
+    )
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def is_valid(self) -> bool:
+        from django.utils import timezone
+
+        return (
+            self.accepted_at is None
+            and self.workspace.is_active
+            and self.workspace.tenant.is_active
+            and self.expires_at > timezone.now()
+        )
+

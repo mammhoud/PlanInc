@@ -31,11 +31,14 @@ import { api } from "@/lib/trpc";
 import { PublicUser } from "@/lib/apiTypes";
 import { UserStore } from "@/store/user";
 import { getPlanIncEndpoint } from "@/lib/planincEndpoint";
+import { PlanIncCard } from "@/components/PlanIncCard";
 
 
 interface ShareDialogProps {
   defaultSettings: ShareSettings;
   shareUrl?: string;
+  /** The note being shared — rendered as a live public-card preview (S1). */
+  planincItem?: any;
 }
 
 export interface ShareSettings {
@@ -65,8 +68,10 @@ const generateRandomPassword = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProps) => {
+export const PlanIncShareDialog = observer(({ defaultSettings, planincItem }: ShareDialogProps) => {
   const { t } = useTranslation();
+  // The note being shared: explicit prop first, selected note as fallback.
+  const previewItem = planincItem ?? RootStore.Get(PlanIncStore).curSelectedNote;
 
   const store = RootStore.Local(() => ({
     settings: (() => {
@@ -360,6 +365,12 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
 
       {store.selectedTab === "public" && (
         <div className="flex flex-col">
+          {/* S1: live public-card preview of the note being shared. */}
+          {previewItem && (
+            <div className="max-h-[220px] overflow-y-auto rounded-lg border border-border">
+              <PlanIncCard planincItem={previewItem} isShareMode defaultExpanded withoutHoverAnimation />
+            </div>
+          )}
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex items-center gap-2 ">
               <span className="text-muted-foreground font-medium">{t("expiry-time")}</span>
@@ -474,6 +485,15 @@ export const PlanIncShareDialog = observer(({ defaultSettings }: ShareDialogProp
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-muted-foreground font-medium">{t("share-link")}</span>
+                  </div>
+                  {/* S2: security posture at a glance — lock state + expiry. */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Icon
+                      icon={!store.isPublic ? "solar:lock-password-bold" : "mdi:public"}
+                      width="18"
+                      height="18"
+                    />
+                    <span>{store.selectedExpiryValue}</span>
                   </div>
                   <div className="flex gap-2 items-center">
                     <Input

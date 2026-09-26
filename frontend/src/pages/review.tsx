@@ -51,6 +51,10 @@ const App = observer(() => {
   }))
 
   useEffect(() => {
+    planinc.reviewStats.call();
+  }, []);
+
+  useEffect(() => {
     // Reset the latch when leaving daily mode so a later return can celebrate
     // again; only daily mode celebrates. Wait for the first load to settle so
     // an empty pre-load list cannot look like a finished queue.
@@ -92,7 +96,6 @@ const App = observer(() => {
         >
           {t('random-mode')}
         </Button>
-        
         {store.isRandomReviewMode && (
           <Button
             className="ml-2 text-sm"
@@ -104,6 +107,24 @@ const App = observer(() => {
             <Icon icon="fluent:arrow-sync-24-filled" width="16" height="16" className="hover:rotate-180 !transition-all" />
           </Button>
         )}
+      </div>
+
+      {/* Review habit strip (R1): reviewed-today, streak, queue progress.
+          Labels reuse existing i18n keys only (parity rule); the streak is
+          an icon + number like the kanban counts. */}
+      <div className="flex justify-center items-center gap-4 mb-2 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <LightningIcon />
+          {planinc.reviewStats.value?.streakDays ?? 0}
+        </span>
+        <span>
+          {t('reviewed')} {t('today')}: {planinc.reviewStats.value?.reviewedToday ?? 0}
+        </span>
+        <span>
+          {t('done')} {planinc.reviewStats.value?.reviewedToday ?? 0}
+          {' / '}
+          {t('total')} {(planinc.reviewStats.value?.reviewedToday ?? 0) + (planinc.reviewStats.value?.queueSize ?? 0)}
+        </span>
       </div>
 
       {
@@ -171,7 +192,9 @@ const App = observer(() => {
               <Tooltip content={t('reviewed')}>
                 <Button onPress={async e => {
                   if (!store.currentNote) return
-                  PromiseCall(api.notes.reviewNote.mutate({ id: store.currentNote!.id! }))
+                  await PromiseCall(api.notes.reviewNote.mutate({ id: store.currentNote!.id! }))
+                  planinc.dailyReviewNoteList.call()
+                  planinc.reviewStats.call()
                 }} isIconOnly color='primary' startContent={<Icon icon="ci:check-all" width="24" height="24" />} />
               </Tooltip>
             }
@@ -181,6 +204,7 @@ const App = observer(() => {
                 await planinc.upsertNote.call({ id: store.currentNote.id, type: store.isPlanInc ? NoteType.NOTE : NoteType.PLANINC })
                 await api.notes.reviewNote.mutate({ id: store.currentNote!.id! })
                 await planinc.dailyReviewNoteList.call()
+                planinc.reviewStats.call()
               }}
                 color='default'
                 startContent={store.isPlanInc ? <NotesIcon /> : <LightningIcon />}>

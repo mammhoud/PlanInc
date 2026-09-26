@@ -20,7 +20,7 @@ available.
 | ID | Task | Depends on | Status |
 | --- | --- | --- | --- |
 | B1 | Add `domain/policies`, `domain/services`, `domain/events`, and `domain/ports` | A2 | Implemented shared tenant policy, transaction boundary, event names, and event sink port |
-| B2 | Add `accounts` and `workspaces` models, memberships, roles, and sessions | B1 | Workspace models, tenant-scoped CRUD, roles, and access helper implemented; accounts/session adapter pending |
+| B2 | Add `accounts` and `workspaces` models, memberships, roles, and sessions | B1 | Session JWT (`api/auth/token`, TS-claims shape) + OAuth membership link (allauth adapter) implemented and tested; native accounts adapter pending |
 | B3 | Add `operations` outbox, job attempts, checkpoints, and retention records | B1 | Outbox and job-attempt models implemented; checkpoints/retention pending |
 | B4 | Add shared error envelopes and service-to-Bolt/Fusion adapters | B1 | Pending |
 
@@ -28,7 +28,7 @@ available.
 
 | ID | Task | Depends on | Status |
 | --- | --- | --- | --- |
-| C1 | Extend notes with versions, tags, comments, backlinks, and history | B2, B3 | Notes service and outbox events implemented; rich note model pending |
+| C1 | Extend notes with versions, tags, comments, backlinks, and history | B2, B3 | Notes service and outbox events implemented; `external_id` + `author` sync identity, `reviewedAt`, listing pagination added with tests; rich note model (versions/tags/comments) pending |
 | C2 | Add planning tasks, tickets, categories, links, and study review | C1 | Pending |
 | C3 | Add knowledge resources, relations, attachments, previews, and extraction | B3 | Pending |
 | C4 | Add permission-aware search projections | C1, C3 | Pending |
@@ -50,7 +50,7 @@ available.
 | ID | Task | Depends on | Status |
 | --- | --- | --- | --- |
 | E1 | Implement native SurrealKV reader and explicit target-model mappings | C1-C7 | Pending |
-| E2 | Complete tenant import, rejected-record reports, and attachment verification | E1 | Pending |
+| E2 | Complete tenant import, rejected-record reports, and attachment verification | E1 | `import_surreal_workspace` implemented (idempotent, LWW, rejected-record report, author mapping) with tests; attachment verification pending |
 | E3 | Run two PostgreSQL migration rehearsals and parity checks | A4, E2 | Blocked externally |
 | E4 | Run backup/restore and rollback timing drills | E3 | Blocked externally |
 | E5 | Validate Redis workers, metrics, Traefik, health, and WebSockets | A4, D3 | Blocked externally |

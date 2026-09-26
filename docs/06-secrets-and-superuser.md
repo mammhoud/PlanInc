@@ -9,8 +9,8 @@
 
 | Variable | Purpose | Notes |
 | --- | --- | --- |
-| `PLANINC_SUPERUSER_NAME` | Bootstrap admin username | Created on first boot only |
-| `PLANINC_SUPERUSER_PASSWORD` | Bootstrap admin password | Minimum 8 characters |
+| `PLANINC_SUPERUSER_NAME` | Bootstrap admin username | Defaults to `admin` on first run |
+| `PLANINC_SUPERUSER_PASSWORD` | Bootstrap admin password | Minimum 12 characters (enforced in `server/index.ts`) |
 | `PLANINC_NEXTAUTH_SECRET` | JWT signing secret | Change before deploying |
 | `PLANINC_PUBLIC_URL` | Public base URL for share links | `https://notes.structa.cloud` |
 | `PLANINC_EXTERNAL_NETWORK` | Attach to an existing network | **Boolean** — see [`PI-006`](./05-deployment.md) |
@@ -28,15 +28,21 @@ openssl rand -base64 36 | tr -d '/+=' | cut -c1-32
 
 ## Bootstrap behaviour
 
-On every boot the server checks whether an account with
-`PLANINC_SUPERUSER_NAME` exists:
+On every boot (`server/index.ts` → `bootstrapSuperuserFromEnv`):
 
-- **missing** → creates it, hashes the password with bcrypt, and logs
-  `[superuser] Bootstrapped superuser '<name>' from environment`
-- **present** → leaves it completely alone. The password is **never** rewritten.
+- **env username+password set (12+ chars)** → upserts that account as
+  `superadmin` (pbkdf2 re-hash) and logs
+  `[superuser] Bootstrapped/Updated superuser '<name>' from environment`.
+- **no `superadmin` exists and env is missing** → generates a 32-char
+  shell-safe password for `PLANINC_SUPERUSER_NAME || 'admin'`, creates the
+  account, and writes `./data/superuser.txt` (container: `/app/data/superuser.txt`,
+  `0600`, gitignored) with `username:` + `password:`. Same path for native
+  `make run` and Docker (`./data:/app/data` volume).
+- **a `superadmin` already exists and env is missing** → does nothing; existing
+  password is left alone.
 
-Deleting the account and restarting is the supported way to reset it. A password
-shorter than 8 characters is rejected at boot; watch the logs.
+Save the password from `data/superuser.txt` in a manager, then delete the file.
+A password shorter than 12 characters is rejected at boot; watch the logs.
 
 ## ⚠️ The empty-export trap
 

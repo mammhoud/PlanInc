@@ -49,6 +49,7 @@ const ShareIndexPage = lazy(() => import('./pages/share'));
 const ShareDetailPage = lazy(() => import('./pages/share/[id]'));
 const ShareInvitePage = lazy(() => import('./pages/share/invite'));
 const AiSharePage = lazy(() => import('./pages/ai-share'));
+const PreviewPage = lazy(() => import('./pages/preview'));
 
 const HomeRedirect = () => {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const publicRoutes = ['/signin', '/signup', '/share', '/_offline', '/oauth-callback', '/ai-share', '/oauth-callback'];
+      const publicRoutes = ['/signin', '/signup', '/share', '/_offline', '/oauth-callback', '/ai-share', '/oauth-callback', '/preview'];
       const isPublicRoute = publicRoutes.some(route =>
         location.pathname === route || location.pathname.startsWith('/share/') || location.pathname.startsWith('/ai-share/')
       );
@@ -261,6 +262,7 @@ function AppRoutes() {
             <Route path="/share/invite/:token" element={<ShareInvitePage />} />
             <Route path="/share/:id" element={<ShareDetailPage />} />
             <Route path="/ai-share/:id" element={<AiSharePage />} />
+            <Route path="/preview" element={<PreviewPage />} />
             <Route path="/quicknote" element={<QuickNotePage />} />
             <Route path="/quickai" element={<QuickAIPage />} />
             <Route path="/quicktool" element={<QuickToolPage />} />

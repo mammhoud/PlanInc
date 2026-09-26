@@ -205,15 +205,19 @@ export const noteRouter = router({
         where.createdAt = { gte: startDate, lte: endDate };
       }
       if (withLink) {
-        where.OR = [{ content: { contains: 'http://', mode: 'insensitive' } }, { content: { contains: 'https://', mode: 'insensitive' } }];
+        const linkFilter = { OR: [{ content: { contains: 'http://', mode: 'insensitive' } }, { content: { contains: 'https://', mode: 'insensitive' } }] };
+        where = { AND: [where, linkFilter] };
       }
       if (hasTodo) {
-        where.OR = [
-          { content: { contains: '- [ ]', mode: 'insensitive' } },
-          { content: { contains: '- [x]', mode: 'insensitive' } },
-          { content: { contains: '* [ ]', mode: 'insensitive' } },
-          { content: { contains: '* [x]', mode: 'insensitive' } },
-        ];
+        const todoFilter = {
+          OR: [
+            { content: { contains: '- [ ]', mode: 'insensitive' } },
+            { content: { contains: '- [x]', mode: 'insensitive' } },
+            { content: { contains: '* [ ]', mode: 'insensitive' } },
+            { content: { contains: '* [x]', mode: 'insensitive' } },
+          ],
+        };
+        where = { AND: [where, todoFilter] };
       }
       const config = await getGlobalConfig({ ctx });
       let timeOrderBy = config?.isOrderByCreateTime ? { createdAt: orderBy } : { updatedAt: orderBy };
@@ -855,7 +859,51 @@ export const noteRouter = router({
     .input(z.object({ id: z.number() }))
     .output(z.union([z.null(), notesSchema]))
     .mutation(async function ({ input, ctx }) {
-      return await db.notes.update({ where: { id: input.id, accountId: Number(ctx.id) }, data: { isReviewed: true } });
+      return await db.notes.update({ where: { id: input.id, accountId: Number(ctx.id) }, data: { isReviewed: true, reviewedAt: new Date() } });
+    }),
+  reviewStats: authProcedure
+    .meta({ openapi: { method: 'GET', path: '/v1/note/review-stats', summary: 'Review habit stats', protect: true, tags: ['Note'] } })
+    .input(z.void())
+    .output(z.object({ reviewedToday: z.number(), streakDays: z.number(), queueSize: z.number() }))
+    .query(async function ({ ctx }) {
+      const accountId = Number(ctx.id);
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const reviewedToday = await db.notes.count({
+        where: { accountId, reviewedAt: { gte: startOfToday } },
+      });
+      const queueSize = await db.notes.count({
+        where: {
+          createdAt: { gt: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+          isReviewed: false,
+          isArchived: false,
+          isRecycle: false,
+          accountId,
+        },
+      });
+      const stamps = await db.notes.findMany({
+        where: { accountId, reviewedAt: { gte: new Date(now.getTime() - 370 * 24 * 60 * 60 * 1000) } },
+        select: { reviewedAt: true },
+        orderBy: { reviewedAt: 'desc' },
+        take: 2000,
+      });
+      const days = new Set(
+        (stamps as Array<{ reviewedAt?: Date }>)
+          .filter((row) => row.reviewedAt)
+          .map((row) => {
+            const d = new Date(row.reviewedAt as unknown as string | Date);
+            return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+          }),
+      );
+      const keyOf = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      let streakDays = 0;
+      const cursor = new Date(startOfToday);
+      if (!days.has(keyOf(cursor))) cursor.setDate(cursor.getDate() - 1);
+      while (days.has(keyOf(cursor))) {
+        streakDays += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      return { reviewedToday, streakDays, queueSize };
     }),
   upsert: authProcedure
     .meta({

@@ -17,6 +17,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.google",
     "apps.health",
     "apps.tenancy",
     "apps.workspaces",
@@ -25,12 +31,55 @@ INSTALLED_APPS = [
     "apps.realtime",
 ]
 
+SITE_ID = int(os.environ.get("PLANINC_DJANGO_SITE_ID", "1"))
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# allauth: email-verified login, OAuth app credentials from env (never commit).
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+SOCIALACCOUNT_ADAPTER = "apps.tenancy.adapters.PlanIncSocialAdapter"
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "APP": {
+            "client_id": os.environ.get("PLANINC_GITHUB_CLIENT_ID", ""),
+            "secret": os.environ.get("PLANINC_GITHUB_CLIENT_SECRET", ""),
+        }
+    },
+    "google": {
+        "APP": {
+            "client_id": os.environ.get("PLANINC_GOOGLE_CLIENT_ID", ""),
+            "secret": os.environ.get("PLANINC_GOOGLE_CLIENT_SECRET", ""),
+        },
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    },
+}
+
+# Session JWT authority: must match the TS server secret (it reads
+# process.env.JWT_SECRET first, else the Surreal config JWT_SECRET).
+# Copy the same value here so TS verifyToken() accepts Django-issued tokens.
+PLANINC_JWT_SECRET = os.environ.get(
+    "JWT_SECRET", os.environ.get("PLANINC_JWT_SECRET", "")
+)
+PLANINC_JWT_TTL_SECONDS = int(
+    os.environ.get("PLANINC_JWT_TTL_SECONDS", str(30 * 24 * 60 * 60))
+)
+# Tenant that OAuth newcomers join when no invite/tenant context is present.
+PLANINC_DEFAULT_TENANT_SLUG = os.environ.get("PLANINC_DEFAULT_TENANT_SLUG", "")
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.common.CommonMiddleware",
     "middleware.request_id.RequestIdMiddleware",
     "middleware.tenant.TenantResolutionMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

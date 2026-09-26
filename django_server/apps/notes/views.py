@@ -1,5 +1,6 @@
 import json
 
+from django.db import models
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
@@ -45,16 +46,67 @@ def _serialize(note):
     }
 
 
+NOTE_ORDERING = {
+    "-updated_at": ("-updated_at", "-id"),
+    "updated_at": ("updated_at", "id"),
+    "-created_at": ("-created_at", "-id"),
+    "created_at": ("created_at", "id"),
+    "title": ("title", "id"),
+    "-title": ("-title", "-id"),
+}
+
+
+def _pagination(request):
+    try:
+        page = int(request.GET.get("page", "1"))
+        page_size = int(request.GET.get("page_size", "30"))
+    except (TypeError, ValueError):
+        return None, JsonResponse(
+            {"error": "invalid_payload", "message": "page/page_size must be integers."},
+            status=400,
+        )
+    if page < 1 or page_size < 1 or page_size > 100:
+        return None, JsonResponse(
+            {
+                "error": "invalid_payload",
+                "message": "page >= 1, 1 <= page_size <= 100.",
+            },
+            status=400,
+        )
+    return (page, page_size), None
+
+
 @require_http_methods(["GET", "POST"])
 def collection(request):
     error, tenant = _tenant_for_request(request)
     if error:
         return error
     if request.method == "GET":
+        paging, paging_error = _pagination(request)
+        if paging_error:
+            return paging_error
+        page, page_size = paging
+        ordering_key = request.GET.get("ordering", "-updated_at")
+        if ordering_key not in NOTE_ORDERING:
+            return JsonResponse(
+                {"error": "invalid_payload", "message": "Unknown ordering."},
+                status=400,
+            )
+        queryset = Note.objects.filter(tenant=tenant).order_by(
+            *NOTE_ORDERING[ordering_key]
+        )
+        search = (request.GET.get("search") or "").strip()
+        if search:
+            queryset = queryset.filter(
+                models.Q(title__icontains=search) | models.Q(body__icontains=search)
+            )
+        total = queryset.count()
+        notes = queryset[(page - 1) * page_size : page * page_size]
         return JsonResponse(
             {
                 "status": "success",
-                "data": [_serialize(note) for note in Note.objects.filter(tenant=tenant)],
+                "data": [_serialize(note) for note in notes],
+                "meta": {"page": page, "page_size": page_size, "total": total},
             }
         )
 

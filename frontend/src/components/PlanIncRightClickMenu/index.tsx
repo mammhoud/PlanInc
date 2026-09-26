@@ -262,7 +262,7 @@ const handlePublic = () => {
       expiryDate: planinc.curSelectedNote?.shareExpiryDate ?? undefined,
       password: planinc.curSelectedNote?.sharePassword ?? '',
       isShare: planinc.curSelectedNote?.isShare
-    }} />
+    }} planincItem={planinc.curSelectedNote} />
   })
 
   // planinc.upsertNote.call({

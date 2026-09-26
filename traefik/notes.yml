@@ -1,0 +1,56 @@
+# =============================================================================
+# PlanInc — project-local Traefik vhost snippet  [REFERENCE — not loaded]
+# =============================================================================
+# This file documents the Traefik routing PlanInc needs. The ACTIVE vhost
+# lives in the proxy repo:
+#   application/proxy/configs/traefik/dynamic/notes.yml
+# (routers notes-http / notes-https / notes-localhost-https → planinc:1111).
+#
+# Do NOT mount this directory into Traefik alongside the proxy repo — that
+# would register duplicate routers. Copy changes into the proxy repo file
+# and validate there with:
+#   python3 application/proxy/scripts/validate-traefik-config.py
+#
+# Requires:
+#   • an A/AAAA record for notes.structa.cloud pointing at the server
+#   • the planinc container on the shared `common` network
+#     (PLANINC_EXTERNAL_NETWORK=true PLANINC_NETWORK_NAME=common)
+#
+# TLS: Let's Encrypt HTTP-01 (certResolver: letsencrypt-http).
+# =============================================================================
+
+http:
+  routers:
+    notes-http:
+      rule: 'Host(`notes.structa.cloud`) || Host(`notes.localhost`)'
+      entryPoints: [web]
+      middlewares: [redirect-to-https]
+      service: notes-service
+      priority: 150
+
+    notes-https:
+      rule: 'Host(`notes.structa.cloud`)'
+      entryPoints: [web-secure]
+      middlewares: [compress, security-headers]
+      service: notes-service
+      priority: 150
+      tls:
+        certResolver: letsencrypt-http
+
+    notes-localhost-https:
+      rule: 'Host(`notes.localhost`)'
+      entryPoints: [web-secure]
+      middlewares: [compress]
+      service: notes-service
+      priority: 150
+
+  services:
+    notes-service:
+      loadBalancer:
+        servers:
+          - url: 'http://planinc:1111'
+        passHostHeader: true
+        healthCheck:
+          path: /health
+          interval: 30s
+          timeout: 5s

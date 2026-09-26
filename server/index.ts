@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import crypto from 'crypto';
 import zlib from 'zlib';
 import fs from 'fs';
 import authRoutes from './routerExpress/auth';
@@ -38,6 +39,7 @@ import archiveRouter from './routerExpress/file/archive';
 import rssRouter from './routerExpress/rss';
 import openaiRouter from './routerExpress/openai';
 import mcpRouter from './routerExpress/mcp';
+import syncRouter from './routerExpress/sync';
 
 // Vite integration
 import ViteExpress from 'vite-express';
@@ -199,6 +201,9 @@ async function setupApiRoutes(app: express.Application) {
   app.use('/api/file/upload-by-url', uploadByUrlRouter);
   app.use('/api/file/delete', deleteRouter);
   app.use('/api/s3file', s3fileRouter);
+
+  // Postgres → Surreal sync ingest (Django outbox deliverables)
+  app.use('/api/sync', syncRouter);
   
   // Helper function to serve vditor dependencies with gzip compression
   const serveVditorFile = (routePath: string, filePath: string) => {
@@ -316,39 +321,122 @@ async function setupApiRoutes(app: express.Application) {
 
 /**
  * Upsert superadmin from PLANINC_SUPERUSER_NAME / PLANINC_SUPERUSER_PASSWORD.
- * Previously only documented — the container never ran create-superuser.ts.
+ * First-run behaviour (native `make run` and Docker `make deploy/up` share it):
+ * - env username+password set (12+ chars) -> create/update that account.
+ * - no superadmin exists and env is missing -> generate a shell-safe password
+ *   for `PLANINC_SUPERUSER_NAME || 'admin'`, create the account, and write
+ *   `./data/superuser.txt` (container: `/app/data/superuser.txt`) with 0600.
+ * - a superadmin already exists and env is missing -> do nothing.
  */
-async function bootstrapSuperuserFromEnv(): Promise<void> {
-  const username = (process.env.PLANINC_SUPERUSER_NAME ?? '').trim();
-  const secret = (process.env.PLANINC_SUPERUSER_PASSWORD ?? '').trim();
-  if (!username || !secret) return;
-  if (secret.length < 12) {
-    console.warn('[superuser] PLANINC_SUPERUSER_PASSWORD must be at least 12 characters; skipping');
-    return;
+function generateShellSafePassword(length = 32): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const bytes = crypto.randomBytes(length);
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += alphabet[bytes[i]! % alphabet.length];
   }
+  return out;
+}
+
+function resolveSuperuserTxtPath(): string {
+  const dbFile = process.env.PLANINC_DB_FILE || './data/planinc.db';
+  const dir = path.isAbsolute(dbFile)
+    ? path.dirname(dbFile)
+    : path.resolve(process.cwd(), path.dirname(dbFile));
+  return path.join(dir, 'superuser.txt');
+}
+
+function writeSuperuserTxt(username: string, password: string, generated: boolean): void {
+  try {
+    const txtPath = resolveSuperuserTxtPath();
+    fs.mkdirSync(path.dirname(txtPath), { recursive: true });
+    const lines = [
+      '# PlanInc superuser — created on first boot',
+      `# Generated: ${new Date().toISOString()} (generated: ${generated ? 'yes' : 'no'})`,
+      `username: ${username}`,
+      `password: ${password}`,
+      '',
+      'Sign in at http://localhost:1111/signin or https://notes.structa.cloud/signin',
+      'Save this password in a manager, then delete this file.',
+      'This file is gitignored (data/superuser.txt) and chmod 0600.',
+      '',
+    ];
+    fs.writeFileSync(txtPath, lines.join('\n'), { mode: 0o600 });
+    try {
+      fs.chmodSync(txtPath, 0o600);
+    } catch {
+      // non-POSIX FS — content is written, mode is best-effort
+    }
+    console.log(`[superuser] Wrote ${txtPath} (0600). Delete after saving.`);
+  } catch (error) {
+    console.error('[superuser] failed to write superuser.txt:', error);
+  }
+}
+
+async function bootstrapSuperuserFromEnv(): Promise<void> {
+  const envUsername = (process.env.PLANINC_SUPERUSER_NAME ?? '').trim();
+  const envSecret = (process.env.PLANINC_SUPERUSER_PASSWORD ?? '').trim();
   try {
     const { db } = await import('./db');
-    const existing = await db.accounts.findFirst({ where: { name: username } });
-    const passwordHash = await hashPassword(secret);
-    const data = {
-      name: username,
-      nickname: username,
-      password: passwordHash,
-      role: 'superadmin' as const,
-      loginType: '',
-      image: existing?.image ?? '',
-      apiToken: existing?.apiToken ?? '',
-      note: existing?.note ?? 0,
-      description: existing?.description ?? null,
-      linkAccountId: existing?.linkAccountId ?? null,
-    };
-    if (existing) {
-      await db.accounts.update({ where: { id: existing.id }, data });
-      console.log(`[superuser] Updated superuser "${username}" from environment (id ${existing.id}).`);
-    } else {
-      const created = await db.accounts.create({ data });
-      console.log(`[superuser] Bootstrapped superuser "${username}" from environment (id ${created.id}).`);
+    const existingNamed = envUsername
+      ? await db.accounts.findFirst({ where: { name: envUsername } })
+      : null;
+    const existingSuperadmin = await db.accounts.findFirst({ where: { role: 'superadmin' } });
+
+    // Explicit env credentials win (existing behaviour: upsert + re-hash).
+    if (envUsername && envSecret) {
+      if (envSecret.length < 12) {
+        console.warn('[superuser] PLANINC_SUPERUSER_PASSWORD must be at least 12 characters; skipping');
+        return;
+      }
+      const passwordHash = await hashPassword(envSecret);
+      const data = {
+        name: envUsername,
+        nickname: envUsername,
+        password: passwordHash,
+        role: 'superadmin' as const,
+        loginType: '',
+        image: existingNamed?.image ?? '',
+        apiToken: existingNamed?.apiToken ?? '',
+        note: existingNamed?.note ?? 0,
+        description: existingNamed?.description ?? null,
+        linkAccountId: existingNamed?.linkAccountId ?? null,
+      };
+      if (existingNamed) {
+        await db.accounts.update({ where: { id: existingNamed.id }, data });
+        console.log(`[superuser] Updated superuser "${envUsername}" from environment (id ${existingNamed.id}).`);
+      } else {
+        const created = await db.accounts.create({ data });
+        console.log(`[superuser] Bootstrapped superuser "${envUsername}" from environment (id ${created.id}).`);
+      }
+      // First boot only: leave a local credential note next to the DB file.
+      if (!existingSuperadmin && !existingNamed) {
+        writeSuperuserTxt(envUsername, envSecret, false);
+      }
+      return;
     }
+
+    // First run without env: generate once, only when no superadmin exists.
+    if (existingSuperadmin) return;
+    const username = envUsername || 'admin';
+    const secret = generateShellSafePassword(32);
+    const passwordHash = await hashPassword(secret);
+    const created = await db.accounts.create({
+      data: {
+        name: username,
+        nickname: username,
+        password: passwordHash,
+        role: 'superadmin' as const,
+        loginType: '',
+        image: '',
+        apiToken: '',
+        note: 0,
+        description: null,
+        linkAccountId: null,
+      },
+    });
+    console.log(`[superuser] Bootstrapped superuser "${username}" with generated password (id ${created.id}).`);
+    writeSuperuserTxt(username, secret, true);
   } catch (error) {
     console.error('[superuser] env bootstrap failed:', error);
   }

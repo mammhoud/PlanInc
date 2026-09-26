@@ -34,6 +34,7 @@
 | PI-021 | [`docs/plans/django-bolt/06-implementation-task-board.md`](./plans/django-bolt/06-implementation-task-board.md) | Executable implementation tasks, dependencies, evidence, and external gates | ✅ Exists |
 | PI-022 | [`docs/14-agenda.md`](./14-agenda.md) | Merged Notes + Plans Agenda stream, type filters, legacy path aliases, share links, default seed pack | ✅ Exists |
 | PI-024 | [`docs/15-enhancements-and-recommendations.md`](./15-enhancements-and-recommendations.md) | Enhancement plan + module audit (settings, integrations, sharing, reviews, relations), parity-matrix corrections, tooltip map, prioritised roadmap | ✅ Exists |
+| PI-025 | [`docs/plans/full-program-plan.md`](./plans/full-program-plan.md) | Full program plan: tenant-per-space, allauth authority, bidirectional sync, preview/switcher, PI-024 order, verify gates | ✅ Exists |
 
 ## Per-directory documentation
 

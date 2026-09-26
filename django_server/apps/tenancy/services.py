@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from django.db import transaction
 
 from .models import Domain, Tenant, TenantProvisioningEvent
@@ -5,6 +7,21 @@ from .models import Domain, Tenant, TenantProvisioningEvent
 
 def schema_name_for_slug(slug: str) -> str:
     return f"tenant_{slug}"
+
+
+@contextmanager
+def tenant_schema_context(tenant: Tenant):
+    """Run work inside the database schema of one tenant (one space scope).
+
+    SQLite rehearsal: schemas do not exist, so this is a documented no-op
+    that still asserts the tenant is active — every call site is then
+    rehearsal-ready. PostgreSQL cutover (board A4): replace the body with
+    ``django_tenants.utils.schema_context(tenant.schema_name)`` so each
+    space connects to its own tenant schema.
+    """
+    if tenant is None or not getattr(tenant, "is_active", False):
+        raise ValueError("An active tenant is required for schema context.")
+    yield tenant
 
 
 @transaction.atomic

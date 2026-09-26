@@ -1,8 +1,15 @@
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, override_settings
 from django.http import HttpResponse
 
 from .request_id import RequestIdMiddleware
 from .tenant import TenantResolutionMiddleware, resolve_tenant
+
+TENANT_TEST_HOSTS = [
+    "testserver",
+    "localhost",
+    "notes.structa.cloud",
+    ".notes.structa.cloud",
+]
 
 
 class MiddlewareTests(SimpleTestCase):
@@ -35,6 +42,7 @@ class MiddlewareTests(SimpleTestCase):
 
         self.assertIsNone(resolve_tenant(request))
 
+    @override_settings(ALLOWED_HOSTS=TENANT_TEST_HOSTS)
     def test_canonical_host_does_not_become_a_tenant(self):
         request = RequestFactory().get(
             "/health",
@@ -43,6 +51,7 @@ class MiddlewareTests(SimpleTestCase):
 
         self.assertIsNone(resolve_tenant(request))
 
+    @override_settings(ALLOWED_HOSTS=TENANT_TEST_HOSTS)
     def test_tenant_subdomain_is_resolved(self):
         request = RequestFactory().get(
             "/api/example",
@@ -56,11 +65,3 @@ class MiddlewareTests(SimpleTestCase):
 
         # and it must not respawn from the raw hostname
         self.assertEqual(context.slug, "demo")
-
-    def test_canonical_host_does_not_become_a_tenant(self):
-        request = RequestFactory().get(
-            "/health",
-            HTTP_HOST="notes.structa.cloud",
-        )
-
-        self.assertIsNone(resolve_tenant(request))

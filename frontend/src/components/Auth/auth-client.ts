@@ -18,6 +18,21 @@ export function navigate(path: string) {
   }
 }
 
+/**
+ * Same-origin callback guard: only in-app paths may be used as post-login
+ * redirects. Rejects protocol-relative (`//evil`), absolute URLs, backslash
+ * tricks and non-string input — falls back to `/`.
+ */
+export function safeCallbackUrl(raw: unknown): string {
+  if (typeof raw !== 'string' || !raw.startsWith('/') || raw.startsWith('//')) {
+    return '/';
+  }
+  if (raw.includes('\\') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) {
+    return '/';
+  }
+  return raw;
+}
+
 export interface TokenData {
   user?: {
     name?: string;
@@ -127,7 +142,7 @@ export async function signIn(
         eventBus.emit('user:token', data);
         
         if (options.redirect) {
-          navigate(options.callbackUrl || '/');
+          navigate(safeCallbackUrl(options.callbackUrl));
           return undefined;
         }
         
@@ -163,7 +178,7 @@ export async function signIn(
         eventBus.emit('user:token', data);
         
         if (options.redirect) {
-          navigate(options.callbackUrl || '/');
+          navigate(safeCallbackUrl(options.callbackUrl));
           return undefined;
         }
         
@@ -214,12 +229,12 @@ export async function signOut(options: { redirect?: boolean; callbackUrl?: strin
     eventBus.emit('user:token', null);
     
     if (options.redirect) {
-      navigate(options.callbackUrl || '/');
+      navigate(safeCallbackUrl(options.callbackUrl));
     }
 
-    return { url: options.callbackUrl || '/' };
+    return { url: safeCallbackUrl(options.callbackUrl) };
   } catch (error) {
     console.error('SignOut error:', error);
-    return { url: options.callbackUrl || '/' };
+    return { url: '/' };
   }
 }

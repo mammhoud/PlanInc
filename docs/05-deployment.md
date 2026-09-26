@@ -86,6 +86,27 @@ port mapping, not the in-container port).
 > `PLANINC_DB_FILE` has no effect in Docker. It is honoured only by `make run`
 > (native), which passes the environment straight through.
 
+## Project Traefik snippet
+
+The active vhost lives in the proxy repo
+(`application/proxy/configs/traefik/dynamic/notes.yml`): `notes-http` /
+`notes-https` / `notes-localhost-https` → `http://planinc:1111` on the shared
+`common` network, healthcheck `/health`, Let's Encrypt HTTP-01.
+
+This repo keeps a reference copy at [`traefik/notes.yml`](../traefik/notes.yml)
+so the required routing is reviewable beside the container that needs it.
+It is **not** loaded by Traefik — mounting both would register duplicate
+routers. Change the proxy-repo file, mirror the snippet here, and validate:
+
+```bash
+# from the repo root:
+python3 application/proxy/scripts/validate-traefik-config.py
+```
+
+Tenant hostnames (`<slug>.notes.structa.cloud`) resolve through the same
+service; tenant *resolution* (subdomain → `TenantContext`) is Django
+middleware (`django_server/middleware/tenant.py`), not a Traefik rule.
+
 ## Related
 
 - [`PI-007`](./06-secrets-and-superuser.md) — `.env` and the superuser

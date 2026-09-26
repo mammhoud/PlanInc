@@ -242,7 +242,7 @@ const ShareButton = observer(({ planincItem }: { planincItem: Note }) => {
                   expiryDate: planincItem.shareExpiryDate ?? undefined,
                   password: planincItem.sharePassword ?? '',
                   isShare: planincItem.isShare
-                }} />
+                }} planincItem={planincItem} />
               })
             }}
           />

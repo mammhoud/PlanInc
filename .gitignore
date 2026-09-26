@@ -3,6 +3,9 @@
 # Runtime data (databases, uploads — local only)
 planinc-data/
 data/planinc.db/
+data/superuser.txt
+superuser.txt
+**/superuser.txt
 server/data/planinc.db/
 django_server/data/
 

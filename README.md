@@ -25,6 +25,14 @@
 
 > Live Demo: username:planinc password:planinc
 
+## 🔗Live demo & animated preview
+
+- **Live app:** `https://notes.structa.cloud/signin`
+- **Animated preview (no login):** `https://notes.structa.cloud/preview` —
+  static Agenda / Notes / Graph mock screens over the auth gradient
+  background, switched by the floating right-edge tab switcher
+  (`frontend/src/components/Common/ScreenSwitcher/`).
+
 
 
 PlanInc is an AI-powered card note-taking project. Designed for individuals who want to quickly capture and organize their fleeting thoughts. PlanInc allows users to seamlessly jot down ideas the moment they strike, ensuring that no spark of creativity is lost.
@@ -51,6 +59,49 @@ PlanInc is an AI-powered card note-taking project. Designed for individuals who 
 ```bash
 curl -s https://raw.githubusercontent.com/mammhoud/planinc/main/install.sh | bash
 ```
+
+## 🔑Automatic superuser creation (self-hosted)
+
+The server bootstraps a `superadmin` account on every boot — no manual seed needed.
+
+```bash
+make setup        # copy .env.example to .env (first time only)
+$EDITOR .env      # set PLANINC_SUPERUSER_NAME / PLANINC_SUPERUSER_PASSWORD
+make deploy       # validate + build + up, then wait for /health
+```
+
+Behaviour (`server/index.ts` → `bootstrapSuperuserFromEnv`, manual fallback
+`server/scripts/create-superuser.ts`):
+
+- Reads `PLANINC_SUPERUSER_NAME` + `PLANINC_SUPERUSER_PASSWORD` from the container
+  environment (`docker-compose.yml` passes both through).
+- Password must be at least 12 characters, otherwise boot logs
+  `[superuser] PLANINC_SUPERUSER_PASSWORD must be at least 12 characters; skipping`.
+- Upserts `accounts` as `role=superadmin` with a `pbkdf2` hash
+  (`server/lib/password.ts`); existing account with the same name is updated,
+  never duplicated. Log line: `[superuser] Bootstrapped/Updated superuser "<name>"`.
+- First run with no `superadmin` and no env password: generates a 32-char
+  shell-safe password for `PLANINC_SUPERUSER_NAME || 'admin'` and writes
+  `./data/superuser.txt` (container: `/app/data/superuser.txt`, `0600`,
+  gitignored) with `username:` + `password:`. Same path for native `make run`
+  and Docker (`./data:/app/data` volume). Save it, then delete the file.
+- Sign in at `http://localhost:1111/signin` (local) or
+  `https://notes.structa.cloud/signin` (deployed) with that username + password.
+  Auth is stateless JWT (`POST /api/auth/login`, `server/routerExpress/auth/`).
+
+Verify:
+
+```bash
+docker logs planinc 2>&1 | grep -i superuser
+curl -fsS http://127.0.0.1:1111/health
+```
+
+Related docs/plans: `docs/01-getting-started.md` (PI-002),
+`docs/05-deployment.md` (PI-006), `docs/06-secrets-and-superuser.md` (PI-007),
+`docs/09-troubleshooting.md` (PI-010, empty-export trap),
+`docs/14-agenda.md` (PI-022, bootstrap summary),
+`docs/plans/django-bolt/02-domain-and-api.md` (login/logout gate) and
+`docs/plans/django-bolt/06-implementation-task-board.md` (auth migration tasks).
 
 ## 👨🏼‍💻Contribution
 Contributions are the heart of what makes the open-source community so dynamic, creative, and full of learning opportunities. Your involvement helps drive innovation and growth. We deeply value any contribution you make, and we're excited to have you as part of our community. Thank you for your support! 🙌

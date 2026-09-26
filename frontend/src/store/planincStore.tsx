@@ -458,6 +458,12 @@ export class PlanIncStore implements Store {
     }
   })
 
+  reviewStats = new PromiseState({
+    function: async () => {
+      return await api.notes.reviewStats.query()
+    }
+  })
+
   resourceList = new PromisePageState({
     function: async ({ page, size, searchText, folder }) => {
       return await api.attachments.list.query({ page, size, searchText, folder })
