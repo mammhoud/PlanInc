@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.tenancy.models import Tenant
 from apps.tenancy.services import provision_tenant
 
 

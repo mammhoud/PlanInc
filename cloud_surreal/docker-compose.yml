@@ -1,0 +1,39 @@
+# cloud_surreal — Robyn + embedded SurrealKV. No database container: the
+# SurrealKV file lives on the same volume the source stack already uses.
+services:
+  cloud_surreal:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: planinc-cloud-surreal:latest
+    container_name: cloud_surreal
+    ports:
+      - "${PLANINC_PORT:-1111}:1111"
+    environment:
+      NEXTAUTH_SECRET: ${PLANINC_NEXTAUTH_SECRET:-planinc-secret-change-me}
+      PLANINC_PORT: "1111"
+      PLANINC_DB_FILE: /app/data/planinc.db
+      PLANINC_DB_NS: ${PLANINC_DB_NS:-planinc}
+      PLANINC_DB_NAME: ${PLANINC_DB_NAME:-planinc}
+      # Bootstrap superuser: created on first boot when set, idempotent after
+      # (re-applied on every boot, mirroring the source stack).
+      PLANINC_SUPERUSER_NAME: ${PLANINC_SUPERUSER_NAME:-}
+      PLANINC_SUPERUSER_PASSWORD: ${PLANINC_SUPERUSER_PASSWORD:-}
+      # Uploads and plugin bundles live under the same data volume.
+      PLANINC_DATA_DIR: /app/data
+      UPLOAD_DIR: /app/data/files
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:1111/health').status == 200 else 1)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s

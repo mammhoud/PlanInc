@@ -16,6 +16,7 @@ import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPaginat
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
 import { FolderTree } from '@/components/PlanincPlanning/FolderTree';
 import { PlanningLinksModal } from '@/components/PlanincPlanning/PlanningLinksModal';
+import { RelatedLinks } from '@/components/PlanincPlanning/RelatedLinks';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import dayjs from '@/lib/dayjs';
 
@@ -404,6 +405,7 @@ export default function StudyPage() {
               <div className="flex flex-wrap gap-1">
                 {(detailItem.tags ?? []).map((tag: string) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}
               </div>
+              <RelatedLinks entityType="study" entityId={detailItem.id} />
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button size="sm" onClick={() => { setEditingItem(detailItem); setDetailItem(null); setIsCrudOpen(true); }}>{t('edit')}</Button>
                 <Button size="sm" variant="secondary" onClick={() => { openLinks(detailItem); setDetailItem(null); }}>{t('related-items')}</Button>

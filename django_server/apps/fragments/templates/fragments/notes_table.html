@@ -1,0 +1,17 @@
+{% comment %}Render-first notes table. Same service data as the JSON API.{% endcomment %}
+<table class="notes-table" data-total="{{ total }}">
+  <thead>
+    <tr><th>Title</th><th>Tags</th><th>Updated</th></tr>
+  </thead>
+  <tbody>
+    {% for note in notes %}
+      <tr data-note-id="{{ note.id }}">
+        <td>{{ note.title }}</td>
+        <td>{% for tag in note.tags.all %}<span class="tag">{{ tag.slug }}</span>{% endfor %}</td>
+        <td>{{ note.updated_at|date:"c" }}</td>
+      </tr>
+    {% empty %}
+      <tr class="empty"><td colspan="3">No notes yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>

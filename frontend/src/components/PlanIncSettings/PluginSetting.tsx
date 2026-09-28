@@ -13,6 +13,7 @@ import { Icon } from '@/components/Common/Iconify/icons';
 import { DialogStandaloneStore } from "@/store/module/DialogStandalone";
 import { useState, useEffect } from "react";
 import { PluginManagerStore } from "@/store/plugin/pluginManagerStore";
+import { PluginApiStore } from "@/store/plugin/pluginApiStore";
 import i18n from "@/lib/i18n";
 import { type PluginInfo } from "@shared/lib/types";
 import { LoadingAndEmpty } from "../Common/LoadingAndEmpty";
@@ -97,6 +98,34 @@ const PluginCard = ({ name, version, displayName, description, author, downloads
   );
 };
 
+/**
+ * PI-024 I2: surfaces plugins that used a capability they did not declare.
+ * Warning-only by default; the machine strings are shown untranslated so no new
+ * i18n key is introduced (PI-009 parity).
+ */
+const CapabilityWarningBanner = observer(() => {
+  const pluginApi = RootStore.Get(PluginApiStore);
+  const warnings = pluginApi.capabilityWarnings;
+  if (!warnings.length) return null;
+  return (
+    <div role="alert" className="rounded-xl border border-border bg-muted/40 p-3">
+      <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
+        <Icon icon="mdi:alert-outline" width="16" height="16" className="text-muted-foreground" />
+        <span className="font-mono text-xs">
+          {pluginApi.capabilityEnforcement ? 'plugin.capabilities=enforce' : 'plugin.capabilities=warn'}
+        </span>
+      </div>
+      <ul className="flex flex-col gap-1">
+        {warnings.map((w) => (
+          <li key={`${w.plugin}:${w.capability}`} className="font-mono text-xs text-muted-foreground">
+            {w.plugin} → {w.capability}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
+
 const InstalledPlugins = observer(() => {
   const { t } = useTranslation();
   const pluginManager = RootStore.Get(PluginManagerStore);
@@ -162,6 +191,7 @@ const InstalledPlugins = observer(() => {
   return (
     <div className="space-y-2 ">
       <LoadingAndEmpty isAbsolute={false} className='mt-2' isLoading={pluginManager.installedPlugins.loading.value} isEmpty={pluginManager.installedPlugins.value?.length === 0} />
+      <CapabilityWarningBanner />
       {installedPlugins.map((plugin) => {
         const metadata = plugin.metadata as {
           name: string;

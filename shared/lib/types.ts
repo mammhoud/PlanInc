@@ -233,7 +233,10 @@ export const pluginInfoSchema = z.object({
   displayName: z.any().optional(),
   description: z.any().optional(),
   readme: z.any().optional(),
-  downloads: z.number().nullable().optional()
+  downloads: z.number().nullable().optional(),
+  // Capabilities the plugin declares it needs (PI-024 I2). Optional and
+  // advisory: an undeclared capability warns rather than blocks.
+  capabilities: z.array(z.string()).optional()
 });
 
 // Schema for plugin installation input (subset of PluginInfo)

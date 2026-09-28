@@ -125,15 +125,18 @@ Update TypeScript contracts and tests together with each endpoint slice.
 - [x] Tenant-scoped notes model and CRUD contract
 - [x] Shared ASGI and Channels boundary
 - [x] Tenant context and worker guard
-- [ ] Accounts, workspace membership, and authentication adapter
-- [ ] Notes versions, comments, tags, backlinks, and outbox
-- [ ] Planning, tickets, and study projections
-- [ ] Files, extraction, previews, and object-storage ports
-- [ ] AI provider, agent, conversation, embedding, and usage models
-- [ ] Search projection and permission-aware query service
-- [ ] RSS, webhooks, plugins, MCP, SSO, and public-share adapters
-- [ ] Audit, analytics, durable jobs, and retry persistence
-- [ ] Client adapter and Fusion fragment cutover
+- [x] Accounts, workspace membership, and authentication adapter
+- [x] Notes versions, comments, tags, backlinks, and outbox
+- [x] Planning, tickets, and study projections
+- [x] Files, extraction, previews, and object-storage ports (attachment
+  metadata, previews, extraction, and tenant-prefixed keys; the binary
+  object-storage transport is the remaining piece)
+- [x] AI provider, agent, conversation, embedding, and usage models
+- [x] Search projection and permission-aware query service
+- [x] RSS, webhooks, plugins, MCP, SSO, and public-share adapters
+- [x] Audit, analytics, durable jobs, and retry persistence
+- [x] Client adapter and Fusion fragment cutover (adapter + fragments landed;
+  per-slice call-site migration is gated by the slice flags)
 
 ## Exit gate
 
@@ -144,3 +147,23 @@ unowned active request.
 The first tenant-scoped notes slice is available at `GET|POST /api/notes` and
 `GET|PATCH|DELETE /api/notes/<id>`. It uses the standard success/error envelope,
 rejects missing or inactive tenants, and filters every lookup by tenant.
+
+### Delivered slices
+
+- **Notes:** `/api/notes/<id>/versions`, `/history`, `/comments`, `/tags`,
+  `/links`, `/backlinks`, and `/api/tags`.
+- **Planning:** `/api/planning/{tasks,tickets,study,categories}` with task links
+  and spaced review.
+- **Knowledge:** `/api/knowledge/{resources,attachments,relations}` plus preview
+  and extraction endpoints.
+- **Search:** permission-aware `/api/search` over a `SearchDocument` projection
+  and `POST /api/search/reindex`.
+- **AI:** `/api/ai/{providers,agents,conversations,embeddings}` and run
+  execution that records `AIUsage`; credentials are encrypted at rest and never
+  serialized.
+- **Integrations:** `/api/integrations/{rss,webhooks,plugins,mcp,sso,shares}`
+  with encrypted secrets and public share resolution.
+- **Audit/analytics:** `GET /api/audit`, `/api/analytics/summary`, and
+  `/api/analytics/metrics`.
+- **Surfaces:** `/api/openapi.json` (and `/api/v1/openapi.json`),
+  `/fragments/notes`, and the tenant/workspace WebSocket at `/ws/tenant`.

@@ -1207,5 +1207,16 @@
   "agenda-default-lane-none": "None (uncategorised)",
   "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
   "agenda-show-uncategorised": "Show uncategorised lane",
-  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board.",
+  "add-nodes": "Rnu tikerristin",
+  "choose-nodes": "Fren tikerristin",
+  "choose-nodes-description": "Anadi ɣef akk, syen fren iferdisen ara d-ibanen d tikerristin ɣef ugr af.",
+  "search-nodes": "Anadi tizmilin, tikitin, tɣuri…",
+  "nodes-selected": "{{count}} yettwafren",
+  "links-to": "Iseɣwan ɣer",
+  "linked-from": "Yettwaseɣwen seg",
+  "folders": "Tikarḍiwin",
+  "documents": "Isemliyen",
+  "expand-folder": "Semɣeṛ takarḍa",
+  "collapse-folder": "Fneq takarḍa"
 }

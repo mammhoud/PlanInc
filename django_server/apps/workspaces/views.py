@@ -8,7 +8,11 @@ from apps.tenancy.models import Tenant
 from middleware.tenant import require_tenant
 
 from .models import Workspace
-from .services import accept_invite, can_access_workspace, create_invite, create_workspace
+from .services import (
+    accept_invite,
+    create_invite,
+    create_workspace,
+)
 
 
 def _tenant_for_request(request):
@@ -118,7 +122,9 @@ def collection(request):
         )
     except IntegrityError:
         return JsonResponse({"error": "already_exists"}, status=409)
-    return JsonResponse({"status": "success", "data": _serialize(workspace)}, status=201)
+    return JsonResponse(
+        {"status": "success", "data": _serialize(workspace)}, status=201
+    )
 
 
 @require_http_methods(["GET"])

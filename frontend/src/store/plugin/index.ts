@@ -81,6 +81,12 @@ export abstract class BasePlugin {
   readme?: I18nString;
   /** Icon URL or icon identifier for the plugin */
   icon?: string;
+  /**
+   * Capabilities the plugin declares it needs (PI-024 I2). Advisory: the app
+   * warns when an undeclared capability is used and only blocks behind an
+   * explicit enforcement flag.
+   */
+  capabilities?: string[];
   /** Flag indicating if the plugin has a settings panel */
   withSettingPanel?: boolean;
   /** Function to render the settings panel UI */

@@ -1,8 +1,8 @@
-from django.test import RequestFactory, SimpleTestCase, override_settings
 from django.http import HttpResponse
+from django.test import RequestFactory, SimpleTestCase, override_settings
 
 from .request_id import RequestIdMiddleware
-from .tenant import TenantResolutionMiddleware, resolve_tenant
+from .tenant import resolve_tenant
 
 TENANT_TEST_HOSTS = [
     "testserver",

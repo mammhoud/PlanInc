@@ -23,6 +23,23 @@ repeatable migration path from SurrealKV to PostgreSQL.
 - Do not claim tenant isolation until it is tested through HTTP, WebSockets,
   workers, and management commands.
 
+## ⚠️ Reconciliation with `cloud_surreal` — open owner decision (2026-09-28)
+
+<!-- AI-generated: review needed -->
+This plan and [`../cloud_surreal/00-index.md`](../cloud_surreal/00-index.md)
+**claim the same target** (the PlanInc Python cutover) and contradict each other:
+this plan replaces the Bun server with **Django ASGI + django-bolt + PostgreSQL +
+Redis**, while `cloud_surreal` replaces **both** `server/` and `django_server/`
+with **Robyn + embedded SurrealKV** and states *"No Django, no django-bolt, no
+django-fusion"*. `cloud_surreal`'s board even calls this tree *"Django is
+superseded… an archive candidate"*, while the structa.cloud registry names
+**this** plan authoritative.
+
+Only one can execute. **Status: OPEN — requires the owner**; the answer decides
+the framework, the datastore, and which tree is archived. Full comparison and a
+recommendation live in the `cloud_surreal` index. Record the decision in both
+indexes and in the registry, then delete the losing plan.
+
 ## Plan files
 
 | File | Purpose | Depends on |
@@ -77,7 +94,7 @@ documentation does not mark those gates complete.
 
 ## Working rules
 
-- Keep changes inside `application/tools/PlanInc/`.
+- Keep changes inside `projects/PlanInc/`.
 - Keep the existing `frontend/` as the active shared client for web, PWA,
   desktop, Android, and iOS builds.
 - Add model, service, API, frontend adapter, and test changes as vertical

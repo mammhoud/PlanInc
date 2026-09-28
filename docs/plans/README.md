@@ -2,11 +2,24 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Groups 1 sub-area: `django-bolt`.
+Groups 3 sub-areas: `cloud_surreal`, `django-bolt`, `workflow-and-integrations`.
 
 ## Contents
 
+- `cloud_surreal/` - 8 files
 - `django-bolt/` - 7 files
+- `workflow-and-integrations/` - 5 files
+- `full-program-plan.md`
+
+## Read first
+
+- [`BLOCKED-externally.md`](./BLOCKED-externally.md) — every open item that
+  **cannot** be closed by code, with its unblock condition. Check here before
+  planning a migration window (2026-09-28).
+- ⚠️ [`django-bolt/00-index.md`](./django-bolt/00-index.md) and
+  [`cloud_surreal/00-index.md`](./cloud_surreal/00-index.md) **claim the same
+  target and contradict each other** (Django/PostgreSQL vs Robyn/SurrealKV). Only
+  one can execute; the owner decision is recorded as **OPEN** in both indexes.
 
 ## Public API
 

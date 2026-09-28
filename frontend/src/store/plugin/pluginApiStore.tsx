@@ -73,8 +73,34 @@ export class PluginApiStore implements Store {
   customCardFooterSlots: CardFooterSlot[] = [];
   customEditorFooterSlots: EditorFooterSlot[] = [];
 
+  // PI-024 I2: capability warnings. A plugin that uses a `window.PlanInc`
+  // capability it did not declare gets one warning here (deduped), which the
+  // settings panel surfaces as a banner. Enforcement stays behind a flag so
+  // existing plugins keep working.
+  capabilityWarnings: { plugin: string; capability: string; at: number }[] = [];
+  // Set from config by the settings surface; when true, undeclared use is denied.
+  capabilityEnforcement = false;
+
   constructor() {
     makeAutoObservable(this);
+  }
+
+  reportCapabilityWarning(plugin: string, capability: string) {
+    if (this.capabilityWarnings.some((w) => w.plugin === plugin && w.capability === capability)) {
+      return;
+    }
+    this.capabilityWarnings.push({ plugin, capability, at: Date.now() });
+    console.warn(`[plugin] ${plugin} used undeclared capability "${capability}"`);
+  }
+
+  warningsFor(plugin: string) {
+    return this.capabilityWarnings.filter((w) => w.plugin === plugin);
+  }
+
+  clearCapabilityWarnings(plugin?: string) {
+    this.capabilityWarnings = plugin
+      ? this.capabilityWarnings.filter((w) => w.plugin !== plugin)
+      : [];
   }
 
   getActiveEditorStore(): EditorStore | null {

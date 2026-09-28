@@ -7,11 +7,14 @@ import { db } from "@server/db";
 import { User } from "@server/context";
 import { Request as ExpressRequest } from 'express';
 import { getGlobalConfig } from "@server/routerTrpc/config";
+import { surreal } from "@server/surreal";
 
 type SendWebhookOptions = {
   activityType?: string;
   configUserId?: number | null;
 }
+
+const WEBHOOK_TIMEOUT_MS = 10_000;
 
 export const getWebhookActivityType = (webhookType: string, activityType?: string) => {
   if (activityType) {
@@ -19,6 +22,41 @@ export const getWebhookActivityType = (webhookType: string, activityType?: strin
   }
   return `planinc.note.${webhookType}`;
 }
+
+// --- Delivery log (PI-024 I1) ---------------------------------------------
+// Every attempt is recorded so an operator can see what was sent, whether it
+// was signed, and how the receiver answered. Best-effort: logging never breaks
+// the write that triggered the webhook.
+let deliveryTableReady: Promise<void> | null = null;
+
+const ensureDeliveryTable = (): Promise<void> => {
+  if (!deliveryTableReady) {
+    deliveryTableReady = surreal
+      .query('DEFINE TABLE IF NOT EXISTS webhookDelivery;')
+      .then(() => undefined)
+      .catch((err) => {
+        deliveryTableReady = null;
+        console.error('[webhook] delivery table init failed:', err);
+      });
+  }
+  return deliveryTableReady;
+};
+
+const getWebhookSecret = async (): Promise<string> => {
+  return process.env.WEBHOOK_SECRET || await getNextAuthSecret();
+};
+
+export const signWebhookBody = (body: string, secret: string) =>
+  'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');
+
+const recordWebhookDelivery = async (record: Record<string, any>) => {
+  try {
+    await ensureDeliveryTable();
+    await surreal.query(`CREATE webhookDelivery CONTENT ${surreal.lit(record)};`);
+  } catch (error) {
+    console.error('[webhook] failed to record delivery:', error);
+  }
+};
 
 const getWebhookConfigContext = (ctx: any, configUserId?: number | null) => {
   if (!configUserId) {
@@ -32,13 +70,55 @@ const getWebhookConfigContext = (ctx: any, configUserId?: number | null) => {
 }
 
 export const SendWebhook = async (data: any, webhookType: string, ctx: any, options: SendWebhookOptions = {}) => {
+  let endpoint = '';
+  let deliveryId = '';
+  const activityType = getWebhookActivityType(webhookType, options.activityType);
   try {
     const globalConfig = await getGlobalConfig({ ctx: getWebhookConfigContext(ctx, options.configUserId) })
-    if (globalConfig.webhookEndpoint) {
-      await axios.post(globalConfig.webhookEndpoint, { data, webhookType, activityType: getWebhookActivityType(webhookType, options.activityType) })
+    endpoint = globalConfig.webhookEndpoint;
+    if (!endpoint) {
+      return;
     }
-  } catch (error) {
+
+    // Signed envelope: receivers verify X-PlanInc-Signature against the raw body
+    // using WEBHOOK_SECRET (falls back to the app secret).
+    const body = JSON.stringify({ data, webhookType, activityType });
+    const signature = signWebhookBody(body, await getWebhookSecret());
+    deliveryId = crypto.randomUUID();
+
+    const response = await axios.post(endpoint, body, {
+      timeout: WEBHOOK_TIMEOUT_MS,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-PlanInc-Event': activityType,
+        'X-PlanInc-Delivery': deliveryId,
+        'X-PlanInc-Signature': signature,
+      },
+    });
+
+    await recordWebhookDelivery({
+      event: activityType,
+      webhookType,
+      deliveryId,
+      endpoint,
+      status: 'delivered',
+      statusCode: response.status,
+      signature,
+      payload: body,
+      createdAt: new Date(),
+    });
+  } catch (error: any) {
     console.log('request webhook error:', error)
+    await recordWebhookDelivery({
+      event: activityType,
+      webhookType,
+      deliveryId: deliveryId || crypto.randomUUID(),
+      endpoint,
+      status: 'failed',
+      error: String(error?.message ?? error),
+      payload: JSON.stringify({ data, webhookType, activityType }),
+      createdAt: new Date(),
+    });
   }
 }
 

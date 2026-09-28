@@ -1,0 +1,11 @@
+{% comment %}Render-first comments fragment for one note.{% endcomment %}
+<ul class="note-comments" data-note-id="{{ note.id }}">
+  {% for comment in comments %}
+    <li class="note-comments__item{% if comment.is_resolved %} is-resolved{% endif %}" data-comment-id="{{ comment.id }}">
+      <p class="note-comments__body">{{ comment.body }}</p>
+      <time class="note-comments__time">{{ comment.created_at|date:"c" }}</time>
+    </li>
+  {% empty %}
+    <li class="empty">No comments.</li>
+  {% endfor %}
+</ul>

@@ -1,11 +1,10 @@
 import hashlib
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
-
 
 SENSITIVE_NAMES = ("password", "secret", "token", "api_key", "private_key")
 
@@ -43,7 +42,7 @@ class Command(BaseCommand):
         manifest = {
             "format": "planinc-export-v1",
             "source": str(source),
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
             "records": {},
             "sensitive_fields_omitted": True,
         }
@@ -73,7 +72,11 @@ class Command(BaseCommand):
                                 dict(
                                     zip(
                                         columns,
-                                        (_safe_value(row[index]) for index in kept_indexes),
+                                        (
+                                            _safe_value(row[index])
+                                            for index in kept_indexes
+                                        ),
+                                        strict=False,
                                     )
                                 ),
                                 sort_keys=True,
@@ -93,4 +96,8 @@ class Command(BaseCommand):
             "\n".join(checksums) + ("\n" if checksums else ""),
             encoding="utf-8",
         )
-        self.stdout.write(self.style.SUCCESS(f"Exported {len(manifest['records'])} tables."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Exported {len(manifest['records'])} tables."
+            )
+        )

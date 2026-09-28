@@ -1207,5 +1207,16 @@
   "agenda-default-lane-none": "None (uncategorised)",
   "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
   "agenda-show-uncategorised": "Show uncategorised lane",
-  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board.",
+  "add-nodes": "Knooppunten toevoegen",
+  "choose-nodes": "Knooppunten kiezen",
+  "choose-nodes-description": "Doorzoek alles en vink de items aan die als knooppunten in de grafiek moeten verschijnen.",
+  "search-nodes": "Zoek notities, tickets, studie…",
+  "nodes-selected": "{{count}} geselecteerd",
+  "links-to": "Verwijst naar",
+  "linked-from": "Verwezen vanaf",
+  "folders": "Mappen",
+  "documents": "Documenten",
+  "expand-folder": "Map uitvouwen",
+  "collapse-folder": "Map samenvouwen"
 }

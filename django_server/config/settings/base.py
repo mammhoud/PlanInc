@@ -25,8 +25,17 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "apps.health",
     "apps.tenancy",
+    "apps.accounts",
     "apps.workspaces",
     "apps.notes",
+    "apps.planning",
+    "apps.knowledge",
+    "apps.search",
+    "apps.ai",
+    "apps.integrations",
+    "apps.audit",
+    "apps.analytics",
+    "apps.fragments",
     "apps.operations",
     "apps.realtime",
 ]
@@ -151,17 +160,28 @@ PLANINC_METRICS_ENABLED = (
     os.environ.get("PLANINC_METRICS_ENABLED", "false").lower() == "true"
 )
 PLANINC_SENTRY_DSN = os.environ.get("PLANINC_SENTRY_DSN", "")
+# Fernet key (or passphrase) used to encrypt AI provider credentials at rest.
+PLANINC_AI_ENCRYPTION_KEY = os.environ.get("PLANINC_AI_ENCRYPTION_KEY", "")
 
+_CHANNEL_BACKEND = os.environ.get(
+    "PLANINC_CHANNEL_LAYER",
+    "channels.layers.InMemoryChannelLayer",
+)
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": os.environ.get(
-            "PLANINC_CHANNEL_LAYER",
-            "channels.layers.InMemoryChannelLayer",
+        "BACKEND": _CHANNEL_BACKEND,
+        # Only the Redis backend accepts a ``hosts`` config; the in-memory
+        # backend takes no options, so pass an empty config for it.
+        "CONFIG": (
+            {
+                "hosts": [
+                    os.environ.get(
+                        "PLANINC_REDIS_URL", "redis://127.0.0.1:6379/2"
+                    )
+                ]
+            }
+            if "redis" in _CHANNEL_BACKEND
+            else {}
         ),
-        "CONFIG": {
-            "hosts": [
-                os.environ.get("PLANINC_REDIS_URL", "redis://127.0.0.1:6379/2")
-            ]
-        },
     }
 }

@@ -18,7 +18,9 @@ class Command(BaseCommand):
         manifest_path = root / "manifest.json"
         checksum_path = root / "checksums" / "sha256sums"
         if not manifest_path.is_file() or not checksum_path.is_file():
-            raise CommandError("Export is missing manifest.json or checksums/sha256sums.")
+            raise CommandError(
+                "Export is missing manifest.json or checksums/sha256sums."
+            )
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         failures = []
@@ -35,7 +37,11 @@ class Command(BaseCommand):
             checked += 1
             if actual != expected:
                 failures.append(
-                    {"path": relative, "error": "checksum_mismatch", "expected": expected}
+                    {
+                        "path": relative,
+                        "error": "checksum_mismatch",
+                        "expected": expected,
+                    }
                 )
 
         report = {
@@ -50,4 +56,8 @@ class Command(BaseCommand):
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         if failures:
             raise CommandError(f"Export verification failed; see {report_path}")
-        self.stdout.write(self.style.SUCCESS(f"Verified export for tenant {options['tenant']}."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Verified export for tenant {options['tenant']}."
+            )
+        )

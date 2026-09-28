@@ -1,5 +1,5 @@
-from datetime import timedelta
 import secrets
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -69,8 +69,8 @@ def accept_invite(*, token: str, user) -> WorkspaceMember:
         invite = WorkspaceInvite.objects.select_related(
             "workspace", "workspace__tenant"
         ).get(token=token)
-    except WorkspaceInvite.DoesNotExist:
-        raise ValueError("Unknown invite token.")
+    except WorkspaceInvite.DoesNotExist as err:
+        raise ValueError("Unknown invite token.") from err
     if not invite.is_valid():
         raise ValueError("Invite is expired, used, or inactive.")
     member, _ = WorkspaceMember.objects.get_or_create(

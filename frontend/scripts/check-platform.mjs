@@ -49,7 +49,7 @@ import { register } from 'node:module';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APP = join(HERE, '..'); //  frontend
 const SRC = join(APP, '..'); //  src
-const PLANINC = join(SRC, '..'); //  application/tools/PlanInc
+const PLANINC = join(SRC, '..'); //  projects/PlanInc
 
 // Node ≥ 22.6 strips the types; the hook supplies the extensions a bundler
 // would have resolved (see ts-resolve.mjs). Registered before the import below.

@@ -1207,5 +1207,16 @@
   "agenda-default-lane-none": "None (uncategorised)",
   "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
   "agenda-show-uncategorised": "Show uncategorised lane",
-  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board.",
+  "add-nodes": "ノードを追加",
+  "choose-nodes": "ノードを選択",
+  "choose-nodes-description": "すべてを検索し、グラフにノードとして表示する項目にチェックを入れてください。",
+  "search-nodes": "ノート、チケット、学習を検索…",
+  "nodes-selected": "{{count}} 件を選択",
+  "links-to": "リンク先",
+  "linked-from": "リンク元",
+  "folders": "フォルダー",
+  "documents": "ドキュメント",
+  "expand-folder": "フォルダーを展開",
+  "collapse-folder": "フォルダーを折りたたむ"
 }

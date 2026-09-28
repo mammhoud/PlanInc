@@ -35,6 +35,17 @@
 | PI-022 | [`docs/14-agenda.md`](./14-agenda.md) | Merged Notes + Plans Agenda stream, type filters, legacy path aliases, share links, default seed pack | ✅ Exists |
 | PI-024 | [`docs/15-enhancements-and-recommendations.md`](./15-enhancements-and-recommendations.md) | Enhancement plan + module audit (settings, integrations, sharing, reviews, relations), parity-matrix corrections, tooltip map, prioritised roadmap | ✅ Exists |
 | PI-025 | [`docs/plans/full-program-plan.md`](./plans/full-program-plan.md) | Full program plan: tenant-per-space, allauth authority, bidirectional sync, preview/switcher, PI-024 order, verify gates | ✅ Exists |
+| PI-026 | [`docs/plans/cloud_surreal/00-index.md`](./plans/cloud_surreal/00-index.md) | Master plan for `cloud_surreal`: Robyn server replacing both `server/` and `django_server/`, embedded SurrealKV, JWT reuse, desktop sync, AI | ✅ Exists |
+| PI-027 | [`docs/plans/cloud_surreal/01-foundation-and-runtime.md`](./plans/cloud_surreal/01-foundation-and-runtime.md) | Phase 1: Robyn app, supervised SurrealKV process, `SurrealClient`, JWT, tRPC-compatible transport, Docker | ✅ Exists |
+| PI-028 | [`docs/plans/cloud_surreal/02-feature-parity.md`](./plans/cloud_surreal/02-feature-parity.md) | Phase 2: parity surface, slice order, and task board for every router and route | ✅ Exists |
+| PI-029 | [`docs/plans/cloud_surreal/03-desktop-sync.md`](./plans/cloud_surreal/03-desktop-sync.md) | Phase 3: WebSocket sync channel and idempotent offline outbox replay | ✅ Exists |
+| PI-030 | [`docs/plans/cloud_surreal/04-ai-and-surreal.md`](./plans/cloud_surreal/04-ai-and-surreal.md) | Phase 4: AI providers, agents, conversations, runs, embeddings, usage on SurrealDB | ✅ Exists |
+| PI-031 | [`docs/plans/cloud_surreal/05-implementation-task-board.md`](./plans/cloud_surreal/05-implementation-task-board.md) | Executable task/evidence board across all `cloud_surreal` milestones | ✅ Exists |
+| PI-032 | [`docs/plans/cloud_surreal/06-cutover-parity-and-sync.md`](./plans/cloud_surreal/06-cutover-parity-and-sync.md) | Python cutover/archive decision, schema gap analysis vs the main app schema, and bidirectional data sync | ✅ Exists |
+| PI-033 | [`docs/plans/workflow-and-integrations/00-index.md`](./plans/workflow-and-integrations/00-index.md) | Master plan for the Docker plugin, workflow canvas, and MCP installation | ✅ Exists |
+| PI-034 | [`docs/plans/workflow-and-integrations/01-docker-plugin.md`](./plans/workflow-and-integrations/01-docker-plugin.md) | Phase 1: admin-only curated Docker status/containers route plus a first-party plugin | ✅ Exists |
+| PI-035 | [`docs/plans/workflow-and-integrations/02-workflow-canvas.md`](./plans/workflow-and-integrations/02-workflow-canvas.md) | Phase 2: workflow data model, canvas over `PlanIncGraph`, node add, loading scripts, plugin-opened page | ✅ Exists |
+| PI-036 | [`docs/plans/workflow-and-integrations/03-mcp-installation.md`](./plans/workflow-and-integrations/03-mcp-installation.md) | Phase 3: bundled MCP preset catalog and one-click install through the existing validation | ✅ Exists |
 
 ## Per-directory documentation
 

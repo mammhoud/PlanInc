@@ -12,7 +12,7 @@ OAuth (allauth) or a local reset.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -27,14 +27,14 @@ from apps.workspaces.models import Workspace, WorkspaceMember
 def _parse_dt(value):
     if not value:
         return None
-    if isinstance(value, (int, float)):
-        return datetime.fromtimestamp(value, tz=timezone.utc)
+    if isinstance(value, int | float):
+        return datetime.fromtimestamp(value, tz=UTC)
     try:
         parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -66,8 +66,10 @@ class Command(BaseCommand):
             raise CommandError("Unsupported PlanInc export format.")
         try:
             tenant = Tenant.objects.get(slug=options["tenant"], is_active=True)
-        except Tenant.DoesNotExist:
-            raise CommandError(f"Unknown or inactive tenant: {options['tenant']}")
+        except Tenant.DoesNotExist as err:
+            raise CommandError(
+                f"Unknown or inactive tenant: {options['tenant']}"
+            ) from err
 
         report = {
             "tenant": tenant.slug,
@@ -121,7 +123,7 @@ class Command(BaseCommand):
             )
             user_model = get_user_model()
             users_by_name = {}
-            for key, name in user_by_key.items():
+            for name in user_by_key.values():
                 username = name[:150]
                 user, created = user_model.objects.get_or_create(username=username)
                 users_by_name[username] = user

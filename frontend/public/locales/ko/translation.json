@@ -1207,5 +1207,16 @@
   "agenda-default-lane-none": "None (uncategorised)",
   "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
   "agenda-show-uncategorised": "Show uncategorised lane",
-  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board.",
+  "add-nodes": "노드 추가",
+  "choose-nodes": "노드 선택",
+  "choose-nodes-description": "모든 항목을 검색하고 그래프에 노드로 표시할 항목을 선택하세요.",
+  "search-nodes": "노트, 티켓, 학습 검색…",
+  "nodes-selected": "{{count}}개 선택됨",
+  "links-to": "링크 대상",
+  "linked-from": "링크 출처",
+  "folders": "폴더",
+  "documents": "문서",
+  "expand-folder": "폴더 펼치기",
+  "collapse-folder": "폴더 접기"
 }

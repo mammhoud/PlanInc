@@ -138,7 +138,7 @@ font application. The palette injection itself is now a single call
 ## 4. Verifying the chain
 
 ```bash
-cd application/tools/PlanInc/app
+cd projects/PlanInc/app
 
 npm run check:settings     # registry integrity + round-trip + i18n coverage
 npm run validate:tokens    # the token contract (tiers, theme parity, bridge)

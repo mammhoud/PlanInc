@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RootStore } from '@/store';
 import { PlanIncStore } from '@/store/planincStore';
@@ -10,6 +10,7 @@ import { ToastPlugin } from '@/store/module/Toast/Toast';
 import { PromiseCall } from '@/store/standard/PromiseState';
 import { api } from '@/lib/trpc';
 import { Item, ItemWithTooltip, SelectDropdown } from '../Item';
+import { ConfigTooltip } from '@/components/Common/InteractiveTooltip';
 import { coerceSettingValue, type SettingDefinition } from '@shared/lib/settingsRegistry';
 import { applyAppearance, readAppearance } from '@/lib/appearance';
 import { applyResponsiveOverrides } from '@/platform/overrides';
@@ -98,14 +99,23 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
     ? <ItemWithTooltip content={label} toolTipContent={<>{t(setting.hintKey)}</>} />
     : label;
 
+  // Setting-value tooltip (PI-024 #8): the machine key plus the live value. The
+  // wrapper span is the tooltip trigger so no control has to forward a ref, and
+  // no new user-facing string is introduced (PI-009 parity).
+  const withConfig = (control: ReactNode) => (
+    <ConfigTooltip configKey={setting.id} configValue={value}>
+      <span className="inline-flex max-w-full min-w-0">{control}</span>
+    </ConfigTooltip>
+  );
+
   switch (setting.type) {
     case 'switch':
       return (
         <Item
           leftContent={withHint}
-          rightContent={
+          rightContent={withConfig(
             <Switch checked={!!value} onCheckedChange={(checked) => write(checked)} />
-          }
+          )}
         />
       );
 
@@ -113,7 +123,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
       return (
         <Item
           leftContent={withHint}
-          rightContent={
+          rightContent={withConfig(
             <SelectDropdown
               value={value === undefined || value === null ? '' : String(value)}
               placeholder={t(setting.labelKey)}
@@ -123,7 +133,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
               }))}
               onChange={(next) => write(next)}
             />
-          }
+          )}
         />
       );
 
@@ -131,7 +141,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
       return (
         <Item
           leftContent={withHint}
-          rightContent={
+          rightContent={withConfig(
             <Input
               type="number"
               className="w-full min-w-0 sm:w-32"
@@ -149,7 +159,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
                 void write(Number(draft));
               }}
             />
-          }
+          )}
         />
       );
 
@@ -159,7 +169,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
       return (
         <Item
           leftContent={withHint}
-          rightContent={
+          rightContent={withConfig(
             <div className="flex w-full min-w-0 items-center gap-3 sm:w-48 sm:shrink-0">
               <Slider
                 step={1}
@@ -176,7 +186,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
                 {draft === '' ? current : draft}%
               </span>
             </div>
-          }
+          )}
         />
       );
     }
@@ -186,7 +196,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
       return (
         <Item
           leftContent={withHint}
-          rightContent={
+          rightContent={withConfig(
             <Input
               className="w-full min-w-0 sm:w-64"
               type={setting.type === 'secret' ? 'password' : 'text'}
@@ -194,7 +204,7 @@ export const RegistrySettingItem = observer(({ setting }: { setting: SettingDefi
               onChange={(e) => setDraft(e.target.value)}
               onBlur={() => void write(draft)}
             />
-          }
+          )}
         />
       );
 

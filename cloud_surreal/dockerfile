@@ -1,0 +1,18 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Runtime deps are pinned the same way as pyproject.toml.
+RUN pip install --no-cache-dir \
+    "robyn>=0.88,<0.89" \
+    "surrealdb>=2.0,<3" \
+    "PyJWT>=2.10,<3"
+
+COPY app ./app
+
+ENV PLANINC_PORT=1111 \
+    PLANINC_DB_FILE=/app/data/planinc.db
+
+EXPOSE 1111
+
+CMD ["python", "-m", "app.main"]

@@ -36,9 +36,11 @@ class Command(BaseCommand):
         }
         destination = options["checkpoint"]
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(json.dumps(checkpoint, indent=2) + "\n", encoding="utf-8")
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Validated {len(tables)} tables for tenant {options['tenant']}."
-            )
+        destination.write_text(
+            json.dumps(checkpoint, indent=2) + "\n", encoding="utf-8"
         )
+        summary = (
+            f"Validated {len(tables)} tables for tenant "
+            f"{options['tenant']}."
+        )
+        self.stdout.write(self.style.SUCCESS(summary))

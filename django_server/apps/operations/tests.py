@@ -1,7 +1,18 @@
 from django.core.management import call_command
 from django.test import TestCase
 
-from .models import OutboxEvent
+from apps.tenancy.models import Tenant
+from domain.errors import ValidationError
+from domain.policies.tenant import TenantAccessError
+
+from .models import OutboxEvent, RetentionRecord
+from .services import (
+    get_checkpoint,
+    record_retention,
+    retention_cutoff,
+    save_checkpoint,
+    set_retention_policy,
+)
 
 
 class OutboxTests(TestCase):
@@ -76,6 +87,130 @@ class PublishOutboxTests(TestCase):
             call_command("publish_outbox", output=output, dry_run=True)
             self.assertTrue(output.read_text(encoding="utf-8").strip())
         self.assertEqual(
-            OutboxEvent.objects.filter(published_at__isnull=True).count(), 1
+            OutboxEvent.objects.filter(
+                published_at__isnull=True, event_type="note.created"
+            ).count(),
+            1,
         )
+
+
+class JobCheckpointTests(TestCase):
+    def setUp(self):
+        call_command("provision_tenant", "demo", name="Demo")
+        call_command("provision_tenant", "other", name="Other")
+        self.tenant = Tenant.objects.get(slug="demo")
+        self.other = Tenant.objects.get(slug="other")
+
+    def test_checkpoint_is_idempotent_and_monotonic(self):
+        first = save_checkpoint(
+            tenant=self.tenant,
+            job_type="import_surreal",
+            scope="personal",
+            cursor={"offset": 10},
+            processed=10,
+        )
+        again = save_checkpoint(
+            tenant=self.tenant,
+            job_type="import_surreal",
+            scope="personal",
+            cursor={"offset": 10},
+            processed=10,
+        )
+        self.assertEqual(first.pk, again.pk)
+        self.assertEqual(again.processed, 10)
+
+        advanced = save_checkpoint(
+            tenant=self.tenant,
+            job_type="import_surreal",
+            scope="personal",
+            cursor={"offset": 25},
+            processed=25,
+        )
+        self.assertEqual(advanced.processed, 25)
+        self.assertEqual(advanced.cursor, {"offset": 25})
+
+        stale = save_checkpoint(
+            tenant=self.tenant,
+            job_type="import_surreal",
+            scope="personal",
+            processed=5,
+        )
+        self.assertEqual(stale.processed, 25)
+        self.assertEqual(stale.cursor, {"offset": 25})
+
+    def test_checkpoint_completion_and_lookup(self):
+        save_checkpoint(
+            tenant=self.tenant,
+            job_type="search_index",
+            scope="personal",
+            processed=3,
+            complete=True,
+        )
+        checkpoint = get_checkpoint(
+            tenant=self.tenant, job_type="search_index", scope="personal"
+        )
+        self.assertIsNotNone(checkpoint)
+        self.assertTrue(checkpoint.is_complete)
+        self.assertIsNone(
+            get_checkpoint(tenant=self.tenant, job_type="search_index")
+        )
+
+    def test_checkpoint_is_tenant_scoped(self):
+        save_checkpoint(
+            tenant=self.tenant, job_type="j", scope="s", processed=3
+        )
+        self.assertIsNone(get_checkpoint(tenant=self.other, job_type="j", scope="s"))
+
+    def test_checkpoint_requires_tenant_and_job_type(self):
+        with self.assertRaises(TenantAccessError):
+            save_checkpoint(tenant=None, job_type="j")
+        with self.assertRaises(ValidationError):
+            save_checkpoint(tenant=self.tenant, job_type="  ")
+
+
+class RetentionTests(TestCase):
+    def setUp(self):
+        call_command("provision_tenant", "demo", name="Demo")
+        self.tenant = Tenant.objects.get(slug="demo")
+
+    def test_policy_upsert_and_cutoff(self):
+        self.assertIsNone(
+            retention_cutoff(tenant=self.tenant, aggregate_type="outbox_event")
+        )
+        set_retention_policy(
+            tenant=self.tenant, aggregate_type="outbox_event", ttl_days=30
+        )
+        cutoff = retention_cutoff(
+            tenant=self.tenant, aggregate_type="outbox_event"
+        )
+        self.assertIsNotNone(cutoff)
+
+        updated = set_retention_policy(
+            tenant=self.tenant, aggregate_type="outbox_event", ttl_days=7
+        )
+        self.assertEqual(updated.ttl_days, 7)
+
+    def test_policy_rejects_non_positive_ttl(self):
+        with self.assertRaises(ValidationError):
+            set_retention_policy(
+                tenant=self.tenant, aggregate_type="note", ttl_days=0
+            )
+
+    def test_record_retention_validates_action(self):
+        with self.assertRaises(ValidationError):
+            record_retention(
+                tenant=self.tenant,
+                aggregate_type="note",
+                aggregate_id=1,
+                action="bogus",
+            )
+        record = record_retention(
+            tenant=self.tenant,
+            aggregate_type="note",
+            aggregate_id=1,
+            action=RetentionRecord.PURGED,
+            reason="expired",
+        )
+        self.assertEqual(record.action, "purged")
+        self.assertEqual(record.aggregate_id, "1")
 

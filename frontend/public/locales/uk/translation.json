@@ -1207,5 +1207,16 @@
   "agenda-default-lane-none": "None (uncategorised)",
   "agenda-show-completed-hint": "Merge completed plans into the board as a Done lane.",
   "agenda-show-uncategorised": "Show uncategorised lane",
-  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board."
+  "agenda-show-uncategorised-hint": "Keep a catch-all lane so no plan falls out of the board.",
+  "add-nodes": "Додати вузли",
+  "choose-nodes": "Вибрати вузли",
+  "choose-nodes-description": "Знайдіть потрібне й позначте елементи, які показуватимуться як вузли на графі.",
+  "search-nodes": "Пошук нотаток, тікетів, навчання…",
+  "nodes-selected": "Вибрано: {{count}}",
+  "links-to": "Посилання на",
+  "linked-from": "Посилання з",
+  "folders": "Теки",
+  "documents": "Документи",
+  "expand-folder": "Розгорнути теку",
+  "collapse-folder": "Згорнути теку"
 }

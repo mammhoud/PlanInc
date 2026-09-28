@@ -1,3 +1,13 @@
+# Secrets and runtime state must never enter the build context. `data/` holds the
+# live SurrealKV file and the bootstrap superuser record, and `.env` holds the
+# deployment secrets; both are mounted/read at runtime instead. `.env.example`
+# is deliberately kept (it is the committed reference).
+.env
+.env.*
+!.env.example
+data
+**/data/planinc.db
+
 node_modules
 **/node_modules
 .git

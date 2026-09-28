@@ -6,7 +6,7 @@ Long-form documentation, indexed by [`INDEX.md`](./INDEX.md). Start there for th
 
 ## Contents
 
-- `plans/` - 7 files
+- `plans/` - 21 files
 - `00-package-guide.md`
 - `01-getting-started.md`
 - `02-architecture.md`

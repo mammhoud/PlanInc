@@ -1,4 +1,7 @@
-class TenantAccessError(PermissionError):
+from domain.errors import AuthorizationError
+
+
+class TenantAccessError(AuthorizationError):
     """Raised when a service is called without an explicit tenant scope."""
 
 

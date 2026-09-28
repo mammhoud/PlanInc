@@ -24,6 +24,7 @@ import type { PlanningFormValues } from '@/components/PlanincPlanning/PlanningCr
 import { PlanningViewSwitch, usePlanningView, planningViewGridClass } from '@/components/PlanincPlanning/PlanningViewSwitch';
 import { PlanningPagination } from '@/components/PlanincPlanning/PlanningPagination';
 import { PlanningFab } from '@/components/PlanincPlanning/PlanningFab';
+import { RelatedLinks } from '@/components/PlanincPlanning/RelatedLinks';
 
 const statuses = ['open', 'in_progress', 'blocked', 'done'] as const;
 const priorities = ['low', 'medium', 'high', 'critical'] as const;
@@ -291,6 +292,7 @@ export default function TicketsPage() {
               <div className="flex flex-wrap gap-1">
                 {(detailItem.tags ?? []).map((tag: string) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}
               </div>
+              <RelatedLinks entityType="ticket" entityId={detailItem.id} />
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button size="sm" onClick={() => { setEditingItem(detailItem); setDetailItem(null); setIsCrudOpen(true); }}>{t('edit')}</Button>
                 <Button size="sm" variant="secondary" onClick={() => { void openLinks(detailItem); setDetailItem(null); }}>{t('related-items')}</Button>

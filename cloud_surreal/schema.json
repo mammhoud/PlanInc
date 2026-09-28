@@ -1,0 +1,443 @@
+{
+  "generatedFrom": [
+    "server/db.ts",
+    "shared/lib/recordSchemas.ts"
+  ],
+  "tables": {
+    "accounts": {
+      "fields": {
+        "apiToken": "zod",
+        "createdAt": "zod",
+        "description": "zod",
+        "id": "zod",
+        "image": "zod",
+        "linkAccountId": "zod",
+        "loginType": "zod",
+        "name": "zod",
+        "nickname": "zod",
+        "note": "zod",
+        "password": "zod",
+        "role": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S1",
+      "sources": [
+        "recordSchemas.ts:accountsSchema",
+        "recordSchemas.ts:accountsSelectSchema"
+      ]
+    },
+    "agentDirectories": {
+      "fields": {},
+      "owningSlice": "S6",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "aiModels": {
+      "fields": {
+        "capabilities": "zod",
+        "config": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "modelKey": "zod",
+        "provider": "zod",
+        "providerId": "zod",
+        "sortOrder": "zod",
+        "title": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S8",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "recordSchemas.ts:aiModelsIncludeSchema",
+        "recordSchemas.ts:aiModelsSchema",
+        "recordSchemas.ts:aiModelsSelectSchema"
+      ]
+    },
+    "aiProviders": {
+      "fields": {
+        "apiKey": "zod",
+        "baseURL": "zod",
+        "config": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "models": "zod",
+        "provider": "zod",
+        "sortOrder": "zod",
+        "title": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S8",
+      "sources": [
+        "recordSchemas.ts:aiProvidersIncludeSchema",
+        "recordSchemas.ts:aiProvidersSchema",
+        "recordSchemas.ts:aiProvidersSelectSchema"
+      ]
+    },
+    "aiScheduledTask": {
+      "fields": {
+        "accountId": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "isEnabled": "zod",
+        "lastResult": "zod",
+        "lastRun": "zod",
+        "name": "zod",
+        "prompt": "zod",
+        "schedule": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S8",
+      "sources": [
+        "recordSchemas.ts:aiScheduledTaskSchema"
+      ]
+    },
+    "attachments": {
+      "fields": {
+        "accountId": "zod",
+        "createdAt": "zod",
+        "depth": "zod",
+        "id": "zod",
+        "isShare": "zod",
+        "metadata": "zod",
+        "name": "zod",
+        "noteId": "zod",
+        "path": "zod",
+        "perfixPath": "zod",
+        "sharePassword": "zod",
+        "size": "zod",
+        "sortOrder": "zod",
+        "type": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S4",
+      "sources": [
+        "db.ts:DEFINE FIELD",
+        "db.ts:DEFINE INDEX",
+        "db.ts:attachmentFields",
+        "recordSchemas.ts:attachmentsSchema"
+      ]
+    },
+    "cache": {
+      "fields": {
+        "id": "zod",
+        "key": "zod",
+        "value": "zod"
+      },
+      "owningSlice": "S5",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "recordSchemas.ts:cacheSchema"
+      ]
+    },
+    "comments": {
+      "fields": {
+        "accountId": "zod",
+        "content": "zod",
+        "createdAt": "zod",
+        "guestIP": "zod",
+        "guestName": "zod",
+        "guestUA": "zod",
+        "id": "zod",
+        "noteId": "zod",
+        "parentId": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "recordSchemas.ts:commentsSchema"
+      ]
+    },
+    "config": {
+      "fields": {
+        "config": "zod",
+        "id": "zod",
+        "key": "zod"
+      },
+      "owningSlice": "S5",
+      "sources": [
+        "recordSchemas.ts:configSchema",
+        "recordSchemas.ts:configSelectSchema"
+      ]
+    },
+    "conversation": {
+      "fields": {
+        "accountId": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "title": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S6",
+      "sources": [
+        "recordSchemas.ts:conversationSchema"
+      ]
+    },
+    "follows": {
+      "fields": {
+        "accountId": "zod",
+        "createdAt": "zod",
+        "description": "zod",
+        "followType": "zod",
+        "id": "zod",
+        "siteAvatar": "zod",
+        "siteName": "zod",
+        "siteUrl": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S6",
+      "sources": [
+        "recordSchemas.ts:followsSchema"
+      ]
+    },
+    "fonts": {
+      "fields": {},
+      "owningSlice": "S5",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "history": {
+      "fields": {
+        "accountId": "zod",
+        "content": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "noteId": "zod",
+        "version": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "recordSchemas.ts:historySchema"
+      ]
+    },
+    "mcpServers": {
+      "fields": {
+        "args": "zod",
+        "command": "zod",
+        "createdAt": "zod",
+        "description": "zod",
+        "env": "zod",
+        "headers": "zod",
+        "id": "zod",
+        "isEnabled": "zod",
+        "name": "zod",
+        "type": "zod",
+        "updatedAt": "zod",
+        "url": "zod"
+      },
+      "owningSlice": "S7",
+      "sources": [
+        "recordSchemas.ts:mcpServersSchema"
+      ]
+    },
+    "message": {
+      "fields": {
+        "content": "zod",
+        "conversationId": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "metadata": "zod",
+        "role": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S6",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "recordSchemas.ts:messageSchema"
+      ]
+    },
+    "noteInternalShare": {
+      "fields": {
+        "accountId": "zod",
+        "canEdit": "zod",
+        "id": "zod",
+        "noteId": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "recordSchemas.ts:noteInternalShareSchema"
+      ]
+    },
+    "noteReference": {
+      "fields": {
+        "fromNoteId": "zod",
+        "id": "zod",
+        "toNoteId": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "recordSchemas.ts:noteReferenceSchema"
+      ]
+    },
+    "notes": {
+      "fields": {
+        "account": "option<record<account>>",
+        "accountId": "zod",
+        "assignee": "option<record<account>>",
+        "category": "option<record<category>>",
+        "categoryId": "zod",
+        "content": "zod",
+        "createdAt": "zod",
+        "created_by": "option<record<account>>",
+        "id": "zod",
+        "isArchived": "zod",
+        "isRecycle": "zod",
+        "isReviewed": "zod",
+        "isShare": "zod",
+        "isTop": "zod",
+        "metadata": "zod",
+        "reviewedAt": "option<datetime>",
+        "shareEncryptedUrl": "zod",
+        "shareExpiryDate": "zod",
+        "shareMaxView": "zod",
+        "sharePassword": "zod",
+        "shareViewCount": "zod",
+        "sortOrder": "zod",
+        "syncKey": "option<string>",
+        "type": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "db.ts:DEFINE FIELD",
+        "db.ts:DEFINE INDEX",
+        "db.ts:noteFields",
+        "recordSchemas.ts:notesSchema"
+      ]
+    },
+    "notifications": {
+      "fields": {
+        "accountId": "zod",
+        "content": "zod",
+        "createdAt": "zod",
+        "id": "zod",
+        "isRead": "zod",
+        "metadata": "zod",
+        "title": "zod",
+        "type": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S5",
+      "sources": [
+        "recordSchemas.ts:notificationsSchema"
+      ]
+    },
+    "planningCategories": {
+      "fields": {},
+      "owningSlice": "S3",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "planningFormFields": {
+      "fields": {},
+      "owningSlice": "S3",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "planningLinks": {
+      "fields": {},
+      "owningSlice": "S3",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "plugin": {
+      "fields": {
+        "createdAt": "zod",
+        "id": "zod",
+        "isDev": "zod",
+        "isUse": "zod",
+        "metadata": "zod",
+        "path": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S7",
+      "sources": [
+        "recordSchemas.ts:pluginSchema"
+      ]
+    },
+    "shareApprovals": {
+      "fields": {
+        "accountId": "option<number>",
+        "adminApproved": "option<bool>",
+        "canEdit": "option<bool>",
+        "createdAt": "option<datetime>",
+        "decidedAt": "option<datetime>",
+        "decidedBy": "option<number>",
+        "decisionNote": "option<string>",
+        "expiresAt": "option<datetime>",
+        "inviteeAccountId": "option<number>",
+        "inviteeEmail": "option<string>",
+        "message": "option<string>",
+        "noteId": "option<number>",
+        "requestedBy": "option<number>",
+        "requiresAdmin": "option<bool>",
+        "scope": "option<string>",
+        "status": "option<string>",
+        "token": "option<string>",
+        "updatedAt": "option<datetime>"
+      },
+      "owningSlice": "S6",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "db.ts:shareApprovalFields"
+      ]
+    },
+    "skills": {
+      "fields": {},
+      "owningSlice": "S3",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "studyItems": {
+      "fields": {},
+      "owningSlice": "S3",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    },
+    "tag": {
+      "fields": {
+        "accountId": "option<number>",
+        "createdAt": "zod",
+        "icon": "zod",
+        "id": "zod",
+        "name": "zod",
+        "parent": "zod",
+        "sortOrder": "zod",
+        "updatedAt": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "db.ts:tagFields",
+        "recordSchemas.ts:tagSchema"
+      ]
+    },
+    "tagsToNote": {
+      "fields": {
+        "id": "zod",
+        "noteId": "zod",
+        "tagId": "zod"
+      },
+      "owningSlice": "S2",
+      "sources": [
+        "db.ts:DEFINE INDEX",
+        "recordSchemas.ts:tagsToNoteSchema"
+      ]
+    },
+    "tickets": {
+      "fields": {},
+      "owningSlice": "S3",
+      "sources": [
+        "db.ts:DEFINE INDEX"
+      ]
+    }
+  }
+}

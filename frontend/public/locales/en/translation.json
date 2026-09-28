@@ -1218,5 +1218,6 @@
   "folders": "Folders",
   "documents": "Documents",
   "expand-folder": "Expand folder",
-  "collapse-folder": "Collapse folder"
+  "collapse-folder": "Collapse folder",
+  "update-failed-generic": "Update failed. Please try again."
 }

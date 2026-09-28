@@ -2,8 +2,20 @@ import { z } from "zod"
 import dayjs from "@shared/lib/dayjs"
 
 import { router, authProcedure } from "../middleware"
-import { db, stripIdPrefix } from "../db"
-import { select as surrealSelect } from "../surreal"
+import { computeDailyInsights, computeMonthlyInsights } from "../lib/insights"
+
+const tagStat = z.object({
+  tagName: z.string(),
+  count: z.number()
+})
+
+const monthlyInsight = z.object({
+  noteCount: z.number(),
+  totalWords: z.number(),
+  maxDailyWords: z.number(),
+  activeDays: z.number(),
+  tagStats: z.array(tagStat)
+})
 
 export const analyticsRouter = router({
   dailyNoteCount: authProcedure
@@ -14,21 +26,7 @@ export const analyticsRouter = router({
       count: z.number()
     })))
     .mutation(async function ({ ctx }) {
-      // SurrealDB: group by computed day (replaces to_char + GROUP BY).
-      const rows = await surrealSelect<any>(
-        `SELECT time::format(createdAt, '%Y-%m-%d') AS day, count() AS c
-         FROM notes WHERE accountId = ${parseInt(ctx.id)}
-           AND createdAt >= type::datetime(${JSON.stringify(new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())})
-         GROUP BY day;`
-      );
-      const dailyStats = rows
-        .map(r => ({ date: r.day, count: r.c }))
-        .sort((a, b) => a.date.localeCompare(b.date));
-
-      return dailyStats.map(stat => ({
-        date: stat.date,
-        count: Number(stat.count)
-      }));
+      return computeDailyInsights(parseInt(ctx.id))
     }),
 
   monthlyStats: authProcedure
@@ -36,101 +34,29 @@ export const analyticsRouter = router({
     .input(z.object({
       month: z.string()
     }))
+    .output(monthlyInsight)
+    .mutation(async function ({ ctx, input }) {
+      return computeMonthlyInsights(parseInt(ctx.id), input.month)
+    }),
+
+  // Single entry point (PI-024 #10): both consumers read the same computation.
+  insights: authProcedure
+    .meta({ openapi: { method: 'POST', path: '/v1/analytics/insights', summary: 'Query consolidated insights', protect: true, tags: ['Analytics'] } })
+    .input(z.object({
+      month: z.string().optional()
+    }))
     .output(z.object({
-      noteCount: z.number(),
-      totalWords: z.number(),
-      maxDailyWords: z.number(),
-      activeDays: z.number(),
-      tagStats: z.array(z.object({
-        tagName: z.string(),
-        count: z.number()
-      })).optional()
+      month: z.string(),
+      daily: z.array(z.object({ date: z.string(), count: z.number() })),
+      monthly: monthlyInsight
     }))
     .mutation(async function ({ ctx, input }) {
-      const startDate = dayjs(input.month).startOf('month').toDate()
-      const endDate = dayjs(input.month).endOf('month').toDate()
-
-      const noteCount = await db.notes.count({
-        where: {
-          accountId: parseInt(ctx.id),
-          createdAt: {
-            gte: startDate,
-            lte: endDate
-          }
-        }
-      })
-
-      // SurrealDB: per-day word sums via array group (replaces SUM(LENGTH(content)) GROUP BY).
-      const noteRows = await surrealSelect<any>(
-        `SELECT time::format(createdAt, '%Y-%m-%d') AS day, string::len(content) AS len
-         FROM notes WHERE accountId = ${parseInt(ctx.id)}
-           AND createdAt >= type::datetime(${JSON.stringify(startDate.toISOString())})
-           AND createdAt <= type::datetime(${JSON.stringify(endDate.toISOString())});`
-      )
-      const perDay = new Map<string, number>()
-      for (const row of noteRows) {
-        perDay.set(row.day, (perDay.get(row.day) || 0) + Number(row.len || 0))
-      }
-      const wordStats = [...perDay.entries()]
-        .map(([date, words]) => ({ date, words: BigInt(words) }))
-        .sort((a, b) => (b.words > a.words ? 1 : b.words < a.words ? -1 : 0))
-
-      const totalWords = wordStats.reduce((sum, stat) => sum + Number(stat.words), 0)
-      const maxDailyWords = wordStats.length > 0 ? Number(wordStats[0]!.words) : 0
-      const activeDays = wordStats.length
-
-      // tagsToNote stores numeric noteId/tagId while notes/tag use record ids
-      // (notes:1 / tag:1). Count usage by number id, then map names in JS.
-      const usageRows = await surrealSelect<any>(
-        `SELECT tagId, count() AS c FROM tagsToNote
-         WHERE noteId IN (SELECT VALUE meta::id(id) FROM notes
-                          WHERE accountId = ${parseInt(ctx.id)}
-                            AND createdAt >= type::datetime(${JSON.stringify(startDate.toISOString())})
-                            AND createdAt <= type::datetime(${JSON.stringify(endDate.toISOString())}))
-         GROUP BY tagId;`
-      )
-      const tagRows = await surrealSelect<any>(
-        `SELECT id, name FROM tag WHERE accountId = ${parseInt(ctx.id)};`
-      )
-      const tagNameById = new Map<number, string>()
-      for (const row of tagRows) {
-        const numId = Number(String(row.id).split(':').pop())
-        if (Number.isFinite(numId) && row.name != null) tagNameById.set(numId, String(row.name))
-      }
-      const tagStats = usageRows
-        .map(r => ({
-          name: tagNameById.get(Number(r.tagId)) ?? String(r.tagId),
-          _count: { tagsToNote: Number(r.c) || 0 }
-        }))
-        .filter(tag => tag._count.tagsToNote > 0)
-        .sort((a, b) => b._count.tagsToNote - a._count.tagsToNote)
-
-      const validTags = tagStats.filter(tag => tag._count.tagsToNote > 0)
-      const TOP_TAG_COUNT = 10
-      const topTags = validTags.slice(0, TOP_TAG_COUNT)
-      
-      const otherTagsCount = validTags.slice(TOP_TAG_COUNT).reduce((sum, tag) => sum + tag._count.tagsToNote, 0)
-
-      const finalTagStats = [
-        ...topTags.map(tag => ({
-          tagName: tag.name,
-          count: tag._count.tagsToNote
-        }))
-      ]
-
-      if (otherTagsCount > 0) {
-        finalTagStats.push({
-          tagName: 'Others',
-          count: otherTagsCount
-        })
-      }
-
-      return {
-        noteCount,
-        totalWords,
-        maxDailyWords,
-        activeDays,
-        tagStats: finalTagStats
-      }
+      const accountId = parseInt(ctx.id)
+      const month = input.month ?? dayjs().format('YYYY-MM')
+      const [daily, monthly] = await Promise.all([
+        computeDailyInsights(accountId),
+        computeMonthlyInsights(accountId, month)
+      ])
+      return { month, daily, monthly }
     })
 })

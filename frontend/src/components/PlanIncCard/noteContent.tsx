@@ -3,7 +3,7 @@ import { FilesAttachmentRender } from "../Common/AttachmentRender";
 import { Note } from '@/lib/apiTypes';
 import { PlanIncStore } from '@/store/planincStore';
 import { observer } from 'mobx-react-lite';
-import { ReferencesContent } from './referencesContent';
+import { RelatedItems } from '../PlanIncReference/RelatedItems';
 
 interface NoteContentProps {
   planincItem: Note;
@@ -25,7 +25,12 @@ export const NoteContent = observer(({ planincItem, planinc, isExpanded, isShare
         isShareMode={isShareMode}
         largeSpacing={isShareMode || isExpanded}
       />
-      <ReferencesContent planincItem={planincItem} className={`${isExpanded ? 'my-4' : 'my-2'}`} />
+      <RelatedItems
+        note={planincItem}
+        references={planincItem.references as any}
+        referencedBy={planincItem.referencedBy as any}
+        className={`${isExpanded ? 'my-4' : 'my-2'}`}
+      />
       <div className={planincItem.attachments?.length != 0 ? 'my-2' : ''}>
         <FilesAttachmentRender files={planincItem.attachments ?? []} preview />
       </div>

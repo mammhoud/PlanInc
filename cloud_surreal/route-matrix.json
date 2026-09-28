@@ -1,0 +1,1679 @@
+{
+  "generatedFrom": "frontend/src (**/*.ts, **/*.tsx)",
+  "implementedProcedures": [
+    "analytics.dailyNoteCount",
+    "analytics.insights",
+    "analytics.monthlyStats",
+    "attachments.createFolder",
+    "attachments.delete",
+    "attachments.deleteMany",
+    "attachments.list",
+    "attachments.move",
+    "attachments.rename",
+    "branding.get",
+    "branding.setLogo",
+    "comments.create",
+    "comments.delete",
+    "comments.list",
+    "config.ai",
+    "config.getPluginConfig",
+    "config.list",
+    "config.setPluginConfig",
+    "config.update",
+    "fonts.getByName",
+    "fonts.getFontData",
+    "fonts.list",
+    "notes.addReference",
+    "notes.clearRecycleBin",
+    "notes.dailyReviewNoteList",
+    "notes.deleteMany",
+    "notes.detail",
+    "notes.getInternalSharedUsers",
+    "notes.getNoteHistory",
+    "notes.internalShareNote",
+    "notes.list",
+    "notes.listByIds",
+    "notes.noteReferenceList",
+    "notes.publicDetail",
+    "notes.publicList",
+    "notes.randomNoteList",
+    "notes.relatedNotes",
+    "notes.removeReference",
+    "notes.reviewNote",
+    "notes.reviewStats",
+    "notes.shareNote",
+    "notes.trashMany",
+    "notes.updateAttachmentsOrder",
+    "notes.updateMany",
+    "notes.updateNotesOrder",
+    "notes.upsert",
+    "notifications.create",
+    "notifications.delete",
+    "notifications.list",
+    "notifications.markAsRead",
+    "notifications.unreadCount",
+    "ping",
+    "planningCategories.assign",
+    "planningCategories.create",
+    "planningCategories.delete",
+    "planningCategories.list",
+    "planningCategories.reorder",
+    "planningCategories.seedDefaults",
+    "planningCategories.update",
+    "planningFields.create",
+    "planningFields.delete",
+    "planningFields.list",
+    "planningFields.update",
+    "planningLinks.create",
+    "planningLinks.delete",
+    "planningLinks.list",
+    "planningLinks.update",
+    "public.hubList",
+    "public.hubSiteList",
+    "public.latestClientVersion",
+    "public.latestServerVersion",
+    "public.linkPreview",
+    "public.oauthProviders",
+    "public.serverVersion",
+    "public.siteInfo",
+    "public.testHttpProxy",
+    "study.create",
+    "study.delete",
+    "study.dueList",
+    "study.get",
+    "study.list",
+    "study.review",
+    "study.update",
+    "tags.deleteOnlyTag",
+    "tags.deleteTagWithAllNote",
+    "tags.fullTagNameById",
+    "tags.list",
+    "tags.updateTagIcon",
+    "tags.updateTagMany",
+    "tags.updateTagName",
+    "tags.updateTagOrder",
+    "task.list",
+    "task.upsertTask",
+    "tickets.create",
+    "tickets.delete",
+    "tickets.get",
+    "tickets.list",
+    "tickets.update",
+    "users.canRegister",
+    "users.deleteUser",
+    "users.detail",
+    "users.genLowPermToken",
+    "users.genTokenByUserId",
+    "users.generate2FASecret",
+    "users.linkAccount",
+    "users.list",
+    "users.login",
+    "users.nativeAccountList",
+    "users.publicUserList",
+    "users.regenToken",
+    "users.register",
+    "users.unlinkAccount",
+    "users.upsertUser",
+    "users.upsertUserByAdmin",
+    "users.verify2FAToken"
+  ],
+  "patterns": [
+    "api.<router>.<procedure>",
+    "streamApi.<router>.<procedure>"
+  ],
+  "symbols": {
+    "agentDirectories.create": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/AgentDirectorySetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "agentDirectories.delete": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/AgentDirectorySetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "agentDirectories.list": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/AgentDirectorySetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "agentDirectories.reorder": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/AgentDirectorySetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "agentDirectories.update": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncSettings/AgentDirectorySetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "ai.autoEmoji": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.autoTag": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.completions": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.createModel": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.createModelsFromProvider": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.createProvider": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.deleteModel": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.deleteProvider": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.embeddingDelete": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncMultiSelectPop/index.tsx",
+        "components/PlanIncRightClickMenu/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.fetchProviderModels": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.getAllModels": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.getAllProviders": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.rebuildEmbeddingProgress": {
+      "calls": 4,
+      "files": [
+        "components/Common/RebuildEmbeddingProgress/index.tsx",
+        "components/PlanIncSettings/AiSetting/EmbeddingSettingsSection.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.rebuildEmbeddingStart": {
+      "calls": 2,
+      "files": [
+        "components/Common/RebuildEmbeddingProgress/index.tsx",
+        "components/PlanIncSettings/AiSetting/EmbeddingSettingsSection.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.rebuildEmbeddingStop": {
+      "calls": 1,
+      "files": [
+        "components/Common/RebuildEmbeddingProgress/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.summarizeConversationTitle": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.testConnect": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncSettings/AiSetting/ModelDialogContent.tsx",
+        "components/PlanIncSettings/AiSetting/ProviderCard.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.updateModel": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.updateProvider": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "ai.writing": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "aiTask.delete": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/TaskSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "aiTask.list": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/TaskSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "aiTask.runNow": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/TaskSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "aiTask.toggle": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/TaskSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S8"
+    },
+    "analytics.dailyNoteCount": {
+      "calls": 1,
+      "files": [
+        "store/analyticsStore.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "analytics.monthlyStats": {
+      "calls": 3,
+      "files": [
+        "pages/dashboard.tsx",
+        "pages/insights.tsx",
+        "store/analyticsStore.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "attachments.createFolder": {
+      "calls": 1,
+      "files": [
+        "store/resourceStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S4"
+    },
+    "attachments.delete": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncResource/ResourceContextMenu.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S4"
+    },
+    "attachments.deleteMany": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncResource/ResourceMultiSelectpop.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S4"
+    },
+    "attachments.list": {
+      "calls": 4,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/graph.tsx",
+        "pages/tickets.tsx",
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S4"
+    },
+    "attachments.move": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncResource/ResourceContextMenu.tsx",
+        "store/resourceStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S4"
+    },
+    "attachments.rename": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncResource/ResourceContextMenu.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S4"
+    },
+    "branding.generateLogo": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BrandSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S5"
+    },
+    "branding.get": {
+      "calls": 2,
+      "files": [
+        "components/Layout/Sidebar.tsx",
+        "components/PlanIncSettings/BrandSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "branding.searchImages": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BrandSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S5"
+    },
+    "branding.setLogo": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BrandSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "comments.create": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncCard/commentButton.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "comments.delete": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncCard/commentButton.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "comments.list": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncCard/commentButton.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "config.list": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "config.update": {
+      "calls": 72,
+      "files": [
+        "components/Common/TwoFactorModal/gen2FATokenModal.tsx",
+        "components/PlanIncSettings/AiSetting/AiPostProcessingSection.tsx",
+        "components/PlanIncSettings/AiSetting/AiToolsSection.tsx",
+        "components/PlanIncSettings/AiSetting/DefaultModelsSection.tsx",
+        "components/PlanIncSettings/AiSetting/EmbeddingSettingsSection.tsx",
+        "components/PlanIncSettings/AiSetting/GlobalPromptSection.tsx",
+        "components/PlanIncSettings/BasicSetting.tsx",
+        "components/PlanIncSettings/CategorySetting.tsx",
+        "components/PlanIncSettings/HotkeySetting.tsx",
+        "components/PlanIncSettings/HttpProxySetting.tsx",
+        "components/PlanIncSettings/ImportAIDialog.tsx",
+        "components/PlanIncSettings/MusicSetting.tsx",
+        "components/PlanIncSettings/PerferSetting.tsx",
+        "components/PlanIncSettings/SSOSetting.tsx",
+        "components/PlanIncSettings/StorageSetting.tsx",
+        "components/PlanIncSettings/TaskSetting.tsx",
+        "components/PlanIncSettings/registry/RegistrySettingItem.tsx",
+        "pages/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "conversation.clearMessages": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncAi/aiInput.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.create": {
+      "calls": 2,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.delete": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncAi/aiConversactionList.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.detail": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.list": {
+      "calls": 4,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/graph.tsx",
+        "pages/tickets.tsx",
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.publicDetail": {
+      "calls": 1,
+      "files": [
+        "pages/ai-share.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.toggleShare": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncAi/aiChatBox.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "conversation.update": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncAi/aiConversactionList.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "follows.follow": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncFollowDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "follows.followList": {
+      "calls": 1,
+      "files": [
+        "store/hubStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "follows.followerList": {
+      "calls": 1,
+      "files": [
+        "store/hubStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "follows.recommandList": {
+      "calls": 1,
+      "files": [
+        "store/hubStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "follows.unfollow": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncFollowDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "fonts.getFontData": {
+      "calls": 1,
+      "files": [
+        "lib/fontManager.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "fonts.list": {
+      "calls": 2,
+      "files": [
+        "components/Common/FontSwitcher/index.tsx",
+        "store/user.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "mcpServers.connectionStatus": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.create": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.delete": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.disconnect": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.list": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.testConnection": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.toggle": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "mcpServers.update": {
+      "calls": 1,
+      "files": [
+        "store/aiSettingStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "message.clearAfter": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "message.create": {
+      "calls": 5,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "message.delete": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "message.update": {
+      "calls": 1,
+      "files": [
+        "store/aiStore.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "notes.clearRecycleBin": {
+      "calls": 1,
+      "files": [
+        "components/Layout/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.dailyReviewNoteList": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.deleteMany": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncMultiSelectPop/index.tsx",
+        "components/PlanIncRightClickMenu/index.tsx",
+        "pages/review.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.detail": {
+      "calls": 6,
+      "files": [
+        "components/PlanIncCard/referencesContent.tsx",
+        "components/PlanIncNoteHistory/NoteHistoryModal.tsx",
+        "components/PlanIncReference/RelatedItems.tsx",
+        "pages/review.tsx",
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.getInternalSharedUsers": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.getNoteHistory": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncNoteHistory/NoteHistoryModal.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.internalShareNote": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.list": {
+      "calls": 7,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "components/PlanincPlanning/RelatedLinks.tsx",
+        "pages/resources.tsx",
+        "pages/tickets.tsx",
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.listByIds": {
+      "calls": 1,
+      "files": [
+        "components/Common/Editor/editorStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.noteReferenceList": {
+      "calls": 4,
+      "files": [
+        "components/PlanIncReference/RelatedItems.tsx",
+        "components/PlanIncReference/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.publicDetail": {
+      "calls": 1,
+      "files": [
+        "pages/share/[id].tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.publicList": {
+      "calls": 1,
+      "files": [
+        "store/hubStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.randomNoteList": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.relatedNotes": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncRightClickMenu/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.removeReference": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncReference/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.reviewNote": {
+      "calls": 2,
+      "files": [
+        "pages/review.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.reviewStats": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.shareNote": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.trashMany": {
+      "calls": 2,
+      "files": [
+        "lib/trashWithUndo.ts",
+        "pages/resources.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.updateAttachmentsOrder": {
+      "calls": 1,
+      "files": [
+        "components/Common/AttachmentRender/DraggableFileGrid.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.updateMany": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncMultiSelectPop/index.tsx",
+        "lib/trashWithUndo.ts",
+        "pages/resources.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.updateNotesOrder": {
+      "calls": 1,
+      "files": [
+        "hooks/useDragCard.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notes.upsert": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncNoteHistory/NoteHistoryModal.tsx",
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "notifications.list": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncNotification/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "notifications.markAsRead": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncNotification/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "notifications.unreadCount": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncNotification/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "planningCategories.assign": {
+      "calls": 1,
+      "files": [
+        "pages/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningCategories.create": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/CategorySetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningCategories.delete": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/CategorySetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningCategories.list": {
+      "calls": 3,
+      "files": [
+        "components/Common/CategorySelector/index.tsx",
+        "components/PlanIncSettings/CategorySetting.tsx",
+        "pages/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningCategories.reorder": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/CategorySetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningCategories.seedDefaults": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/CategorySetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningCategories.update": {
+      "calls": 4,
+      "files": [
+        "components/PlanIncSettings/CategorySetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningFields.create": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/FormFieldSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningFields.delete": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/FormFieldSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningFields.list": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncSettings/FormFieldSetting.tsx",
+        "components/PlanincPlanning/PlanningCrudModal.tsx",
+        "pages/graph.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningFields.update": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncSettings/FormFieldSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningLinks.create": {
+      "calls": 2,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningLinks.delete": {
+      "calls": 2,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningLinks.list": {
+      "calls": 5,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "components/PlanincPlanning/RelatedLinks.tsx",
+        "pages/graph.tsx",
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "planningLinks.update": {
+      "calls": 2,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "plugin.getAllPlugins": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "plugin.getInstalledPlugins": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "plugin.getPluginCssContents": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "plugin.installPlugin": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "plugin.saveAdditionalDevFile": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "plugin.saveDevPlugin": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "plugin.uninstallPlugin": {
+      "calls": 1,
+      "files": [
+        "store/plugin/pluginManagerStore.ts"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "public.hubSiteList": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncFollowDialog/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.latestClientVersion": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/AboutSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.latestServerVersion": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/AboutSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.linkPreview": {
+      "calls": 1,
+      "files": [
+        "components/Common/MarkdownRender/LinkPreview.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.musicMetadata": {
+      "calls": 1,
+      "files": [
+        "components/Common/AttachmentRender/audioRender.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S5"
+    },
+    "public.oauthProviders": {
+      "calls": 1,
+      "files": [
+        "pages/signin.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.serverVersion": {
+      "calls": 3,
+      "files": [
+        "components/PlanIncSettings/AboutSetting.tsx",
+        "components/PlanIncSettings/PluginSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.siteInfo": {
+      "calls": 1,
+      "files": [
+        "store/hubStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "public.testHttpProxy": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/HttpProxySetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S5"
+    },
+    "shareApprovals.acceptInvite": {
+      "calls": 1,
+      "files": [
+        "pages/share/invite.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.decide": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.forNote": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncShareDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.inbox": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.inviteByEmail": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncShareDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.outgoing": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.pendingAdmin": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.policy": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.requestInternal": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncShareDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.requestPublic": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncShareDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.revoke": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx",
+        "components/PlanIncShareDialog/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "shareApprovals.setPolicy": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ShareApprovalSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S6"
+    },
+    "skills.create": {
+      "calls": 1,
+      "files": [
+        "pages/skills.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "skills.delete": {
+      "calls": 1,
+      "files": [
+        "pages/skills.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "skills.list": {
+      "calls": 1,
+      "files": [
+        "pages/skills.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "skills.update": {
+      "calls": 1,
+      "files": [
+        "pages/skills.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S7"
+    },
+    "study.create": {
+      "calls": 1,
+      "files": [
+        "pages/study.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "study.delete": {
+      "calls": 1,
+      "files": [
+        "pages/study.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "study.dueList": {
+      "calls": 1,
+      "files": [
+        "pages/study.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "study.list": {
+      "calls": 7,
+      "files": [
+        "components/Layout/GlobalSearch.tsx",
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/dashboard.tsx",
+        "pages/graph.tsx",
+        "pages/insights.tsx",
+        "pages/study.tsx",
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "study.review": {
+      "calls": 1,
+      "files": [
+        "pages/study.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "study.update": {
+      "calls": 1,
+      "files": [
+        "pages/study.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "tags.deleteOnlyTag": {
+      "calls": 1,
+      "files": [
+        "components/Common/TagListPanel.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.deleteTagWithAllNote": {
+      "calls": 1,
+      "files": [
+        "components/Common/TagListPanel.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.fullTagNameById": {
+      "calls": 1,
+      "files": [
+        "components/Common/Editor/hooks/useEditor.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.list": {
+      "calls": 2,
+      "files": [
+        "pages/resources.tsx",
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.updateTagIcon": {
+      "calls": 3,
+      "files": [
+        "components/Common/TagListPanel.tsx",
+        "store/aiStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.updateTagMany": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncMultiSelectPop/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.updateTagName": {
+      "calls": 1,
+      "files": [
+        "components/Common/TagListPanel.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "tags.updateTagOrder": {
+      "calls": 2,
+      "files": [
+        "components/Common/TagListPanel.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S2"
+    },
+    "task.exportMarkdown": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/ExportSetting.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S3"
+    },
+    "task.importFromMarkdown": {
+      "calls": 1,
+      "files": [
+        "components/Common/ImportMarkdownProgress/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S3"
+    },
+    "task.importFromMemos": {
+      "calls": 1,
+      "files": [
+        "components/Common/ImportMemosProgress/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S3"
+    },
+    "task.importFromPlanInc": {
+      "calls": 1,
+      "files": [
+        "components/Common/ImportPlanincProgress/index.tsx"
+      ],
+      "implemented": false,
+      "owningSlice": "S3"
+    },
+    "task.list": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "task.upsertTask": {
+      "calls": 5,
+      "files": [
+        "components/PlanIncSettings/TaskSetting.tsx",
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "tickets.create": {
+      "calls": 1,
+      "files": [
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "tickets.delete": {
+      "calls": 1,
+      "files": [
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "tickets.list": {
+      "calls": 5,
+      "files": [
+        "components/PlanincPlanning/PlanningLinksModal.tsx",
+        "pages/dashboard.tsx",
+        "pages/graph.tsx",
+        "pages/insights.tsx",
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "tickets.update": {
+      "calls": 2,
+      "files": [
+        "pages/tickets.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S3"
+    },
+    "users.canRegister": {
+      "calls": 1,
+      "files": [
+        "store/user.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.deleteUser": {
+      "calls": 2,
+      "files": [
+        "components/PlanIncSettings/UserSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.detail": {
+      "calls": 1,
+      "files": [
+        "store/user.ts"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.genLowPermToken": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BasicSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.generate2FASecret": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BasicSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.linkAccount": {
+      "calls": 1,
+      "files": [
+        "components/Common/Modals/LinkAccountModal.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.list": {
+      "calls": 1,
+      "files": [
+        "store/planincStore.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.nativeAccountList": {
+      "calls": 1,
+      "files": [
+        "components/Common/Modals/LinkAccountModal.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.publicUserList": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncShareDialog/index.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.regenToken": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BasicSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.register": {
+      "calls": 1,
+      "files": [
+        "pages/signup.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.unlinkAccount": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/BasicSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.upsertUser": {
+      "calls": 3,
+      "files": [
+        "components/Common/UpdateUserInfo.tsx",
+        "components/PlanIncSettings/BasicSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.upsertUserByAdmin": {
+      "calls": 1,
+      "files": [
+        "components/PlanIncSettings/UserSetting.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    },
+    "users.verify2FAToken": {
+      "calls": 1,
+      "files": [
+        "components/Common/TwoFactorModal/gen2FATokenModal.tsx"
+      ],
+      "implemented": true,
+      "owningSlice": "S1"
+    }
+  }
+}

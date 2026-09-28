@@ -44,11 +44,16 @@ Affected: `ai_allowed_providers`, `context_roots`, `context_files`,
 
 ## A button is labelled with the wrong text
 
-**Cause.** A duplicate key in the same object literal in `frontend/i18n.mjs`
-— the later declaration wins, discarding the earlier one silently.
-`viewRecycle`/`viewArchive` collided between the toolbar and live-filter groups.
+**Cause.** A duplicate key in the same JSON object in
+`frontend/public/locales/<lang>/translation.json` — the later declaration wins,
+discarding the earlier one silently. Historically the colliding pair was
+`viewRecycle`/`viewArchive` in `frontend/i18n.mjs`, where the toolbar and
+live-filter groups each declared their own value.
 
-**Fix.** Remove the duplicate. Key uniqueness is now asserted by the i18n spec.
+**Fix.** Remove the duplicate, then run
+`python3 projects/scripts/i18n_translate.py --check --target planinc-frontend`
+from the monorepo root so key coverage and untranslated values are both
+reported.
 
 ---
 

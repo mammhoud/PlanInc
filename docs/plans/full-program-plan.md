@@ -52,8 +52,12 @@
 
 ## Milestone 3 — Bidirectional Surreal ↔ Postgres workspace sync (multi-user cloud)
 
-- [x] Done — Surreal→Postgres importer command: accounts→Tenant/User/Member,
+- [ ] Partial — Surreal→Postgres importer command: accounts→Tenant/User/Member,
   notes→workspaces; idempotent keys; rejected-record report (board E2).
+  Implemented against the JSONL export format only; the native SurrealKV
+  reader and explicit target-model mappings remain pending (board E1), and
+  attachment verification is not yet done (board E2). Two PostgreSQL
+  rehearsals (E3) stay blocked externally.
 - [x] Done — Postgres→Surreal publisher: outbox consumer → auth-gated TS
   ingest, idempotency-keyed; tombstones on delete (formint-cloud
   `tombstones.py` pattern).
@@ -79,12 +83,30 @@
 - [x] Done — S1 share preview (`PreviewCard` in share dialog).
 - [x] Done — R2 review-confetti gate fix.
 - [x] Done — R1 review strip (reviewed-today, streak, queue).
-- [ ] Remaining — I1/I2 webhook completion + plugin capability warning.
+- [x] Done — I1 webhook completion: `SendWebhook` now signs each body with
+  HMAC-SHA256 (`X-PlanInc-Signature`, `WEBHOOK_SECRET` or `NEXTAUTH_SECRET`),
+  sends `X-PlanInc-Event`/`X-PlanInc-Delivery`, and records every attempt in a
+  `webhookDelivery` table (`server/lib/helper.ts`).
+- [x] Done — I2 plugin capability warning: plugins declare `capabilities`
+  (`BasePlugin`, `pluginInfoSchema`); `PluginApiStore.capabilityWarnings` +
+  guard in `pluginManagerStore` warn on undeclared use (deny behind
+  `capabilityEnforcement`), surfaced by a banner in `PluginSetting.tsx`.
+  Evidence: `tsc` clean (only pre-existing `bowser` types error);
+  `check:contracts` PASSED.
 - [x] Done — M2 graph module legend (`pages/graph.tsx` legend row).
-- [ ] Remaining — M1 related strip (inline cross-links per module).
-- [ ] Remaining — #8 setting-value tooltips (`ConfigTooltip` exists in
-  `Common/InteractiveTooltip.tsx`, unused — rollout pending).
-- [ ] Remaining — #10 insights single entry point.
+- [x] Done — M1 related strip: reusable inline `<RelatedItems>`
+  (`components/PlanIncReference/RelatedItems.tsx`, same query as
+  `PlanIncReference`), embedded on note surfaces via
+  `PlanIncCard/noteContent.tsx`, plus `PlanincPlanning/RelatedLinks.tsx`
+  bridged into the ticket and study detail dialogs.
+- [x] Done — #8 setting-value tooltips: `ConfigTooltip` rolled out over every
+  registry setting control in `PlanIncSettings/registry/RegistrySettingItem.tsx`
+  (machine key + live value; existing i18n keys only, so locale parity holds).
+- [x] Done — #10 insights single entry point: `server/lib/insights.ts` computes
+  daily/monthly/tag stats and both `analytics.dailyNoteCount`/`monthlyStats` and
+  the new consolidated `analytics.insights` procedure read from it.
+- Evidence: `tsc -p tsconfig.json` clean (only pre-existing `bowser` types error);
+  `bun run --cwd frontend check:contracts` PASSED (159 raw values, baseline 169).
 
 ## Milestone 6 — Verify gates (all green before sign-off)
 

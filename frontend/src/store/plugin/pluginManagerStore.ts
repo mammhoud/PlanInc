@@ -33,6 +33,9 @@ export class PluginManagerStore implements Store {
   });
   private loadedCssFiles: Map<string, HTMLStyleElement[]> = new Map();
   private pluginRetryCount: Map<string, number> = new Map();
+  // PI-024 I2: the plugin whose init() is running, so a capability call can be
+  // attributed to it. Null outside init().
+  private activePlugin: { name: string; capabilities: string[] } | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -269,9 +272,25 @@ export class PluginManagerStore implements Store {
     });
   }
 
+  /** Warn (or, when enforcement is on, deny) an undeclared capability use. */
+  private guardCapability(capability: string) {
+    const active = this.activePlugin;
+    if (!active) return;
+    if ((active.capabilities ?? []).includes(capability)) return;
+    RootStore.Get(PluginApiStore).reportCapabilityWarning(active.name, capability);
+    if (RootStore.Get(PluginApiStore).capabilityEnforcement) {
+      throw new Error(`Plugin "${active.name}" used undeclared capability "${capability}"`);
+    }
+  }
+
   initPlanIncContext() {
     if (typeof window !== 'undefined') {
       const pluginApi = RootStore.Get(PluginApiStore);
+      const guard = <T extends (...args: any[]) => any>(capability: string, fn: T): T =>
+        ((...args: any[]) => {
+          this.guardCapability(capability);
+          return fn(...args);
+        }) as unknown as T;
       const toast = RootStore.Get(ToastPlugin);
       const planincStore = RootStore.Get(PlanIncStore);
       const baseStore = RootStore.Get(BaseStore);
@@ -300,17 +319,17 @@ export class PluginManagerStore implements Store {
         globalRefresh: () => {
           planincStore.updateTicker++;
         },
-        addToolBarIcon: pluginApi.addToolBarIcon.bind(pluginApi),
-        addRightClickMenu: pluginApi.addRightClickMenu.bind(pluginApi),
-        addAiWritePrompt: pluginApi.addAiWritePrompt.bind(pluginApi),
-        showDialog: pluginApi.showDialog.bind(pluginApi),
-        closeDialog: pluginApi.closeDialog.bind(pluginApi),
-        closeToolBarContent: pluginApi.closeToolBarContent.bind(pluginApi),
-        addCardFooterSlot: pluginApi.addCardFooterSlot.bind(pluginApi),
-        addEditorFooterSlot: pluginApi.addEditorFooterSlot.bind(pluginApi),
-        getEditorMetadata: pluginApi.getEditorMetadata.bind(pluginApi),
-        setEditorMetadata: pluginApi.setEditorMetadata.bind(pluginApi),
-        getActiveEditorStore: pluginApi.getActiveEditorStore.bind(pluginApi),
+        addToolBarIcon: guard('addToolBarIcon', pluginApi.addToolBarIcon.bind(pluginApi)),
+        addRightClickMenu: guard('addRightClickMenu', pluginApi.addRightClickMenu.bind(pluginApi)),
+        addAiWritePrompt: guard('addAiWritePrompt', pluginApi.addAiWritePrompt.bind(pluginApi)),
+        showDialog: guard('showDialog', pluginApi.showDialog.bind(pluginApi)),
+        closeDialog: guard('closeDialog', pluginApi.closeDialog.bind(pluginApi)),
+        closeToolBarContent: guard('closeToolBarContent', pluginApi.closeToolBarContent.bind(pluginApi)),
+        addCardFooterSlot: guard('addCardFooterSlot', pluginApi.addCardFooterSlot.bind(pluginApi)),
+        addEditorFooterSlot: guard('addEditorFooterSlot', pluginApi.addEditorFooterSlot.bind(pluginApi)),
+        getEditorMetadata: guard('getEditorMetadata', pluginApi.getEditorMetadata.bind(pluginApi)),
+        setEditorMetadata: guard('setEditorMetadata', pluginApi.setEditorMetadata.bind(pluginApi)),
+        getActiveEditorStore: guard('getActiveEditorStore', pluginApi.getActiveEditorStore.bind(pluginApi)),
       };
     }
   }
@@ -556,7 +575,17 @@ export class PluginManagerStore implements Store {
   private async initPlugin(PluginClass: any, pluginName: string) {
     try {
       const plugin = new PluginClass();
-      plugin.init();
+      // Capability context is only valid while init() runs — that is when a
+      // plugin registers its capabilities. Anything undeclared warns (I2).
+      this.activePlugin = {
+        name: pluginName,
+        capabilities: Array.isArray(plugin.capabilities) ? plugin.capabilities : [],
+      };
+      try {
+        plugin.init();
+      } finally {
+        this.activePlugin = null;
+      }
       this.plugins.set(pluginName, plugin);
       
       if (plugin.withSettingPanel) {

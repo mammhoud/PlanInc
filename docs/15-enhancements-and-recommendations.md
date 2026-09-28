@@ -218,8 +218,10 @@ control that sets it. That is the cheapest way to keep a growing surface
 learnable without a tour library.
 
 **i18n constraint (read before adding tooltip text).** PI-009 enforces locale
-parity in `e2e/i18n-parity.spec.mjs`: a new key must be added to `en` **and to
-all 16 other locales**, or the spec fails. The sidebar tooltips shipped in this
+parity, checked from the monorepo root with
+`python3 projects/scripts/i18n_translate.py --check --target planinc-frontend`:
+a new key must be added to `en` **and to all 16 other locales**, or the check
+reports a missing key or an untranslated value. The sidebar tooltips shipped in this
 pass therefore reuse existing keys (`collapse`, `side-nav-mode-hint`, the nav
 labels) rather than inventing new ones. Any hint in the table above that needs a
 new string must be added through the normal translation workflow — the
