@@ -12,6 +12,14 @@ class Command(BaseCommand):
         parser.add_argument("--input", required=True, type=Path)
         parser.add_argument("--tenant", required=True)
         parser.add_argument("--report", required=True, type=Path)
+        parser.add_argument(
+            "--uploads-root",
+            required=False,
+            type=Path,
+            default=None,
+            help="Optional source uploads directory whose bytes are checked "
+            "against uploads/index.jsonl (existence, size, sha256).",
+        )
 
     def handle(self, *args, **options):
         root = options["input"]
@@ -49,6 +57,9 @@ class Command(BaseCommand):
             "format": manifest.get("format"),
             "checked_files": checked,
             "failures": failures,
+            "attachments": self._verify_uploads(
+                root, manifest, options["uploads_root"], failures
+            ),
             "status": "failed" if failures else "verified",
         }
         report_path = options["report"]
@@ -61,3 +72,80 @@ class Command(BaseCommand):
                 f"Verified export for tenant {options['tenant']}."
             )
         )
+
+    @staticmethod
+    def _verify_uploads(root, manifest, uploads_root, failures):
+        """Verify ``uploads/index.jsonl`` and, when given a root, its bytes.
+
+        Returns the ``attachments`` report section with the indexed file
+        count, total bytes, how many byte-checks ran, and whether the bytes
+        were checked at all. Byte failures reuse the shared ``failures``
+        list so the top-level status flips to ``failed``.
+        """
+        index_path = root / "uploads" / "index.jsonl"
+        if not index_path.is_file():
+            failures.append(
+                {"path": "uploads/index.jsonl", "error": "missing"}
+            )
+            return {
+                "indexed": 0,
+                "bytes": 0,
+                "checked": 0,
+                "bytes_checked": False,
+            }
+
+        entries = [
+            json.loads(line)
+            for line in index_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        summary = {
+            "indexed": len(entries),
+            "bytes": sum(entry.get("size", 0) for entry in entries),
+            "checked": 0,
+            "bytes_checked": uploads_root is not None,
+        }
+        expected = manifest.get("files", {})
+        if expected and (
+            expected.get("count") != summary["indexed"]
+            or expected.get("bytes") != summary["bytes"]
+        ):
+            failures.append(
+                {
+                    "path": "uploads/index.jsonl",
+                    "error": "manifest_mismatch",
+                    "expected": expected,
+                    "actual": {
+                        "count": summary["indexed"],
+                        "bytes": summary["bytes"],
+                    },
+                }
+            )
+        if uploads_root is None:
+            return summary
+
+        for entry in entries:
+            relative = entry.get("path", "")
+            # Reject absolute paths and parent escapes: the index must only
+            # name files inside the uploads root.
+            if (
+                not relative
+                or relative.startswith("/")
+                or ".." in relative.split("/")
+            ):
+                failures.append({"path": relative, "error": "unsafe_path"})
+                continue
+            path = uploads_root / relative
+            if not path.is_file():
+                failures.append({"path": relative, "error": "missing"})
+                continue
+            data = path.read_bytes()
+            summary["checked"] += 1
+            if len(data) != entry.get("size"):
+                failures.append({"path": relative, "error": "size_mismatch"})
+                continue
+            if hashlib.sha256(data).hexdigest() != entry.get("sha256"):
+                failures.append(
+                    {"path": relative, "error": "checksum_mismatch"}
+                )
+        return summary

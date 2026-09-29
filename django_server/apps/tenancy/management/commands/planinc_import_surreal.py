@@ -27,12 +27,24 @@ class Command(BaseCommand):
         if manifest.get("format") != "planinc-export-v1":
             raise CommandError("Unsupported PlanInc export format.")
         tables = manifest.get("records", {})
+        index_path = root / "uploads" / "index.jsonl"
+        if not index_path.is_file():
+            raise CommandError(f"Missing uploads index: {index_path}")
+        indexed = [
+            line
+            for line in index_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
         checkpoint = {
             "tenant": options["tenant"],
             "format": manifest["format"],
             "dry_run": True,
             "completed_tables": sorted(tables),
             "record_counts": tables,
+            "files": manifest.get(
+                "files", {"count": len(indexed), "bytes": 0}
+            ),
+            "indexed_files": len(indexed),
         }
         destination = options["checkpoint"]
         destination.parent.mkdir(parents=True, exist_ok=True)

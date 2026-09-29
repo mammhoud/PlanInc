@@ -84,7 +84,7 @@ install: ## Install source-stack dependencies for `make run`
 	@bun install --frozen-lockfile
 
 test: install ## Run source-stack contract checks and the hermetic Playwright suite
-	@bun run --cwd frontend check:contracts
+	@bun run --cwd src check:contracts
 	@bunx playwright test
 
 test-e2e: install ## Run the hermetic Playwright suite only

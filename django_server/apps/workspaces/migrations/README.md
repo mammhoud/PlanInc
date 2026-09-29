@@ -2,11 +2,12 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `0001_initial.py`, `__init__.py`.
+Modules: `0001_initial.py`, `0002_workspaceinvite.py`, `__init__.py`.
 
 ## Contents
 
 - `0001_initial.py`
+- `0002_workspaceinvite.py`
 - `__init__.py`
 
 ## Public API

@@ -4,12 +4,12 @@
   "private": true,
   "packageManager": "bun@1.2.8",
   "workspaces": [
-    "frontend",
+    "src",
     "server",
     "shared"
   ],
   "scripts": {
-    "dev": "cd frontend && bun run tauri dev",
+    "dev": "cd src && bun run tauri dev",
     "build:web": "turbo run build:web",
     "test": "turbo run test",
     "test:e2e": "playwright test",

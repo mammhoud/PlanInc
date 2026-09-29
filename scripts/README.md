@@ -6,6 +6,7 @@ Development tooling. `generate-dir-docs.py` produces and enforces the per-direct
 
 ## Contents
 
+- `export-figma-tokens.py` - Export PlanInc design tokens to a Figma-importable token file.
 - `generate-dir-docs.py` - Generate per-directory README.md files for PlanInc.
 
 ## Public API

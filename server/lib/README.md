@@ -9,6 +9,7 @@ Server utilities - storage, queues, scheduling and integration clients.
 - `commentWebhook.ts`
 - `files.ts`
 - `helper.ts`
+- `insights.ts`
 - `jobQueue.ts` - Job-queue facade over the SurrealDB-backed scheduler (server/lib/scheduler.ts).
 - `password.ts` - Password hashing (pbkdf2) — shared by the register/login flows and the
 - `proxy.ts` - server/routers/helper/axios.ts

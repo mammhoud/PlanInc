@@ -2,15 +2,16 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Groups 4 sub-areas: `events`, `policies`, `ports`, `services`. It also holds 1 top-level modules.
+Groups 4 sub-areas: `events`, `policies`, `ports`, `services`. It also holds 2 top-level modules.
 
 ## Contents
 
 - `events/` - 2 files
 - `policies/` - 2 files
-- `ports/` - 2 files
+- `ports/` - 4 files
 - `services/` - 2 files
 - `__init__.py`
+- `errors.py` - Shared domain error taxonomy for PlanInc services.
 
 ## Public API
 

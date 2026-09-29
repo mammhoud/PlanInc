@@ -6,7 +6,7 @@ Groups 1 sub-area: `migrations`. It also holds 7 top-level modules.
 
 ## Contents
 
-- `migrations/` - 2 files
+- `migrations/` - 3 files
 - `__init__.py`
 - `apps.py`
 - `models.py`

@@ -7,7 +7,11 @@ Typed API integration boundary for PlanInc.
 ## Contents
 
 - `__init__.py` - Typed API integration boundary for PlanInc.
+- `adapters.py` - Transport adapters between domain services and the API surfaces.
 - `bolt_api.py` - django-bolt integration boundary.
+- `envelopes.py` - Standard JSON envelope for PlanInc API surfaces.
+- `tests.py`
+- `views.py`
 
 ## Public API
 

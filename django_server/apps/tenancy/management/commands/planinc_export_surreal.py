@@ -27,6 +27,14 @@ class Command(BaseCommand):
         parser.add_argument("--source", required=True, type=Path)
         parser.add_argument("--output", required=True, type=Path)
         parser.add_argument("--checksum", choices=["sha256"], default="sha256")
+        parser.add_argument(
+            "--uploads-dir",
+            required=False,
+            type=Path,
+            default=None,
+            help="Optional source uploads directory to index into "
+            "uploads/index.jsonl (relative path, size, sha256 per file).",
+        )
 
     def handle(self, *args, **options):
         source = options["source"]
@@ -88,6 +96,10 @@ class Command(BaseCommand):
                 checksums.append(f"{digest}  {path.relative_to(output)}")
                 manifest["records"][table] = len(rows)
 
+        manifest["files"] = self._index_uploads(
+            output, options["uploads_dir"], checksums
+        )
+
         (output / "manifest.json").write_text(
             json.dumps(manifest, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
@@ -98,6 +110,51 @@ class Command(BaseCommand):
         )
         self.stdout.write(
             self.style.SUCCESS(
-                f"Exported {len(manifest['records'])} tables."
+                f"Exported {len(manifest['records'])} tables "
+                f"and {manifest['files']['count']} files."
             )
         )
+
+    @staticmethod
+    def _index_uploads(output, uploads_dir, checksums):
+        """Write ``uploads/index.jsonl`` and return the manifest summary.
+
+        Each line records the file's source-relative POSIX path, byte size,
+        and SHA-256 digest, so ``planinc_verify_import`` can prove the bytes
+        survived the copy. Without ``--uploads-dir`` an empty (0-line) index
+        is written so the export keeps the ``planinc-export-v1`` shape.
+        """
+        uploads_out = output / "uploads"
+        uploads_out.mkdir(parents=True, exist_ok=True)
+        index_path = uploads_out / "index.jsonl"
+
+        entries = []
+        if uploads_dir is not None:
+            if not uploads_dir.is_dir():
+                raise CommandError(
+                    f"Uploads directory does not exist: {uploads_dir}"
+                )
+            for path in sorted(
+                p for p in uploads_dir.rglob("*") if p.is_file()
+            ):
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                entries.append(
+                    {
+                        "path": path.relative_to(uploads_dir).as_posix(),
+                        "size": path.stat().st_size,
+                        "sha256": digest,
+                    }
+                )
+
+        with index_path.open("w", encoding="utf-8") as handle:
+            for entry in entries:
+                handle.write(
+                    json.dumps(entry, sort_keys=True, separators=(",", ":"))
+                    + "\n"
+                )
+        digest = hashlib.sha256(index_path.read_bytes()).hexdigest()
+        checksums.append(f"{digest}  {index_path.relative_to(output)}")
+        return {
+            "count": len(entries),
+            "bytes": sum(entry["size"] for entry in entries),
+        }

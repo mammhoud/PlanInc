@@ -2,11 +2,14 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `0001_initial.py`, `__init__.py`.
+Modules: `0001_initial.py`, `0002_note_external_id_and_more.py`, `0003_note_author.py`, `0004_note_workspace_notecomment_tag_note_tags_notelink_and_more.py`, `__init__.py`.
 
 ## Contents
 
 - `0001_initial.py`
+- `0002_note_external_id_and_more.py`
+- `0003_note_author.py`
+- `0004_note_workspace_notecomment_tag_note_tags_notelink_and_more.py`
 - `__init__.py`
 
 ## Public API

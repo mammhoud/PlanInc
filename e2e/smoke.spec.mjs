@@ -17,6 +17,7 @@ import { signIn, watchConsole } from './support.mjs';
 // entry points. Routes that need a record id (`/detail/*`, `/share/:id`,
 // `/ai-share/:id`) and the Tauri quick windows (`/quicknote`, `/quickai`,
 // `/quicktool`) are covered elsewhere or not part of the web shell.
+// `/analytics` is a redirect to `/insights`, asserted separately.
 const ROUTES = [
   '/',
   '/dashboard',
@@ -26,9 +27,10 @@ const ROUTES = [
   '/review',
   '/settings',
   '/plugin',
-  '/analytics',
+  '/insights',
   '/tickets',
   '/study',
+  '/skills',
   '/graph',
   '/all',
 ];
@@ -83,5 +85,27 @@ test.describe('core surfaces', () => {
     await expect(root).toHaveAttribute('data-shadow-style', /flat|soft|strong/);
     await expect(root).toHaveAttribute('data-corner-style', /sharp|rounded/);
     await expect(root).toHaveAttribute('dir', /ltr|rtl/);
+  });
+
+  test('redirects /analytics to /insights', async ({ page }) => {
+    await page.goto('/analytics');
+    await expect(page).toHaveURL(/\/insights/, { timeout: 30_000 });
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('redirects unauthenticated users to /signin', async ({ page }) => {
+    // No signIn() here: a fresh context has no `planincToken`.
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/signin/, { timeout: 30_000 });
+    await expect(page.locator('body')).toBeVisible();
+  });
+
+  test('renders the signin form after loading', async ({ page }) => {
+    await page.goto('/signin');
+    await expect(page.locator('body')).toBeVisible({ timeout: 30_000 });
+    // The auth shell settles into a real form, not a stuck loader.
+    await expect(page.locator('#username')).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('#password')).toBeVisible();
+    await expect(page.getByRole('button', { name: /sign/i }).first()).toBeVisible();
   });
 });

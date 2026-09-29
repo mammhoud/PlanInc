@@ -2,11 +2,13 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `0001_initial.py`, `__init__.py`.
+Modules: `0001_initial.py`, `0002_rename_operations__publish_5c43f9_idx_operations__publish_920a41_idx_and_more.py`, `0003_jobcheckpoint_retentionpolicy_retentionrecord.py`, `__init__.py`.
 
 ## Contents
 
 - `0001_initial.py`
+- `0002_rename_operations__publish_5c43f9_idx_operations__publish_920a41_idx_and_more.py`
+- `0003_jobcheckpoint_retentionpolicy_retentionrecord.py`
 - `__init__.py`
 
 ## Public API

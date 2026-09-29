@@ -11,6 +11,7 @@ REST routes: auth, files, MCP, OpenAI-compatible API and RSS.
 - `mcp.ts`
 - `openai.ts`
 - `rss.ts`
+- `sync.ts` - Postgres → Surreal sync ingest (Django outbox deliverables).
 
 ## Public API
 

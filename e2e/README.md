@@ -2,10 +2,11 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Groups 1 sub-area: `canonical`. It also holds 5 top-level modules.
+Groups 2 sub-areas: `.artifacts`, `canonical`. It also holds 5 top-level modules.
 
 ## Contents
 
+- `.artifacts/` - 1 file
 - `canonical/` - 2 files
 - `graph.spec.mjs` - Knowledge-graph interactions for the active `frontend/` app.
 - `resources-drag.spec.mjs` - Drag-and-drop port coverage for the active `frontend/` app: the resources page

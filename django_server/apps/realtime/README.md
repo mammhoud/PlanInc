@@ -2,7 +2,7 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `__init__.py`, `apps.py`, `consumers.py`, `middleware.py`, `routing.py`, `tasks.py`.
+Modules: `__init__.py`, `apps.py`, `consumers.py`, `middleware.py`, `publish.py`, `routing.py`, and 2 more.
 
 ## Contents
 
@@ -10,8 +10,10 @@ Modules: `__init__.py`, `apps.py`, `consumers.py`, `middleware.py`, `routing.py`
 - `apps.py`
 - `consumers.py`
 - `middleware.py`
+- `publish.py` - Realtime publish boundary.
 - `routing.py`
 - `tasks.py`
+- `tests.py`
 
 ## Public API
 

@@ -6,11 +6,11 @@ Groups 1 sub-area: `migrations`. It also holds 7 top-level modules.
 
 ## Contents
 
-- `migrations/` - 2 files
+- `migrations/` - 5 files
 - `__init__.py`
 - `apps.py`
 - `models.py`
-- `services.py`
+- `services.py` - Notes use cases: capture, edit, history, tags, comments, and links.
 - `tests.py`
 - `urls.py`
 - `views.py`

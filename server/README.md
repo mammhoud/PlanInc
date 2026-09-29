@@ -10,9 +10,9 @@ Backend: Express + tRPC API, AI provider abstraction and background jobs.
 - `__tests__/` - 10 files
 - `aiServer/` - 22 files
 - `jobs/` - 8 files
-- `lib/` - 8 files
+- `lib/` - 9 files
 - `middleware/` - 1 file
-- `routerExpress/` - 12 files
+- `routerExpress/` - 13 files
 - `routerTrpc/` - 28 files
 - `scripts/` - 2 files
 - `seedfiles/` - 6 files

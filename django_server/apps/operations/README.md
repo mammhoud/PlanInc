@@ -2,11 +2,12 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Groups 1 sub-area: `migrations`. It also holds 5 top-level modules.
+Groups 2 sub-areas: `management`, `migrations`. It also holds 5 top-level modules.
 
 ## Contents
 
-- `migrations/` - 2 files
+- `management/` - 1 file
+- `migrations/` - 4 files
 - `__init__.py`
 - `apps.py`
 - `models.py`

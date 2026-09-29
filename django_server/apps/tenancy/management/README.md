@@ -6,7 +6,7 @@ Management commands for PlanInc tenancy.
 
 ## Contents
 
-- `commands/` - 7 files
+- `commands/` - 8 files
 - `__init__.py` - Management commands for PlanInc tenancy.
 
 ## Public API

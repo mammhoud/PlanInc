@@ -2,12 +2,14 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Modules: `__init__.py`, `outbox.py`.
+Modules: `__init__.py`, `ai.py`, `outbox.py`, `secrets.py`.
 
 ## Contents
 
 - `__init__.py`
+- `ai.py` - AI chat transport boundary.
 - `outbox.py`
+- `secrets.py` - Credential-at-rest port.
 
 ## Public API
 

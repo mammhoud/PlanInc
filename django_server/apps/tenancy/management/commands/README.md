@@ -7,6 +7,7 @@ Tenancy management commands.
 ## Contents
 
 - `__init__.py` - Tenancy management commands.
+- `import_surreal_workspace.py` - Import a Surreal export (planinc-export-v1) into one tenant workspace.
 - `planinc_export_surreal.py`
 - `planinc_import_surreal.py`
 - `planinc_verify_import.py`

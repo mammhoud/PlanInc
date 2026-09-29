@@ -69,15 +69,15 @@ jobs:
         run: |
           echo "Current version: ${{ needs.set-version.outputs.version }}"
           # Update version using jq
-          jq '.version = "${{ needs.set-version.outputs.version }}"' frontend/src-tauri/tauri.conf.json > tmp.json && mv tmp.json frontend/src-tauri/tauri.conf.json
+          jq '.version = "${{ needs.set-version.outputs.version }}"' src/src-tauri/tauri.conf.json > tmp.json && mv tmp.json src/src-tauri/tauri.conf.json
           echo "Updated tauri.conf.json:"
-          cat frontend/src-tauri/tauri.conf.json
+          cat src/src-tauri/tauri.conf.json
 
       - name: Commit and Push Updated Version
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add frontend/src-tauri/tauri.conf.json
+          git add src/src-tauri/tauri.conf.json
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
@@ -89,7 +89,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-config
-          path: frontend/src-tauri/tauri.conf.json
+          path: src/src-tauri/tauri.conf.json
 
   # Windows Platform Build Task
   publish-windows:
@@ -114,7 +114,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tauri-config
-          path: frontend/src-tauri/
+          path: src/src-tauri/
 
       - name: Install CUDA Toolkit (Windows CUDA)
         if: matrix.variant == 'cuda'
@@ -174,7 +174,7 @@ jobs:
 
       - name: Fix version format for Windows MSI
         run: |
-          $versionJson = Get-Content -Path frontend/src-tauri/tauri.conf.json | ConvertFrom-Json
+          $versionJson = Get-Content -Path src/src-tauri/tauri.conf.json | ConvertFrom-Json
           $currentVersion = $versionJson.version
 
           if ($currentVersion -match '-(.+)$') {
@@ -182,9 +182,9 @@ jobs:
 
             $versionJson.version = $newVersion
 
-            $jsonContent = Get-Content -Path frontend/src-tauri/tauri.conf.json -Raw
+            $jsonContent = Get-Content -Path src/src-tauri/tauri.conf.json -Raw
             $jsonContent = $jsonContent -replace '"version": "([^"]+)"', "`"version`": `"$newVersion`"" -replace '"version": "([^"]+)"', "`"version`": `"$newVersion`""
-            $jsonContent | Set-Content -Path frontend/src-tauri/tauri.conf.json -NoNewline
+            $jsonContent | Set-Content -Path src/src-tauri/tauri.conf.json -NoNewline
 
             echo "Windows version $currentVersion changed to $newVersion"
           } else {
@@ -213,7 +213,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: frontend/src-tauri
+          workspaces: src/src-tauri
           cache-on-failure: true
 
       - name: Cache Dependencies
@@ -228,20 +228,20 @@ jobs:
       - name: Install Dependencies
         run: |
           bun install
-          cd frontend && bun install
+          cd src && bun install
 
 
       # Copy CUDA config for CUDA builds (with installer checks)
       - name: Use CUDA config (Windows CUDA)
         if: matrix.variant == 'cuda'
         run: |
-          Copy-Item "frontend\src-tauri\tauri.cuda.conf.json" "frontend\src-tauri\tauri.conf.json" -Force
+          Copy-Item "src\src-tauri\tauri.cuda.conf.json" "src\src-tauri\tauri.conf.json" -Force
           echo "Using CUDA configuration with installer CUDA detection"
 
       # Build Windows App (without publishing)
       - name: Build Windows App (${{ matrix.variant }})
         run: |
-          cd frontend
+          cd src
           echo "Starting Windows ${{ matrix.variant }} build..."
           ../node_modules/.bin/tauri build --no-bundle ${{ matrix.features }}
           echo "Windows ${{ matrix.variant }} build completed successfully!"

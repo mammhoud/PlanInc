@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- viewport-fit=cover is required for env(safe-area-inset-*) to be non-zero on
+       notched devices; src/styles/platform.css depends on it for every target whose
+       capabilities.safeAreaInsets is true (phone browsers, PWA, Android, iOS). -->
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="application-name" content="PlanInc" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PlanInc" />
+
+  <!-- App icon / favicon — the brand NEW mark is an inline SVG, so no PNG ever
+       has to be generated to keep the icon crisp at 16px, 32px and on masks.
+       `rel=icon` + `rel=shortcut icon` share the same source; the second one
+       is the legacy IE/shotcut shorthand. -->
+  <link rel="icon" href="/planinc-mark.svg" type="image/svg+xml" />
+  <link rel="shortcut icon" href="/planinc-mark.svg" type="image/svg+xml" />
+
+  <!-- Apple touch icon: 120/152/167/180px are the sizes iOS actually asks for.
+       The PNGs are derived from `planinc-mark.svg`; the ordering below is the
+       fixed mapping (142px→120, 150px→152, 284px→167 + 180). -->
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/Square120x120Logo.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/Square152x152Logo.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/Square167x167Logo.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/Square180x180Logo.png" />
+
+  <meta name="description" content="Open-source, self-hosted note-taking with AI features — your notes, your server, your data." />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- Social unfurl. There were no Open Graph or Twitter tags before this, so
+       every shared PlanInc link rendered as a bare URL with no title, blurb or
+       image. og-image.jpg is 1200x630 (the Open Graph standard) built from the
+       brand concept board; see src/public/README.md for how to regenerate it.
+
+       The image paths are root-relative on purpose. index.html is served as a
+       static file with no HTML templating step — absolute public links are
+       built in app code instead (server/routerTrpc/shareApproval.ts resolves
+       PLANINC_PUBLIC_URL > caller origin > localhost), so a host-specific
+       absolute URL cannot be injected here. Every major crawler resolves a
+       relative og:image against the page URL. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="PlanInc" />
+  <meta property="og:title" content="PlanInc" />
+  <meta property="og:description" content="Open-source, self-hosted note-taking with AI features — your notes, your server, your data." />
+  <meta property="og:image" content="/og-image.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="PlanInc — AI-powered card note-taking and planning" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PlanInc" />
+  <meta name="twitter:description" content="Open-source, self-hosted note-taking with AI features — your notes, your server, your data." />
+  <meta name="twitter:image" content="/og-image.jpg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="msapplication-config" content="/icons/browserconfig.xml" />
+  <meta name="msapplication-TileColor" content="#f59e0b" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <!-- The OS draws the browser/status chrome, so it needs a colour before any
+       stylesheet runs. Media-scoped so the shell matches the app's own theme
+       instead of flashing white in dark mode. These are the two values the
+       token contract has in light/dark for --background; a <meta> cannot read
+       a CSS variable, so this is the one place a literal is unavoidable. -->
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)" />
+
+  <link rel="manifest" href="/manifest.json" />
+  <title>PlanInc</title>
+
+  <!-- Edge-to-edge on iOS: the webview draws under the status bar, which is what
+       makes the safe-area insets in platform.css meaningful. -->
+  <!-- 
+  <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+  <script>
+    var vConsole = new window.VConsole();
+  </script> -->
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <script type="text/javascript" id="vditorIconScript">
+    document.body.insertAdjacentHTML('afterBegin', `
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+     
+      <symbol id="vditor-icon-up" viewBox="0 0 32 32">
+        <path d="M31.936 26.244l-14.846-20.466c-0.539-0.741-1.642-0.741-2.177 0l-14.85 20.466c-0.040 0.055-0.064 0.124-0.064 0.198 0 0.186 0.151 0.337 0.337 0.337 0 0 0.001 0 0.001 0h3.158c0.215 0 0.417-0.105 0.543-0.278l11.961-16.488 11.961 16.488c0.126 0.173 0.328 0.278 0.543 0.278h3.158c0.274 0 0.434-0.312 0.274-0.535z"></path>
+      </symbol>
+    </defs>
+  </svg>`)
+  </script>
+</body>
+
+</html>

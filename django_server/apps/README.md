@@ -6,12 +6,21 @@ PlanInc Django applications.
 
 ## Contents
 
+- `accounts/` - 10 files
+- `ai/` - 9 files
+- `analytics/` - 9 files
+- `audit/` - 9 files
+- `fragments/` - 7 files
 - `health/` - 5 files
-- `notes/` - 9 files
-- `operations/` - 7 files
-- `realtime/` - 6 files
-- `tenancy/` - 17 files
-- `workspaces/` - 9 files
+- `integrations/` - 9 files
+- `knowledge/` - 9 files
+- `notes/` - 12 files
+- `operations/` - 10 files
+- `planning/` - 9 files
+- `realtime/` - 8 files
+- `search/` - 9 files
+- `tenancy/` - 22 files
+- `workspaces/` - 10 files
 - `__init__.py` - PlanInc Django applications.
 
 ## Public API

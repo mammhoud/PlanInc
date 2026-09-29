@@ -2,17 +2,21 @@
 
 > Part of **PlanInc** — AI-powered card note-taking and planning
 
-Groups 2 sub-areas: `management`, `migrations`. It also holds 7 top-level modules.
+Groups 2 sub-areas: `management`, `migrations`. It also holds 11 top-level modules.
 
 ## Contents
 
-- `management/` - 8 files
+- `management/` - 9 files
 - `migrations/` - 2 files
 - `__init__.py`
+- `adapters.py` - allauth adapter: link OAuth identities to tenants by verified email.
 - `apps.py`
+- `jwt.py` - Session JWT authority shared with the TypeScript server.
 - `models.py`
 - `services.py`
+- `test_export_verify.py` - Tests for uploads indexing (export) and attachment verification.
 - `tests.py`
+- `tests_import.py` - Tests for the Surreal→workspace importer (idempotent, LWW, reported).
 - `urls.py`
 - `views.py`
 
